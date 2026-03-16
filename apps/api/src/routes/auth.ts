@@ -1,0 +1,397 @@
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+import { prisma } from '@sabha/db'
+import { env } from '@sabha/config'
+import { hashPassword, verifyPassword, validatePasswordStrength } from '../lib/password'
+import {
+  generateRefreshToken,
+  saveRefreshToken,
+  rotateRefreshToken,
+  revokeAllUserTokens,
+  blacklistAccessToken,
+  hashToken,
+} from '../lib/tokens'
+import { requireAuth } from '../middleware/auth'
+import { metrics } from '../lib/metrics'
+import { checkLoginRateLimit, recordLoginFailure, clearLoginFailures } from '../middleware/auth-rate-limit'
+import { isEnabled, FLAGS } from '../lib/feature-flags'
+import { sendWelcomeEmail } from '../lib/email'
+
+const signupSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(2).max(100),
+  betaCode: z.string().optional(),
+})
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+})
+
+const refreshSchema = z.object({
+  refreshToken: z.string(),
+})
+
+export async function authRoutes(app: FastifyInstance) {
+  // ─── POST /signup ────────────────────────────────────────────────────────────
+  app.post('/signup', async (request, reply) => {
+    const body = signupSchema.safeParse(request.body)
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+      })
+    }
+
+    const { email, password, name, betaCode } = body.data
+
+    // Beta gate — if BETA_REQUIRED flag is on, validate invite code
+    const betaRequired = await isEnabled(FLAGS.BETA_REQUIRED)
+    let betaInvite: { id: string; code: string } | null = null
+
+    if (betaRequired) {
+      if (!betaCode) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'BETA_REQUIRED', message: 'An invite code is required to join the beta.' },
+        })
+      }
+
+      const invite = await prisma.betaInvite.findUnique({
+        where: { code: betaCode.toUpperCase() },
+      })
+
+      if (!invite || invite.usedById) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'INVALID_BETA_CODE', message: 'This invite code is invalid or has already been used.' },
+        })
+      }
+
+      if (invite.expiresAt && invite.expiresAt < new Date()) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'EXPIRED_BETA_CODE', message: 'This invite code has expired.' },
+        })
+      }
+
+      if (invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'CODE_EMAIL_MISMATCH', message: 'This invite code was issued for a different email address.' },
+        })
+      }
+
+      betaInvite = invite
+    }
+
+    // Password strength check
+    const strength = validatePasswordStrength(password)
+    if (!strength.valid) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'WEAK_PASSWORD', message: strength.message },
+      })
+    }
+
+    // Check email uniqueness
+    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+    if (existing) {
+      return reply.status(409).send({
+        success: false,
+        error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists' },
+      })
+    }
+
+    const passwordHash = await hashPassword(password)
+
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        name,
+        passwordHash,
+        isBeta: betaInvite !== null,
+        betaCode: betaInvite?.code || null,
+        usageStats: { create: {} },
+      },
+      select: { id: true, email: true, name: true, tier: true, createdAt: true },
+    })
+
+    // Mark invite as used
+    if (betaInvite) {
+      await prisma.betaInvite.update({
+        where: { id: betaInvite.id },
+        data: { usedById: user.id, usedAt: new Date() },
+      })
+    }
+
+    // Auto-create personal workspace for every new user
+    const workspaceSlug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)}-${user.id.slice(-6)}`
+    const personalWorkspace = await prisma.workspace.create({
+      data: {
+        name: `${name}'s Workspace`,
+        slug: workspaceSlug,
+        type: 'PERSONAL',
+        ownerId: user.id,
+        members: {
+          create: {
+            userId: user.id,
+            role: 'OWNER',
+            acceptedAt: new Date(),
+          },
+        },
+      },
+    })
+
+    // Set as current workspace
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { currentWorkspaceId: personalWorkspace.id },
+    })
+
+    // Send welcome email (non-blocking)
+    if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
+      sendWelcomeEmail({ to: email, name, betaCode: betaInvite?.code }).catch(() => {})
+    }
+
+    // Issue tokens
+    const accessToken = app.jwt.sign({ sub: user.id, email: user.email, tier: user.tier })
+    const refreshToken = generateRefreshToken()
+
+    await saveRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      userAgent: request.headers['user-agent'],
+      ipAddress: request.ip,
+    })
+
+    return reply.status(201).send({
+      success: true,
+      data: {
+        user,
+        tokens: {
+          accessToken,
+          refreshToken,
+          expiresIn: 15 * 60, // 15 minutes in seconds
+        },
+      },
+    })
+  })
+
+  // ─── POST /login ─────────────────────────────────────────────────────────────
+  app.post('/login', {
+    preHandler: [checkLoginRateLimit],
+    config: { rateLimit: { max: 20, timeWindow: '1 minute' } }, // tighter than global
+  }, async (request, reply) => {
+    const body = loginSchema.safeParse(request.body)
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+      })
+    }
+
+    const { email, password } = body.data
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { id: true, email: true, name: true, tier: true, status: true, passwordHash: true },
+    })
+
+    // Constant-time response to prevent user enumeration
+    if (!user || !user.passwordHash) {
+      await verifyPassword('dummy', '$2a$12$dummy.hash.to.prevent.timing.attacks')
+      await recordLoginFailure(email)
+      metrics.authFailures.inc({ reason: 'user_not_found' })
+      return reply.status(401).send({
+        success: false,
+        error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' },
+      })
+    }
+
+    const valid = await verifyPassword(password, user.passwordHash)
+    if (!valid) {
+      await recordLoginFailure(email)
+      metrics.authFailures.inc({ reason: 'wrong_password' })
+      return reply.status(401).send({
+        success: false,
+        error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' },
+      })
+    }
+
+    if (user.status !== 'ACTIVE') {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'ACCOUNT_SUSPENDED', message: 'Your account has been suspended' },
+      })
+    }
+
+    // Update last active
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastActiveAt: new Date() },
+    })
+
+    const accessToken = app.jwt.sign({ sub: user.id, email: user.email, tier: user.tier })
+    const refreshToken = generateRefreshToken()
+
+    await saveRefreshToken({
+      userId: user.id,
+      token: refreshToken,
+      userAgent: request.headers['user-agent'],
+      ipAddress: request.ip,
+    })
+
+    // Clear failure counter on successful login
+    await clearLoginFailures(email)
+    metrics.authSuccesses.inc({ method: 'password' })
+    const { passwordHash: _, ...safeUser } = user
+
+    return reply.send({
+      success: true,
+      data: {
+        user: safeUser,
+        tokens: {
+          accessToken,
+          refreshToken,
+          expiresIn: 15 * 60,
+        },
+      },
+    })
+  })
+
+  // ─── POST /refresh ────────────────────────────────────────────────────────────
+  app.post('/refresh', async (request, reply) => {
+    const body = refreshSchema.safeParse(request.body)
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'refreshToken is required' },
+      })
+    }
+
+    // Decode without verification to get userId
+    let userId: string
+    try {
+      const tokenHash = hashToken(body.data.refreshToken)
+      const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } })
+      if (!stored) throw new Error('Not found')
+      userId = stored.userId
+    } catch {
+      return reply.status(401).send({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Invalid refresh token' },
+      })
+    }
+
+    const newRefreshToken = await rotateRefreshToken({
+      oldToken: body.data.refreshToken,
+      userId,
+      userAgent: request.headers['user-agent'],
+      ipAddress: request.ip,
+    })
+
+    if (!newRefreshToken) {
+      return reply.status(401).send({
+        success: false,
+        error: { code: 'TOKEN_REUSE', message: 'Token reuse detected. Please log in again.' },
+      })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, tier: true },
+    })
+
+    if (!user) {
+      return reply.status(401).send({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+      })
+    }
+
+    const accessToken = app.jwt.sign({ sub: user.id, email: user.email, tier: user.tier })
+
+    return reply.send({
+      success: true,
+      data: {
+        tokens: {
+          accessToken,
+          refreshToken: newRefreshToken,
+          expiresIn: 15 * 60,
+        },
+      },
+    })
+  })
+
+  // ─── POST /logout ─────────────────────────────────────────────────────────────
+  app.post('/logout', { preHandler: [requireAuth] }, async (request, reply) => {
+    const token = request.headers.authorization?.replace('Bearer ', '') ?? ''
+
+    // Blacklist current access token
+    const decoded = app.jwt.decode<{ exp: number }>(token)
+    if (decoded?.exp) {
+      const ttl = decoded.exp - Math.floor(Date.now() / 1000)
+      if (ttl > 0) await blacklistAccessToken(token, ttl)
+    }
+
+    // Revoke all refresh tokens
+    await revokeAllUserTokens(request.user!.id)
+
+    return reply.send({ success: true, data: { message: 'Logged out successfully' } })
+  })
+
+  // ─── POST /onboarding ────────────────────────────────────────────────────────
+  app.post('/onboarding', { preHandler: [requireAuth] }, async (request, reply) => {
+    const body = z.object({
+      useCases: z.array(z.string()).optional(),
+    }).safeParse(request.body)
+
+    const prefs = body.success ? { onboardingUseCases: body.data.useCases } : {}
+
+    await prisma.user.update({
+      where: { id: request.user!.id },
+      data: {
+        onboardingStep: -1, // -1 = completed
+        preferences: prefs,
+      },
+    })
+
+    return reply.send({ success: true, data: { onboardingCompleted: true } })
+  })
+
+  // ─── GET /me ─────────────────────────────────────────────────────────────────
+  app.get('/me', { preHandler: [requireAuth] }, async (request, reply) => {
+    const user = await prisma.user.findUnique({
+      where: { id: request.user!.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        tier: true,
+        status: true,
+        emailVerified: true,
+        avatarUrl: true,
+        createdAt: true,
+        subscription: {
+          select: {
+            planId: true,
+            status: true,
+            currentPeriodEnd: true,
+            tasksUsed: true,
+            roundtableTasksUsed: true,
+          },
+        },
+        usageStats: {
+          select: {
+            totalTasksCompleted: true,
+            totalCostUsd: true,
+          },
+        },
+      },
+    })
+
+    return reply.send({ success: true, data: { user } })
+  })
+}

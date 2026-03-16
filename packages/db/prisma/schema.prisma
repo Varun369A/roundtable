@@ -1,0 +1,750 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserTier {
+  FREE
+  STARTER
+  PRO
+  POWER
+  ENTERPRISE
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum TaskStatus {
+  PENDING
+  ROUTING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SubtaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+enum AIModel {
+  claude_3_5_sonnet   @map("claude-3-5-sonnet")
+  claude_3_opus       @map("claude-3-opus")
+  gpt_4o              @map("gpt-4o")
+  gpt_4_turbo         @map("gpt-4-turbo")
+  gemini_pro          @map("gemini-pro")
+  perplexity_sonar    @map("perplexity-sonar")
+  midjourney_v6       @map("midjourney-v6")
+  dalle_3             @map("dalle-3")
+  stability_xl        @map("stability-xl")
+  elevenlabs          @map("elevenlabs")
+  runway_gen3         @map("runway-gen3")
+  sarvam_1            @map("sarvam-1")
+  gamma               @map("gamma")
+}
+
+enum TaskCategory {
+  research
+  copywriting
+  strategy
+  images
+  video
+  audio
+  presentation
+  code
+  translation
+  data_analysis
+  general
+}
+
+enum OutputType {
+  text
+  image
+  audio
+  video
+  file
+  json
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  cancelled
+  trialing
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum WorkspaceType {
+  PERSONAL
+  TEAM
+  ENTERPRISE
+}
+
+enum TemplateCategory {
+  development
+  design
+  learning
+  marketing
+  business
+  content
+  research
+  personal
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  name          String
+  passwordHash  String?     // null if OAuth-only
+  tier          UserTier    @default(FREE)
+  status        UserStatus  @default(ACTIVE)
+  isAdmin       Boolean     @default(false)
+  emailVerified Boolean     @default(false)
+  avatarUrl     String?
+
+  // Preferences stored as JSON
+  preferences   Json        @default("{}")
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  lastActiveAt  DateTime    @default(now())
+
+  // Beta access
+  betaCode           String?   // the invite code used to sign up
+  isBeta             Boolean   @default(false)
+
+  // Onboarding
+  onboardingStep     Int       @default(0) // 0=not started, -1=completed
+
+  // Active workspace (personal workspace is auto-created on signup)
+  currentWorkspaceId String?
+
+  // Relations
+  oauthAccounts    OAuthAccount[]
+  refreshTokens    RefreshToken[]
+  tasks            Task[]
+  subscription     Subscription?
+  billingEvents    BillingEvent[]
+  usageStats       UsageStats?
+  ownedWorkspaces  Workspace[]        @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
+  createdTemplates RoundtableTemplate[] @relation("TemplateCreator")
+  codeProjects     CodeProject[]
+  gitHubConnection GitHubConnection?
+
+  @@index([email])
+  @@index([tier])
+  @@map("users")
+}
+
+model OAuthAccount {
+  id             String   @id @default(cuid())
+  userId         String
+  provider       String   // "google", "github"
+  providerUserId String
+  accessToken    String?
+  refreshToken   String?
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@map("oauth_accounts")
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  userId      String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+  userAgent   String?
+  ipAddress   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ─── Workspaces ───────────────────────────────────────────────────────────────
+
+model Workspace {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?
+  avatarUrl   String?
+  type        WorkspaceType @default(PERSONAL)
+  ownerId     String
+
+  // JSON: { allowMemberInvite, defaultTaskVisibility, requireApprovalForPublish }
+  settings    Json          @default("{\"allowMemberInvite\":false,\"defaultTaskVisibility\":\"private\",\"requireApprovalForPublish\":false}")
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  owner   User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members WorkspaceMember[]
+  invites WorkspaceInvite[]
+  tasks   Task[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(MEMBER)
+  invitedBy   String?
+  acceptedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("workspace_members")
+}
+
+model WorkspaceInvite {
+  id          String        @id @default(cuid())
+  workspaceId String
+  email       String
+  role        WorkspaceRole @default(MEMBER)
+  token       String        @unique
+  expiresAt   DateTime
+  invitedById String
+  acceptedAt  DateTime?
+  createdAt   DateTime      @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([token])
+  @@index([email])
+  @@map("workspace_invites")
+}
+
+// ─── Roundtable Templates ─────────────────────────────────────────────────────
+
+model RoundtableTemplate {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  category    TemplateCategory
+  subcategory String?
+
+  icon        String           // emoji
+  color       String           // tailwind color class
+
+  // JSON: Array of TemplateAgent { model, role, instruction, category, dependsOnPrevious }
+  agents      Json
+
+  examplePrompts String[]      @default([])
+  tags           String[]      @default([])
+
+  useCount    Int              @default(0)
+  isBuiltIn   Boolean          @default(true)
+  isPublic    Boolean          @default(true)
+
+  createdById String?
+  createdBy   User?            @relation("TemplateCreator", fields: [createdById], references: [id])
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  tasks       Task[]
+  analytics   TemplateAnalytics?
+
+  @@index([category])
+  @@index([isBuiltIn, isPublic])
+  @@index([createdById])
+  @@map("roundtable_templates")
+}
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
+
+model Task {
+  id            String      @id @default(cuid())
+  userId        String
+  workspaceId   String?     // null = personal (hidden from workspace)
+  templateId    String?     // which template was used (if any)
+  title         String      // auto-generated short title
+  originalGoal  String      // raw user input
+  status        TaskStatus  @default(PENDING)
+  visibility    String      @default("private") // "private" | "workspace"
+
+  // The context object that travels between AIs — stored as JSON
+  contextObject Json        @default("{}")
+
+  // Accumulated cost tracking
+  totalCostUsd  Decimal     @default(0) @db.Decimal(10, 6)
+
+  // Metadata
+  ipAddress     String?
+  userAgent     String?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  completedAt   DateTime?
+
+  // Relations
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace     Workspace?        @relation(fields: [workspaceId], references: [id])
+  template      RoundtableTemplate? @relation(fields: [templateId], references: [id])
+  subtasks      Subtask[]
+  billingEvents BillingEvent[]
+  codeProject   CodeProject?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])        // dashboard query: my tasks by status
+  @@index([userId, createdAt])     // dashboard query: my tasks sorted by date
+  @@index([workspaceId, status])   // workspace task feed
+  @@index([templateId])            // template usage analytics
+  @@map("tasks")
+}
+
+model Subtask {
+  id            String        @id @default(cuid())
+  taskId        String
+  title         String
+  category      TaskCategory
+  assignedModel AIModel
+  status        SubtaskStatus @default(PENDING)
+
+  // DAG — list of subtask IDs this depends on
+  dependsOn     String[]      @default([])
+
+  // The prompt sent to the AI (built from context + task-specific instruction)
+  inputPrompt   String
+
+  // Execution order within the task
+  executionOrder Int          @default(0)
+
+  // Cost
+  costUsd       Decimal?      @db.Decimal(10, 6)
+  inputTokens   Int?
+  outputTokens  Int?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  startedAt     DateTime?
+  completedAt   DateTime?
+
+  // Relations
+  task    Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  output  SubtaskOutput?
+
+  @@index([taskId])
+  @@index([status])
+  @@index([taskId, status])        // orchestrator: ready subtasks query
+  @@map("subtasks")
+}
+
+model SubtaskOutput {
+  id          String     @id @default(cuid())
+  subtaskId   String     @unique
+  type        OutputType
+  content     String?    // for text outputs
+  fileUrl     String?    // for media outputs
+  fileSizeBytes Int?
+  metadata    Json       @default("{}")
+  createdAt   DateTime   @default(now())
+
+  subtask Subtask @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+
+  @@map("subtask_outputs")
+}
+
+// ─── AI Models Registry ───────────────────────────────────────────────────────
+
+model AIConnector {
+  id              String   @id @default(cuid())
+  model           AIModel  @unique
+  displayName     String
+  provider        String   // "anthropic", "openai", "google", etc.
+  description     String
+  capabilities    String[] // ["text", "reasoning", "code", "vision"]
+  categories      String[] // ["research", "copywriting", ...]
+
+  // Pricing (per 1M tokens or per call)
+  inputCostPer1M  Decimal  @db.Decimal(10, 4)
+  outputCostPer1M Decimal  @db.Decimal(10, 4)
+
+  // Status
+  isActive        Boolean  @default(true)
+  isAvailable     Boolean  @default(true) // live availability check
+
+  // Performance metrics (updated by router)
+  avgLatencyMs    Int      @default(0)
+  successRate     Decimal  @default(1) @db.Decimal(5, 4)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ai_connectors")
+}
+
+// ─── Billing ─────────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  planId               String
+  status               SubscriptionStatus @default(active)
+
+  // Razorpay IDs
+  razorpaySubscriptionId String?          @unique
+  razorpayCustomerId     String?
+
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  // Usage this period
+  tasksUsed            Int                @default(0)
+  roundtableTasksUsed  Int                @default(0)
+
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("subscriptions")
+}
+
+model BillingEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  taskId      String?
+
+  // What happened
+  eventType   String   // "api_call", "subscription_charge", "refund"
+  aiModel     AIModel?
+
+  // Costs
+  costUsd     Decimal  @db.Decimal(10, 6)
+  inputTokens Int?
+  outputTokens Int?
+
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id])
+
+  @@index([userId])
+  @@index([taskId])
+  @@index([createdAt])
+  @@index([userId, createdAt])     // billing history: user's events by date
+  @@index([userId, aiModel])       // analytics: per-user per-model spend
+  @@map("billing_events")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+enum NotificationType {
+  task_completed
+  task_failed
+  workspace_invite
+  weekly_digest
+  system_alert
+  model_fallback
+  healing_applied
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  metadata  Json             @default("{}")
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@map("notifications")
+}
+
+// ─── AI Firewall ──────────────────────────────────────────────────────────────
+
+model FirewallLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  taskId    String?
+  threats   Json     // FirewallThreat[]
+  riskScore Int
+  blocked   Boolean  @default(false)
+  context   String   @default("ai_prompt") // user_input | ai_prompt | ai_output
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([blocked])
+  @@index([createdAt])
+  @@map("firewall_logs")
+}
+
+// ─── Template Analytics ───────────────────────────────────────────────────────
+
+model TemplateAnalytics {
+  id              String   @id @default(cuid())
+  templateId      String   @unique
+  weekStart       DateTime
+  taskCount       Int      @default(0)
+  completionRate  Decimal  @default(0) @db.Decimal(5, 4)
+  avgCostUsd      Decimal  @default(0) @db.Decimal(10, 6)
+  avgDurationMs   Int      @default(0)
+  returnUserRate  Decimal  @default(0) @db.Decimal(5, 4)
+  performanceScore Decimal @default(0) @db.Decimal(5, 2)
+  updatedAt       DateTime @updatedAt
+
+  template RoundtableTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@index([performanceScore])
+  @@map("template_analytics")
+}
+
+// ─── Healing Log ──────────────────────────────────────────────────────────────
+
+enum HealingAction {
+  stale_task_requeued
+  dead_letter_retried
+  fallback_model_used
+  circuit_reset_waited
+  permanently_failed
+}
+
+model HealingLog {
+  id         String        @id @default(cuid())
+  action     HealingAction
+  taskId     String?
+  subtaskId  String?
+  fromModel  String?
+  toModel    String?
+  errorType  String?
+  attempt    Int           @default(1)
+  success    Boolean       @default(false)
+  metadata   Json          @default("{}")
+  createdAt  DateTime      @default(now())
+
+  @@index([taskId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("healing_logs")
+}
+
+// ─── Developer Sandbox ────────────────────────────────────────────────────────
+
+enum SandboxStatus {
+  PENDING
+  TESTING
+  CONFIRMED
+  APPLIED
+  REJECTED
+}
+
+enum SandboxFixType {
+  template_instruction
+  rate_limit
+  fallback_model
+  prompt_adjustment
+  feature_flag
+}
+
+model SandboxSession {
+  id            String         @id @default(cuid())
+  title         String
+  diagnosis     String         // AI-generated problem description
+  proposedFix   Json           // { type: SandboxFixType, target: string, change: any }
+  status        SandboxStatus  @default(PENDING)
+  runCount      Int            @default(0)
+  successCount  Int            @default(0)
+  createdById   String
+  appliedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  runs          SandboxRun[]
+
+  @@index([status])
+  @@index([createdById])
+  @@map("sandbox_sessions")
+}
+
+model SandboxRun {
+  id          String   @id @default(cuid())
+  sessionId   String
+  runNumber   Int
+  passed      Boolean
+  output      Json     @default("{}")  // test task result summary
+  errorMsg    String?
+  durationMs  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  session SandboxSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("sandbox_runs")
+}
+
+// ─── Code Workspace ───────────────────────────────────────────────────────────
+
+enum CodeProjectStatus {
+  ASSEMBLING
+  READY
+  FAILED
+}
+
+model CodeProject {
+  id        String            @id @default(cuid())
+  taskId    String            @unique
+  userId    String
+  name      String            // derived from task title
+  files     Json              // CodeFile[] { path, content, language }
+  status    CodeProjectStatus @default(ASSEMBLING)
+  zipUrl    String?           // R2/local URL after ZIP generation
+  repoUrl   String?           // GitHub repo URL if pushed
+  pushedAt  DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("code_projects")
+}
+
+model GitHubConnection {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  accessToken String
+  login       String   // GitHub username
+  githubId    Int
+  avatarUrl   String?
+  scopes      String   @default("repo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("github_connections")
+}
+
+// ─── Beta Invites ─────────────────────────────────────────────────────────────
+
+model BetaInvite {
+  id          String    @id @default(cuid())
+  code        String    @unique  // e.g. "SABHA-LAUNCH-X7K2"
+  email       String?             // optional: pre-assign to an email
+  note        String?             // internal note (who is this for)
+  usedById    String?
+  usedAt      DateTime?
+  createdById String             // admin who generated it
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  @@index([code])
+  @@index([usedById])
+  @@map("beta_invites")
+}
+
+// ─── Feedback ─────────────────────────────────────────────────────────────────
+
+enum FeedbackType {
+  bug
+  feature_request
+  general
+  praise
+}
+
+model Feedback {
+  id        String       @id @default(cuid())
+  userId    String?
+  type      FeedbackType @default(general)
+  message   String
+  rating    Int?          // 1–5 if provided
+  page      String?       // current URL path
+  metadata  Json         @default("{}")
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("feedback")
+}
+
+// ─── Feature Flags ────────────────────────────────────────────────────────────
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique   // e.g. "new_dashboard", "team_workspaces"
+  enabled     Boolean  @default(false)
+  // JSON: { allowlist: string[] (userIds), rolloutPercent: number 0-100 }
+  config      Json     @default("{}")
+  description String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("feature_flags")
+}
+
+// ─── Usage Stats ──────────────────────────────────────────────────────────────
+
+model UsageStats {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  totalTasksCreated     Int      @default(0)
+  totalTasksCompleted   Int      @default(0)
+  totalSubtasksRun      Int      @default(0)
+  totalCostUsd          Decimal  @default(0) @db.Decimal(10, 4)
+  totalTokensUsed       Int      @default(0)
+  favoriteModel         AIModel?
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("usage_stats")
+}

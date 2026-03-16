@@ -1,0 +1,33 @@
+{
+  "name": "@sabha/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@sabha/types": "*",
+    "next": "14.2.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "framer-motion": "^11.2.0",
+    "zustand": "^4.5.0",
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "14.2.3"
+  }
+}
