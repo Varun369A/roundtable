@@ -39,7 +39,7 @@ import {
 
 const connection = { host: redis.options.host || 'localhost', port: Number(redis.options.port) || 6379 }
 
-export const taskQueue = new Queue<{ taskId: string }>('sabha:tasks', {
+export const taskQueue = new Queue<{ taskId: string }>('sabha-tasks', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -49,7 +49,7 @@ export const taskQueue = new Queue<{ taskId: string }>('sabha:tasks', {
   },
 })
 
-export const subtaskQueue = new Queue<{ subtaskId: string; taskId: string }>('sabha:subtasks', {
+export const subtaskQueue = new Queue<{ subtaskId: string; taskId: string }>('sabha-subtasks', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -59,13 +59,13 @@ export const subtaskQueue = new Queue<{ subtaskId: string; taskId: string }>('sa
   },
 })
 
-export const queueEvents = new QueueEvents('sabha:subtasks', { connection })
+export const queueEvents = new QueueEvents('sabha-subtasks', { connection })
 
 // ─── Task Queue Worker ────────────────────────────────────────────────────────
 // Picks up a task after orchestration and enqueues its first ready subtasks.
 
 export const taskWorker = new Worker<{ taskId: string }>(
-  'sabha:tasks',
+  'sabha-tasks',
   async (job: Job<{ taskId: string }>) => {
     const { taskId } = job.data
     console.log(`[TaskWorker] Processing task ${taskId}`)
@@ -97,7 +97,7 @@ export const taskWorker = new Worker<{ taskId: string }>(
 // Executes a single subtask via the appropriate AI connector.
 
 export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
-  'sabha:subtasks',
+  'sabha-subtasks',
   async (job: Job<{ subtaskId: string; taskId: string }>) => {
     const { subtaskId, taskId } = job.data
     console.log(`[SubtaskWorker] Executing subtask ${subtaskId}`)

@@ -53,150 +53,10 @@ const app = Fastify({
         ? { target: 'pino-pretty', options: { colorize: true } }
         : undefined,
   },
-  // Reject requests with content-type that doesn't match body
   ajv: {
     customOptions: { allErrors: true, coerceTypes: false },
   },
-  // Max request body: 1MB (prevents request-smuggling / memory exhaustion)
   bodyLimit: 1_048_576,
-})
-
-// ─── Plugins ──────────────────────────────────────────────────────────────────
-
-await app.register(helmet, {
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      frameSrc: ["'none'"],
-    },
-  },
-  crossOriginEmbedderPolicy: false, // interferes with CDN assets
-})
-
-await app.register(cors, {
-  origin: env.CORS_ORIGINS.split(','),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-})
-
-await app.register(cookie, {
-  secret: env.JWT_SECRET,
-})
-
-await app.register(jwt, {
-  secret: env.JWT_SECRET,
-  sign: { expiresIn: env.JWT_EXPIRES_IN },
-})
-
-// Multipart file uploads (25 MB limit — enforced here and re-checked in voice routes)
-await app.register(multipart, {
-  limits: {
-    fileSize: 26_214_400, // 25 MB
-    files: 1,             // one file per request
-    fields: 10,           // allow accompanying metadata fields
-  },
-})
-
-// Global rate limit — by IP (shared across all routes)
-await app.register(rateLimit, {
-  global: true,
-  max: 200,
-  timeWindow: '1 minute',
-  redis,
-  keyGenerator: (request) => {
-    return (request.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || request.ip
-  },
-  errorResponseBuilder: () => ({
-    success: false,
-    error: { code: 'RATE_LIMITED', message: 'Too many requests — please slow down' },
-  }),
-})
-
-// Register HTTP metrics hooks (before routes)
-await registerHttpMetrics(app)
-
-// ─── Routes ───────────────────────────────────────────────────────────────────
-
-await app.register(healthRoutes, { prefix: '/health' })
-await app.register(metricsRoutes, { prefix: '/metrics' })
-await app.register(authRoutes, { prefix: '/api/v1/auth' })
-await app.register(taskRoutes, { prefix: '/api/v1/tasks' })
-await app.register(orchestrationRoutes, { prefix: '/api/v1/tasks' })
-await app.register(streamRoutes, { prefix: '/api/v1/stream' })
-await app.register(marketplaceRoutes, { prefix: '/api/v1/marketplace' })
-await app.register(taskReviewRoutes,  { prefix: '/api/v1/tasks' })
-await app.register(billingRoutes, { prefix: '/api/v1/billing' })
-await app.register(webhookRoutes, { prefix: '/api/v1/webhooks' })
-await app.register(languageRoutes, { prefix: '/api/v1/language' })
-await app.register(adminRoutes, { prefix: '/api/v1/admin' })
-await app.register(workspaceRoutes, { prefix: '/api/v1/workspaces' })
-await app.register(templateRoutes, { prefix: '/api/v1/templates' })
-await app.register(betaRoutes, { prefix: '/api/v1/beta' })
-await app.register(feedbackRoutes, { prefix: '/api/v1/feedback' })
-await app.register(notificationRoutes, { prefix: '/api/v1/notifications' })
-await app.register(codeProjectRoutes,  { prefix: '/api/v1/code-projects' })
-await app.register(githubOAuthRoutes,  { prefix: '/api/v1/github' })
-await app.register(envVarsRoutes,      { prefix: '/api/v1' })
-await app.register(aiConnectionsRoutes,       { prefix: '/api/v1/ai-connections' })
-await app.register(routingPreferencesRoutes,  { prefix: '/api/v1/routing-preferences' })
-await app.register(clarificationsRoutes,      { prefix: '/api/v1' })
-await app.register(memoryRoutes,              { prefix: '/api/v1' })
-await app.register(steeringRoutes,            { prefix: '/api/v1' })
-await app.register(scheduledTasksRoutes,      { prefix: '/api/v1' })
-await app.register(sessionsRoutes,            { prefix: '/api/v1' })
-await app.register(workflowsRoutes,           { prefix: '/api/v1' })
-await app.register(voiceRoutes,               { prefix: '/api/v1' })
-await app.register(verificationsRoutes,       { prefix: '/api/v1' })
-await app.register(integrationsRoutes,        { prefix: '/api/v1' })
-await app.register(creditsRoutes,             { prefix: '/api/v1' })
-await app.register(verticalPacksRoutes,       { prefix: '/api/v1' })
-
-// ─── Global error handler ────────────────────────────────────────────────────
-
-app.setErrorHandler((error, request, reply) => {
-  app.log.error({ err: error, url: request.url, method: request.method })
-
-  // Circuit breaker rejection
-  if ((error as NodeJS.ErrnoException).code === 'CIRCUIT_OPEN') {
-    return reply.status(503).send({
-      success: false,
-      error: { code: 'SERVICE_UNAVAILABLE', message: 'AI service temporarily unavailable — please retry shortly' },
-    })
-  }
-
-  if (error.validation) {
-    return reply.status(400).send({
-      success: false,
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid request data', details: error.validation },
-    })
-  }
-
-  if (error.statusCode === 429) {
-    return reply.status(429).send({
-      success: false,
-      error: { code: 'RATE_LIMITED', message: 'Too many requests' },
-    })
-  }
-
-  if (error.statusCode && error.statusCode < 500) {
-    return reply.status(error.statusCode).send({
-      success: false,
-      error: { code: 'API_ERROR', message: error.message },
-    })
-  }
-
-  // Never leak internal error details in production
-  const message = env.NODE_ENV === 'production' ? 'Something went wrong' : error.message
-  return reply.status(500).send({
-    success: false,
-    error: { code: 'INTERNAL_ERROR', message },
-  })
 })
 
 // ─── Graceful shutdown ───────────────────────────────────────────────────────
@@ -209,18 +69,15 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
   app.log.info(`Received ${signal} — shutting down gracefully`)
 
-  // Stop accepting new connections
   await app.close()
   app.log.info('HTTP server closed')
 
-  // Let in-flight BullMQ jobs finish (up to 30s)
   await Promise.allSettled([
     taskWorker.close(),
     subtaskWorker.close(),
   ])
   app.log.info('BullMQ workers closed')
 
-  // Close DB + Redis
   await prisma.$disconnect()
   redis.disconnect()
   app.log.info('Database and Redis disconnected')
@@ -235,13 +92,148 @@ process.on('SIGINT',  () => gracefulShutdown('SIGINT'))
 
 const start = async () => {
   try {
+    // ── Plugins ────────────────────────────────────────────────────────────────
+
+    await app.register(helmet, {
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameSrc: ["'none'"],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    })
+
+    await app.register(cors, {
+      origin: env.CORS_ORIGINS.split(','),
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    })
+
+    await app.register(cookie, {
+      secret: env.JWT_SECRET,
+    })
+
+    await app.register(jwt, {
+      secret: env.JWT_SECRET,
+      sign: { expiresIn: env.JWT_EXPIRES_IN },
+    })
+
+    await app.register(multipart, {
+      limits: {
+        fileSize: 26_214_400,
+        files: 1,
+        fields: 10,
+      },
+    })
+
+    await app.register(rateLimit, {
+      global: true,
+      max: 200,
+      timeWindow: '1 minute',
+      redis,
+      keyGenerator: (request) => {
+        return (request.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || request.ip
+      },
+      errorResponseBuilder: () => ({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'Too many requests — please slow down' },
+      }),
+    })
+
+    await registerHttpMetrics(app)
+
+    // ── Routes ─────────────────────────────────────────────────────────────────
+
+    await app.register(healthRoutes,             { prefix: '/health' })
+    await app.register(metricsRoutes,            { prefix: '/metrics' })
+    await app.register(authRoutes,               { prefix: '/api/v1/auth' })
+    await app.register(taskRoutes,               { prefix: '/api/v1/tasks' })
+    await app.register(orchestrationRoutes,      { prefix: '/api/v1/tasks' })
+    await app.register(streamRoutes,             { prefix: '/api/v1/stream' })
+    await app.register(marketplaceRoutes,        { prefix: '/api/v1/marketplace' })
+    await app.register(taskReviewRoutes,         { prefix: '/api/v1/tasks' })
+    await app.register(billingRoutes,            { prefix: '/api/v1/billing' })
+    await app.register(webhookRoutes,            { prefix: '/api/v1/webhooks' })
+    await app.register(languageRoutes,           { prefix: '/api/v1/language' })
+    await app.register(adminRoutes,              { prefix: '/api/v1/admin' })
+    await app.register(workspaceRoutes,          { prefix: '/api/v1/workspaces' })
+    await app.register(templateRoutes,           { prefix: '/api/v1/templates' })
+    await app.register(betaRoutes,               { prefix: '/api/v1/beta' })
+    await app.register(feedbackRoutes,           { prefix: '/api/v1/feedback' })
+    await app.register(notificationRoutes,       { prefix: '/api/v1/notifications' })
+    await app.register(codeProjectRoutes,        { prefix: '/api/v1/code-projects' })
+    await app.register(githubOAuthRoutes,        { prefix: '/api/v1/github' })
+    await app.register(envVarsRoutes,            { prefix: '/api/v1' })
+    await app.register(aiConnectionsRoutes,      { prefix: '/api/v1/ai-connections' })
+    await app.register(routingPreferencesRoutes, { prefix: '/api/v1/routing-preferences' })
+    await app.register(clarificationsRoutes,     { prefix: '/api/v1' })
+    await app.register(memoryRoutes,             { prefix: '/api/v1' })
+    await app.register(steeringRoutes,           { prefix: '/api/v1' })
+    await app.register(scheduledTasksRoutes,     { prefix: '/api/v1' })
+    await app.register(sessionsRoutes,           { prefix: '/api/v1' })
+    await app.register(workflowsRoutes,          { prefix: '/api/v1' })
+    await app.register(voiceRoutes,              { prefix: '/api/v1' })
+    await app.register(verificationsRoutes,      { prefix: '/api/v1' })
+    await app.register(integrationsRoutes,       { prefix: '/api/v1' })
+    await app.register(creditsRoutes,            { prefix: '/api/v1' })
+    await app.register(verticalPacksRoutes,      { prefix: '/api/v1' })
+
+    // ── Global error handler ───────────────────────────────────────────────────
+
+    app.setErrorHandler((error, request, reply) => {
+      app.log.error({ err: error, url: request.url, method: request.method })
+
+      if ((error as NodeJS.ErrnoException).code === 'CIRCUIT_OPEN') {
+        return reply.status(503).send({
+          success: false,
+          error: { code: 'SERVICE_UNAVAILABLE', message: 'AI service temporarily unavailable — please retry shortly' },
+        })
+      }
+
+      if (error.validation) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: 'Invalid request data', details: error.validation },
+        })
+      }
+
+      if (error.statusCode === 429) {
+        return reply.status(429).send({
+          success: false,
+          error: { code: 'RATE_LIMITED', message: 'Too many requests' },
+        })
+      }
+
+      if (error.statusCode && error.statusCode < 500) {
+        return reply.status(error.statusCode).send({
+          success: false,
+          error: { code: 'API_ERROR', message: error.message },
+        })
+      }
+
+      const message = env.NODE_ENV === 'production' ? 'Something went wrong' : error.message
+      return reply.status(500).send({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message },
+      })
+    })
+
+    // ── Listen ─────────────────────────────────────────────────────────────────
+
     await app.listen({ port: env.PORT, host: '0.0.0.0' })
     app.log.info(`Sabha API running on port ${env.PORT}`)
+
     taskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Task job failed'))
     subtaskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Subtask job failed'))
     app.log.info('BullMQ workers started')
 
-    // Seed built-in vertical packs (idempotent upsert — safe on every startup)
     try {
       await seedBuiltInPacks()
       app.log.info('Vertical packs seeded')
@@ -249,14 +241,13 @@ const start = async () => {
       app.log.error(seedErr, 'Vertical pack seeding failed — API continues without them')
     }
 
-    // Start cron workers (healing, digests, template analytics, queue monitor)
-    // Isolated try/catch so cron failures don't kill the API server
     try {
       await startCronWorkers()
       app.log.info('Cron workers started')
     } catch (cronErr) {
       app.log.error(cronErr, 'Cron workers failed to start — API continues without them')
     }
+
   } catch (err) {
     app.log.error(err)
     process.exit(1)

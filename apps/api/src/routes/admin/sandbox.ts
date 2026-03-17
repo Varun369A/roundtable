@@ -10,7 +10,7 @@
  */
 
 import { FastifyInstance } from 'fastify'
-import Anthropic from 'anthropic'
+import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@sabha/db'
 import { redis } from '../../lib/redis'
 import { requireAuth } from '../../middleware/auth'

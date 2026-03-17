@@ -4,7 +4,7 @@
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '@sabha/db'
-import { requireAuth } from '../../middleware/require-auth'
+import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
 import { createNotification } from '../../lib/notifications'
 

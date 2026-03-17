@@ -13,7 +13,7 @@
  */
 
 import { FastifyInstance } from 'fastify'
-import Anthropic from 'anthropic'
+import Anthropic from '@anthropic-ai/sdk'
 import { v4 as uuidv4 } from 'uuid'
 import { prisma } from '@sabha/db'
 import { redis } from '../../lib/redis'

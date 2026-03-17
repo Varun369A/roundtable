@@ -4,7 +4,7 @@
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '@sabha/db'
-import { requireAuth } from '../middleware/require-auth'
+import { requireAuth } from '../middleware/auth'
 import { ROUTING_TABLE } from '../orchestration/task-decomposer'
 
 const VALID_CATEGORIES = ['research','copywriting','strategy','images','video','audio','presentation','code','translation','data_analysis','general']

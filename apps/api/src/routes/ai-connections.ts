@@ -5,7 +5,7 @@
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '@sabha/db'
-import { requireAuth } from '../middleware/require-auth'
+import { requireAuth } from '../middleware/auth'
 import { encryptByoai, decryptByoai } from '../lib/encrypt'
 import { PROVIDER_REGISTRY } from '../lib/provider-registry'
 import { testApiKey } from '../lib/key-tester'
