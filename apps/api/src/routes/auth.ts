@@ -16,6 +16,7 @@ import { metrics } from '../lib/metrics'
 import { checkLoginRateLimit, recordLoginFailure, clearLoginFailures } from '../middleware/auth-rate-limit'
 import { isEnabled, FLAGS } from '../lib/feature-flags'
 import { sendWelcomeEmail } from '../lib/email'
+import { grantSignupBonus } from './credits'
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -149,6 +150,9 @@ export async function authRoutes(app: FastifyInstance) {
       where: { id: user.id },
       data: { currentWorkspaceId: personalWorkspace.id },
     })
+
+    // Grant signup bonus credits (non-blocking, fire-and-forget)
+    grantSignupBonus(user.id).catch(() => {})
 
     // Send welcome email (non-blocking)
     if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {

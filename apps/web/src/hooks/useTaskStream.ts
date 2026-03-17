@@ -10,15 +10,29 @@ export type StreamEventType =
   | 'task_completed'
   | 'task_failed'
   | 'task_cancelled'
+  | 'auto_fix_started'
+  | 'discussion_round_started'
+  | 'synthesis_started'
+  | 'synthesis_complete'
+  | 'clarification_needed'
+  | 'steering_received'
+  | 'steering_applied'
+  | 'session_created'
 
 export interface StreamEvent {
   event: StreamEventType
   taskId?: string
   subtaskId?: string
+  subtaskIds?: string[]       // for discussion_round_started
   title?: string
   model?: string
   status?: string
   originalGoal?: string
+  // Discussion Engine fields
+  role?: 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
+  roundNumber?: number
+  reviewsSubtaskId?: string
+  round?: number              // for discussion_round_started
   output?: {
     type: 'text' | 'image' | 'audio' | 'video' | 'json'
     content?: string
@@ -26,6 +40,15 @@ export interface StreamEvent {
   }
   error?: string
   hasCodeWorkspace?: boolean
+  preview?: {
+    type: 'code' | 'image' | 'document' | 'article' | 'research' | 'learning' | 'text'
+    html: string
+  }
+  errors?: string[]           // for auto_fix_started
+  originalSubtaskId?: string  // for auto_fix_started
+  questions?: any[]           // for clarification_needed
+  message?: string            // for steering_received / steering_applied
+  sessionId?: string          // for session_created
 }
 
 interface UseTaskStreamOptions {
@@ -62,6 +85,14 @@ export function useTaskStream({ taskId, onEvent, enabled = true }: UseTaskStream
       'task_completed',
       'task_failed',
       'task_cancelled',
+      'auto_fix_started',
+      'discussion_round_started',
+      'synthesis_started',
+      'synthesis_complete',
+      'clarification_needed',
+      'steering_received',
+      'steering_applied',
+      'session_created',
     ]
 
     for (const eventType of eventTypes) {

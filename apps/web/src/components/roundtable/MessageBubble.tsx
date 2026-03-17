@@ -15,6 +15,9 @@ export interface Message {
   }
   isError?: boolean
   timestamp: Date
+  // Discussion Engine
+  role?: 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
+  roundNumber?: number
 }
 
 interface MessageBubbleProps {

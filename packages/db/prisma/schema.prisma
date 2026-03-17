@@ -26,6 +26,7 @@ enum UserStatus {
 
 enum TaskStatus {
   PENDING
+  WAITING_CLARIFICATION  // paused — waiting for user to answer pre-task questions
   ROUTING
   IN_PROGRESS
   COMPLETED
@@ -39,6 +40,13 @@ enum SubtaskStatus {
   COMPLETED
   FAILED
   SKIPPED
+}
+
+// Discussion Engine — role of a subtask within the multi-round AI collaboration
+enum SubtaskRole {
+  INITIAL    // Round 1: primary work by assigned AI
+  REVIEW     // Round 2: cross-review of another AI's INITIAL output
+  SYNTHESIS  // Round 3: final integration of all outputs
 }
 
 enum AIModel {
@@ -55,6 +63,10 @@ enum AIModel {
   runway_gen3         @map("runway-gen3")
   sarvam_1            @map("sarvam-1")
   gamma               @map("gamma")
+  groq              @map("groq")
+  cohere            @map("cohere")
+  whisper           @map("whisper")
+  sabha_ai          @map("sabha-ai")
 }
 
 enum TaskCategory {
@@ -151,8 +163,22 @@ model User {
   ownedWorkspaces  Workspace[]        @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceMember[]
   createdTemplates RoundtableTemplate[] @relation("TemplateCreator")
-  codeProjects     CodeProject[]
-  gitHubConnection GitHubConnection?
+  codeProjects        CodeProject[]
+  gitHubConnection    GitHubConnection?
+  aiConnections       UserAIConnection[]
+  routingPreferences  UserRoutingPreference[]
+  memories            UserMemory[]
+  memoryFacts         UserMemoryFact[]
+  scheduledTasks      ScheduledTask[]
+  workflows           Workflow[]
+  integrations        UserIntegration[]
+  executionActions    ExecutionAction[]
+  voiceTranscriptions VoiceTranscription[]
+  creditWallet        CreditWallet?
+  referralCode        ReferralCode?
+  packSubscriptions   UserPackSubscription[]
+  expertProfile       ExpertProfile?
+  expertReviewsRequested ExpertReview[]     @relation("ReviewRequester")
 
   @@index([email])
   @@index([tier])
@@ -302,6 +328,7 @@ model Task {
   userId        String
   workspaceId   String?     // null = personal (hidden from workspace)
   templateId    String?     // which template was used (if any)
+  verticalPackId String?    // which vertical pack was used (if any)
   title         String      // auto-generated short title
   originalGoal  String      // raw user input
   status        TaskStatus  @default(PENDING)
@@ -322,12 +349,19 @@ model Task {
   completedAt   DateTime?
 
   // Relations
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace     Workspace?        @relation(fields: [workspaceId], references: [id])
-  template      RoundtableTemplate? @relation(fields: [templateId], references: [id])
-  subtasks      Subtask[]
-  billingEvents BillingEvent[]
-  codeProject   CodeProject?
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace      Workspace?        @relation(fields: [workspaceId], references: [id])
+  template       RoundtableTemplate? @relation(fields: [templateId], references: [id])
+  verticalPack   VerticalPack?     @relation("TaskVerticalPack", fields: [verticalPackId], references: [id])
+  subtasks       Subtask[]
+  billingEvents  BillingEvent[]
+  codeProject    CodeProject?
+  clarifications      TaskClarification[]
+  steeringMessages    TaskSteeringMessage[]
+  roundtableSession   RoundtableSession?
+  executionActions    ExecutionAction[]
+  voiceTranscriptions VoiceTranscription[]
+  expertReviews       ExpertReview[]
 
   @@index([userId])
   @@index([status])
@@ -350,6 +384,11 @@ model Subtask {
   // DAG — list of subtask IDs this depends on
   dependsOn     String[]      @default([])
 
+  // Discussion Engine: role within multi-round AI collaboration
+  role          SubtaskRole   @default(INITIAL)
+  roundNumber   Int           @default(1)   // 1=initial, 2=review, 3=synthesis
+  reviewsSubtaskId String?    // for REVIEW subtasks: which INITIAL subtask this reviews
+
   // The prompt sent to the AI (built from context + task-specific instruction)
   inputPrompt   String
 
@@ -367,8 +406,10 @@ model Subtask {
   completedAt   DateTime?
 
   // Relations
-  task    Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  output  SubtaskOutput?
+  task             Task                @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  output           SubtaskOutput?
+  verification     SubtaskVerification?
+  executionActions ExecutionAction[]
 
   @@index([taskId])
   @@index([status])
@@ -487,6 +528,8 @@ enum NotificationType {
   system_alert
   model_fallback
   healing_applied
+  sabha_ready
+  sabha_ai_correction
 }
 
 model Notification {
@@ -649,8 +692,9 @@ model CodeProject {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  task    Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User            @relation(fields: [userId], references: [id])
+  envVars ProjectEnvVar[]
 
   @@index([userId])
   @@index([status])
@@ -747,4 +791,745 @@ model UsageStats {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("usage_stats")
+}
+
+// ─── Sabha AI (Self-Learning) ─────────────────────────────────────────────────
+
+enum SabhaAIStatus {
+  LEARNING  // accumulating knowledge, silent
+  READY     // enough knowledge, awaiting admin enablement
+  ENABLED   // live and handling tasks
+  DISABLED  // admin disabled
+}
+
+model SabhaKnowledge {
+  id               String       @id @default(cuid())
+  category         TaskCategory
+  templateCategory String?      // TemplateCategory value if known
+  inputSummary     String       // first 500 chars of the prompt
+  outputSummary    String       // first 3000 chars of the output
+  model            AIModel      // which AI produced this output
+  qualityScore     Float        @default(0) // 0-1, higher = better example
+  taskId           String
+  subtaskId        String       @unique
+  createdAt        DateTime     @default(now())
+
+  @@index([category])
+  @@index([qualityScore])
+  @@map("sabha_knowledge")
+}
+
+model SabhaAIState {
+  id              String        @id @default("singleton")
+  status          SabhaAIStatus @default(LEARNING)
+  knowledgeCount  Int           @default(0)
+  readyThreshold  Int           @default(50)  // examples needed to be "ready"
+  enabledAt       DateTime?
+  lastLearnedAt   DateTime?
+  updatedAt       DateTime      @updatedAt
+
+  @@map("sabha_ai_state")
+}
+
+// ─── Project Environment Variables ───────────────────────────────────────────
+
+model ProjectEnvVar {
+  id             String      @id @default(cuid())
+  projectId      String
+  name           String      // variable name e.g. DATABASE_URL
+  encryptedValue String      // AES-256-GCM encrypted value
+  iv             String      // initialization vector (hex)
+  authTag        String      // GCM auth tag (hex)
+  hint           String?     // optional hint e.g. "postgres connection string"
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  project CodeProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@map("project_env_vars")
+}
+
+// ─── BYOAI — Bring Your Own AI ────────────────────────────────────────────────
+
+model UserAIConnection {
+  id             String   @id @default(cuid())
+  userId         String
+  provider       String   // matches ProviderDef.key e.g. "anthropic", "openai"
+  displayName    String?  // user-visible label
+  encryptedKey   String   // AES-256-GCM encrypted API key
+  iv             String   // GCM IV (hex)
+  authTag        String   // GCM auth tag (hex)
+  isVerified     Boolean  @default(false) // key passed test call
+  isActive       Boolean  @default(true)
+  lastUsedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_ai_connections")
+}
+
+// ─── User Routing Preferences ─────────────────────────────────────────────────
+
+model UserRoutingPreference {
+  id           String       @id @default(cuid())
+  userId       String
+  taskCategory TaskCategory
+  preferredModel AIModel
+  priority     Int          @default(0)  // higher = shown first in UI
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskCategory])
+  @@index([userId])
+  @@map("user_routing_preferences")
+}
+
+// ─── Phase 1: Clarification Round ────────────────────────────────────────────
+
+model TaskClarification {
+  id         String    @id @default(cuid())
+  taskId     String
+  question   String
+  orderIndex Int       @default(0)
+  answer     String?
+  answeredAt DateTime?
+  skipped    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("task_clarifications")
+}
+
+// ─── Phase 1: User Memory ─────────────────────────────────────────────────────
+
+model UserMemory {
+  id          String   @id @default(cuid())
+  userId      String
+  category    String   // "business" | "preferences" | "audience" | "tone" | "technical" | "personal"
+  key         String   // e.g. "business_type", "target_audience", "writing_tone"
+  value       String   // stored value (text)
+  source      String   @default("user_set") // "user_set" | "inferred" | "onboarding"
+  confidence  Float    @default(1.0)    // 0-1; inferred facts can decay
+  usageCount  Int      @default(0)      // times injected into prompts
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId, isActive])
+  @@map("user_memories")
+}
+
+model UserMemoryFact {
+  id           String   @id @default(cuid())
+  userId       String
+  fact         String   // extracted factual statement about the user/business
+  category     String
+  confidence   Float    @default(0.7)
+  sourceTaskId String?  // which task triggered inference
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_memory_facts")
+}
+
+// ─── Phase 1: Mid-Generation Steering ────────────────────────────────────────
+
+model TaskSteeringMessage {
+  id                 String    @id @default(cuid())
+  taskId             String
+  userId             String
+  message            String    // user's steering instruction
+  appliedToSubtaskId String?   // which subtask picked this up
+  appliedAt          DateTime?
+  priority           Int       @default(0) // higher = applied first
+  createdAt          DateTime  @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, appliedAt])
+  @@map("task_steering_messages")
+}
+
+// ─── Phase 1: Scheduled Tasks ─────────────────────────────────────────────────
+
+model ScheduledTask {
+  id             String    @id @default(cuid())
+  userId         String
+  workspaceId    String?
+  name           String
+  goal           String    // supports {{variable}} interpolation
+  templateId     String?
+  cronExpression String    // standard cron: "0 9 * * 1"
+  timezone       String    @default("Asia/Kolkata")
+  isActive       Boolean   @default(true)
+  lastRunAt      DateTime?
+  nextRunAt      DateTime?
+  runCount       Int       @default(0)
+  failCount      Int       @default(0)
+  maxRuns        Int?      // null = unlimited
+  notifyOnFail   Boolean   @default(true)
+  notifyOnComplete Boolean @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs ScheduledTaskRun[]
+
+  @@index([userId])
+  @@index([isActive, nextRunAt]) // cron worker query
+  @@map("scheduled_tasks")
+}
+
+model ScheduledTaskRun {
+  id              String    @id @default(cuid())
+  scheduledTaskId String
+  taskId          String?   // the Task created for this run
+  status          String    // "running" | "completed" | "failed" | "skipped"
+  triggerType     String    @default("scheduled") // "scheduled" | "manual"
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  errorMessage    String?
+
+  scheduledTask ScheduledTask @relation(fields: [scheduledTaskId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledTaskId])
+  @@index([taskId])
+  @@map("scheduled_task_runs")
+}
+
+// ─── Phase 2: Multiplayer Roundtable ─────────────────────────────────────────
+
+model RoundtableSession {
+  id          String    @id @default(cuid())
+  taskId      String    @unique
+  ownerId     String
+  accessCode  String    @unique  // 6-char alphanumeric share code
+  isPublic    Boolean   @default(false)
+  allowSteering Boolean @default(false)  // can non-owners send steering?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  task         Task                    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  participants RoundtableParticipant[]
+  reactions    RoundtableReaction[]
+
+  @@index([accessCode])
+  @@index([ownerId])
+  @@map("roundtable_sessions")
+}
+
+model RoundtableParticipant {
+  id          String   @id @default(cuid())
+  sessionId   String
+  userId      String?  // null = guest
+  displayName String
+  avatarUrl   String?
+  role        String   @default("viewer") // "owner" | "collaborator" | "viewer"
+  isOnline    Boolean  @default(false)
+  joinedAt    DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  session RoundtableSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@map("roundtable_participants")
+}
+
+model RoundtableReaction {
+  id         String   @id @default(cuid())
+  sessionId  String
+  subtaskId  String?
+  userId     String?
+  reaction   String   // emoji: "👍" "🔥" "✨" "❓" "👎"
+  createdAt  DateTime @default(now())
+
+  session RoundtableSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, subtaskId])
+  @@map("roundtable_reactions")
+}
+
+// ─── Phase 2: Workflow Builder ────────────────────────────────────────────────
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WorkflowRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Workflow {
+  id          String        @id @default(cuid())
+  userId      String
+  workspaceId String?
+  name        String
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  triggerType String        @default("manual") // "manual" | "scheduled" | "webhook"
+  webhookSecret String?     // for webhook trigger validation
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps WorkflowStep[]
+  runs  WorkflowRun[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("workflows")
+}
+
+model WorkflowStep {
+  id             String  @id @default(cuid())
+  workflowId     String
+  stepOrder      Int
+  name           String
+  templateId     String?
+  goalTemplate   String  // supports {{step1.output}} {{trigger.payload}} interpolation
+  assignedModel  String? // override model for this step (optional)
+  dependsOnStepId String? // for non-sequential steps
+
+  // Output mapping — extract named values from output for next steps
+  // e.g. { "research_summary": "extract key findings" }
+  outputMapping  Json    @default("{}")
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, stepOrder])
+  @@map("workflow_steps")
+}
+
+model WorkflowRun {
+  id          String           @id @default(cuid())
+  workflowId  String
+  status      WorkflowRunStatus @default(RUNNING)
+  triggerType String           @default("manual")
+  triggerPayload Json          @default("{}")  // webhook body / manual params
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+  errorMessage String?
+
+  workflow  Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepRuns  WorkflowStepRun[]
+
+  @@index([workflowId])
+  @@map("workflow_runs")
+}
+
+model WorkflowStepRun {
+  id         String  @id @default(cuid())
+  runId      String
+  stepId     String
+  taskId     String? // the Sabha Task created for this step
+  status     String  // "pending" | "running" | "completed" | "failed" | "skipped"
+  output     Json    @default("{}")  // extracted output values from output mapping
+  startedAt  DateTime @default(now())
+  completedAt DateTime?
+  errorMessage String?
+
+  run WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([taskId])
+  @@map("workflow_step_runs")
+}
+
+// ─── Phase 3: Output Quality Verification ─────────────────────────────────────
+
+enum VerificationStatus {
+  PENDING
+  RUNNING
+  PASSED
+  PARTIAL
+  FAILED
+}
+
+model SubtaskVerification {
+  id              String             @id @default(cuid())
+  subtaskId       String             @unique
+  status          VerificationStatus @default(PENDING)
+  confidenceScore Float              @default(0)  // 0.0–1.0 overall quality
+  factualScore    Float              @default(0)  // factual accuracy estimate
+  completenessScore Float            @default(0)  // covers all requirements
+  citationsFound  Int                @default(0)  // number of citations extracted
+  issues          Json               @default("[]") // [{ type, severity, description, suggestion }]
+  citations       Json               @default("[]") // [{ text, source, url?, confidence }]
+  verifiedAt      DateTime?
+  verifiedBy      String?            // model used for verification
+
+  subtask Subtask @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+
+  @@map("subtask_verifications")
+}
+
+// ─── Phase 3: Agent Execution (External Actions) ──────────────────────────────
+
+enum ActionStatus {
+  PENDING_APPROVAL  // waiting for user to approve
+  APPROVED
+  REJECTED
+  EXECUTING
+  COMPLETED
+  FAILED
+  EXPIRED           // approval window passed
+}
+
+enum ActionType {
+  GITHUB_PUSH       // push code changes to a repository
+  GITHUB_PR         // create a pull request
+  GITHUB_ISSUE      // create an issue
+  GMAIL_SEND        // send email
+  GMAIL_DRAFT       // save draft
+  NOTION_PAGE       // create/update Notion page
+  NOTION_DB_ROW     // add row to Notion database
+  WEBHOOK           // call arbitrary webhook
+  SLACK_MESSAGE     // post to Slack channel
+}
+
+model ExecutionAction {
+  id              String       @id @default(cuid())
+  subtaskId       String
+  taskId          String
+  userId          String
+  type            ActionType
+  status          ActionStatus @default(PENDING_APPROVAL)
+  integrationId   String?      // UserIntegration that will execute this
+  payload         Json         // action-specific payload (repo, branch, content, etc.)
+  result          Json?        // execution result
+  requiresApproval Boolean     @default(true)
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedReason  String?
+  executedAt      DateTime?
+  expiresAt       DateTime?    // auto-expire if not approved
+  errorMessage    String?
+  createdAt       DateTime     @default(now())
+
+  subtask     Subtask  @relation(fields: [subtaskId], references: [id])
+  task        Task     @relation(fields: [taskId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  integration UserIntegration? @relation(fields: [integrationId], references: [id])
+
+  @@index([subtaskId])
+  @@index([taskId])
+  @@index([userId, status])
+  @@map("execution_actions")
+}
+
+// ─── Phase 3: User Integrations ───────────────────────────────────────────────
+
+enum IntegrationProvider {
+  GITHUB
+  GMAIL
+  NOTION
+  SLACK
+  JIRA
+  LINEAR
+  WEBHOOK
+}
+
+model UserIntegration {
+  id              String              @id @default(cuid())
+  userId          String
+  provider        IntegrationProvider
+  displayName     String              // e.g. "work-github", "personal-gmail"
+  isActive        Boolean             @default(true)
+  encryptedToken  String              // AES-256-GCM encrypted access token
+  tokenIv         String
+  tokenAuthTag    String
+  refreshToken    String?             // encrypted, for OAuth refresh
+  refreshIv       String?
+  refreshAuthTag  String?
+  tokenExpiresAt  DateTime?
+  scopes          String[]            @default([])
+  metadata        Json                @default("{}")  // provider-specific config
+  connectedAt     DateTime            @default(now())
+  lastUsedAt      DateTime?
+
+  user    User              @relation(fields: [userId], references: [id])
+  actions ExecutionAction[]
+
+  @@unique([userId, provider, displayName])
+  @@index([userId, provider])
+  @@map("user_integrations")
+}
+
+// ─── Phase 3: Voice Input ────────────────────────────────────────────────────
+
+model VoiceTranscription {
+  id            String   @id @default(cuid())
+  userId        String
+  taskId        String?  // if linked to a task
+  provider      String   // "whisper" | "sarvam"
+  language      String   @default("en")  // ISO 639-1 language code
+  durationSecs  Float
+  originalText  String   @db.Text  // raw transcription
+  processedText String   @db.Text  // cleaned up / punctuated
+  confidence    Float    @default(1.0)
+  audioFileUrl  String?  // stored in object storage
+  createdAt     DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id])
+
+  @@index([userId])
+  @@index([taskId])
+  @@map("voice_transcriptions")
+}
+
+// ─── Phase 4: Credit Economy Enhancement ──────────────────────────────────────
+
+enum CreditTransactionType {
+  PURCHASE          // bought credits via Razorpay
+  TASK_USAGE        // credits spent on a task
+  REFERRAL_BONUS    // earned by referring a new user
+  REFERRAL_REWARD   // earned when referred user completes first task
+  SIGNUP_BONUS      // new user welcome credits
+  PROMOTION         // admin-issued promotional credits
+  EXPIRY            // expired credits deducted
+  REFUND            // refund from failed task
+  MARKETPLACE_EARN  // earned by expert review completion
+}
+
+model CreditWallet {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  balance      Int      @default(0)    // current spendable credits
+  lifetimeEarned Int    @default(0)    // total credits ever earned
+  lifetimeSpent  Int    @default(0)    // total credits ever spent
+  updatedAt    DateTime @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id])
+  transactions CreditTransaction[]
+
+  @@map("credit_wallets")
+}
+
+model CreditTransaction {
+  id           String                @id @default(cuid())
+  walletId     String
+  userId       String
+  type         CreditTransactionType
+  amount       Int                   // positive = credit, negative = debit
+  balanceAfter Int                   // wallet balance after this transaction
+  description  String
+  taskId       String?               // for TASK_USAGE / REFUND
+  referralId   String?               // for REFERRAL_* types
+  expiresAt    DateTime?             // for PROMOTION credits that expire
+  createdAt    DateTime              @default(now())
+
+  wallet CreditWallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("credit_transactions")
+}
+
+model ReferralCode {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  code         String    @unique   // e.g. "ARYAN50"
+  usageCount   Int       @default(0)
+  maxUses      Int?                // null = unlimited
+  bonusCredits Int       @default(100) // credits referrer earns per signup
+  rewardCredits Int      @default(50)  // credits referee earns on first task
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  user     User       @relation(fields: [userId], references: [id])
+  referrals Referral[]
+
+  @@map("referral_codes")
+}
+
+model Referral {
+  id             String    @id @default(cuid())
+  referralCodeId String
+  referrerId     String    // who referred
+  refereeId      String    // who was referred
+  bonusPaid      Boolean   @default(false)  // referrer got their bonus
+  rewardPaid     Boolean   @default(false)  // referee got their reward
+  firstTaskAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  referralCode ReferralCode @relation(fields: [referralCodeId], references: [id])
+
+  @@unique([refereeId])  // one referral per user
+  @@index([referrerId])
+  @@map("referrals")
+}
+
+model CreditPack {
+  id           String   @id @default(cuid())
+  name         String   // "Starter Pack", "Pro Pack", "Power Pack"
+  credits      Int      // credits included
+  priceInr     Int      // price in INR paise (e.g. 49900 = ₹499)
+  bonusCredits Int      @default(0) // bonus on top
+  isActive     Boolean  @default(true)
+  isPopular    Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@map("credit_packs")
+}
+
+// ─── Phase 4: Human Expert Review Marketplace ─────────────────────────────────
+
+enum ExpertStatus {
+  PENDING_REVIEW    // applied, not yet approved
+  ACTIVE
+  SUSPENDED
+  RETIRED
+}
+
+enum ReviewRequestStatus {
+  OPEN              // waiting for expert to claim
+  IN_REVIEW         // expert claimed, reviewing
+  SUBMITTED         // expert submitted review
+  ACCEPTED          // user accepted the review
+  DISPUTED          // user disputed
+  REFUNDED          // refunded to user
+  EXPIRED           // no expert claimed within 24h
+}
+
+model ExpertProfile {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  bio           String       @db.Text
+  specializations String[]   // ["legal", "medical", "finance", "code", "content"]
+  languages     String[]     @default(["en"])
+  credentialsUrl String?     // CV / LinkedIn / portfolio
+  ratePerReview Int          // credits per review
+  avgRating     Float        @default(0)
+  reviewCount   Int          @default(0)
+  status        ExpertStatus @default(PENDING_REVIEW)
+  isAvailable   Boolean      @default(true)
+  approvedAt    DateTime?
+  approvedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id])
+  reviews ExpertReview[]
+
+  @@index([status, isAvailable])
+  @@index([specializations])
+  @@map("expert_profiles")
+}
+
+model ExpertReview {
+  id            String              @id @default(cuid())
+  taskId        String
+  userId        String              // user who requested review
+  expertId      String              // ExpertProfile.id
+  status        ReviewRequestStatus @default(OPEN)
+  specialization String             // what domain expertise needed
+  description   String?             // what specifically to review
+  creditsEscrowed Int               // credits locked from user wallet
+  claimedAt     DateTime?
+  submittedAt   DateTime?
+  expiresAt     DateTime            // 24h after creation
+  feedback      String?             @db.Text
+  rating        Int?                // 1-5, user rates expert
+  ratingComment String?
+
+  task   Task          @relation(fields: [taskId], references: [id])
+  user   User          @relation("ReviewRequester", fields: [userId], references: [id])
+  expert ExpertProfile @relation(fields: [expertId], references: [id])
+
+  @@index([status])
+  @@index([expertId, status])
+  @@index([userId])
+  @@map("expert_reviews")
+}
+
+// ─── Phase 4: Vertical AI Packs ───────────────────────────────────────────────
+
+enum PackCategory {
+  LEGAL
+  MEDICAL
+  FINANCE
+  ENGINEERING
+  MARKETING
+  EDUCATION
+  REAL_ESTATE
+  HR
+}
+
+enum PackStatus {
+  DRAFT
+  ACTIVE
+  DEPRECATED
+}
+
+model VerticalPack {
+  id          String      @id @default(cuid())
+  slug        String      @unique  // "legal-pack", "medical-pack"
+  name        String               // "Legal AI Pack"
+  description String      @db.Text
+  category    PackCategory
+  icon        String               // emoji
+  color       String               // tailwind gradient class
+  status      PackStatus  @default(ACTIVE)
+
+  // Pack-specific AI configuration
+  agents      Json        // Array of PackAgent { model, role, systemPrompt, category }
+  // Pack-specific terminology/context injected into every task
+  contextBlob Json        @default("{}")
+  // Compliance notes shown to user
+  disclaimer  String?     @db.Text
+
+  // Pricing
+  isIncludedInTier String[] @default([])  // ["PRO", "POWER", "ENTERPRISE"]
+  creditsPerTask  Int      @default(0)    // 0 = included in plan
+
+  usageCount  Int         @default(0)
+  isBuiltIn   Boolean     @default(true)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tasks            Task[]                 @relation("TaskVerticalPack")
+  userSubscriptions UserPackSubscription[]
+
+  @@map("vertical_packs")
+}
+
+model UserPackSubscription {
+  id       String   @id @default(cuid())
+  userId   String
+  packId   String
+  isActive Boolean  @default(true)
+  enabledAt DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id])
+  pack VerticalPack @relation(fields: [packId], references: [id])
+
+  @@unique([userId, packId])
+  @@map("user_pack_subscriptions")
 }

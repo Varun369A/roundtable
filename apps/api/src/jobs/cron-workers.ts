@@ -16,6 +16,12 @@ import { redis } from '../lib/redis'
 import { broadcastAdminAlert, createNotification } from '../lib/notifications'
 import { sendEmail } from '../lib/email'
 import { metrics } from '../lib/metrics'
+import { getNextRunTime } from '../lib/cron-expression'
+import { decayStaleMemories } from '../lib/memory-manager'
+import { pruneStaleParticipants } from '../lib/session-manager'
+import { orchestrateTask } from '../orchestration/orchestrator'
+import { enqueueTask } from './queue'
+import { expireStaleReviews } from '../lib/expert-marketplace'
 
 const prisma = new PrismaClient()
 
@@ -36,6 +42,12 @@ const templateAnalyticsQueue = new Queue('template-analytics', { connection: bul
 const userDigestQueue = new Queue('user-digest', { connection: bullConnection })
 const adminDigestQueue = new Queue('admin-digest', { connection: bullConnection })
 const queueMonitorQueue = new Queue('queue-monitor', { connection: bullConnection })
+const sabhaLearningQueue = new Queue('sabha-learning', { connection: bullConnection })
+const scheduledTaskQueue = new Queue('scheduled-tasks', { connection: bullConnection })
+const memoryDecayQueue = new Queue('memory-decay', { connection: bullConnection })
+const clarificationTimeoutQueue = new Queue('clarification-timeout', { connection: bullConnection })
+const presencePruneQueue = new Queue('presence-prune', { connection: bullConnection })
+const expireReviewsQueue = new Queue('expire-reviews', { connection: bullConnection })
 
 // Subtask queue (for re-enqueuing)
 const subtaskQueue = new Queue('subtask-queue', { connection: bullConnection })
@@ -566,6 +578,201 @@ async function processQueueMonitor(_job: Job): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// sabhaLearningWorker — Every 15 minutes
+// Checks if Sabha AI has accumulated enough knowledge to be "ready".
+// Notifies admin when threshold is reached.
+// ---------------------------------------------------------------------------
+
+async function processSabhaLearning(_job: Job): Promise<void> {
+  const knowledgeCount = await (prisma as any).sabhaKnowledge.count()
+
+  const state = await (prisma as any).sabhaAIState.upsert({
+    where: { id: 'singleton' },
+    update: { knowledgeCount, lastLearnedAt: new Date() },
+    create: { id: 'singleton', knowledgeCount, lastLearnedAt: new Date() },
+    select: { status: true, readyThreshold: true, knowledgeCount: true },
+  })
+
+  // Transition LEARNING → READY when threshold is met
+  if (state.status === 'LEARNING' && knowledgeCount >= state.readyThreshold) {
+    await (prisma as any).sabhaAIState.update({
+      where: { id: 'singleton' },
+      data: { status: 'READY' },
+    })
+
+    // Notify all admin users
+    const admins = await (prisma as any).user.findMany({
+      where: { isAdmin: true },
+      select: { id: true },
+    })
+
+    for (const admin of admins) {
+      await createNotification({
+        userId: admin.id,
+        type: 'system_alert',
+        title: 'Sabha AI is ready',
+        body: `Sabha AI has learned from ${knowledgeCount} tasks. Go to Admin → Sabha AI to enable it.`,
+        link: '/admin/sabha',
+        metadata: { knowledgeCount },
+      }).catch(() => {})
+    }
+
+    console.log(`[sabha-learning] Sabha AI reached READY state with ${knowledgeCount} knowledge entries`)
+  } else {
+    console.log(`[sabha-learning] Knowledge: ${knowledgeCount}/${state.readyThreshold} — status: ${state.status}`)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Scheduled Task Runner — every minute
+// ---------------------------------------------------------------------------
+
+async function processScheduledTasks(): Promise<void> {
+  const now = new Date()
+
+  const due = await prisma.scheduledTask.findMany({
+    where: {
+      isActive:   true,
+      nextRunAt:  { lte: now },
+    },
+    take: 50,
+  })
+
+  for (const scheduled of due) {
+    // Skip if maxRuns reached
+    if (scheduled.maxRuns !== null && scheduled.runCount >= scheduled.maxRuns) {
+      await prisma.scheduledTask.update({
+        where: { id: scheduled.id },
+        data:  { isActive: false },
+      })
+      continue
+    }
+
+    // Create a run record
+    const run = await prisma.scheduledTaskRun.create({
+      data: {
+        scheduledTaskId: scheduled.id,
+        status:          'running',
+        triggerType:     'scheduled',
+      },
+    })
+
+    try {
+      // Create the actual task
+      const workspace = scheduled.workspaceId
+        ? { connect: { id: scheduled.workspaceId } }
+        : undefined
+
+      const task = await prisma.task.create({
+        data: {
+          userId:       scheduled.userId,
+          workspaceId:  scheduled.workspaceId ?? undefined,
+          originalGoal: scheduled.goal,
+          title:        scheduled.name,
+          status:       'PENDING',
+          templateId:   scheduled.templateId ?? undefined,
+        },
+      })
+
+      // Enqueue task — skip clarification for scheduled tasks (automated)
+      await enqueueTask(task.id)
+
+      // Update run record
+      await prisma.scheduledTaskRun.update({
+        where: { id: run.id },
+        data:  { taskId: task.id, status: 'completed', completedAt: new Date() },
+      })
+
+      // Compute next run time
+      const nextRunAt = getNextRunTime(scheduled.cronExpression, now)
+
+      await prisma.scheduledTask.update({
+        where: { id: scheduled.id },
+        data: {
+          lastRunAt: now,
+          nextRunAt,
+          runCount: { increment: 1 },
+        },
+      })
+
+      if (scheduled.notifyOnComplete) {
+        await createNotification({
+          userId: scheduled.userId,
+          type:   'task_completed',
+          title:  `Scheduled task started`,
+          body:   `"${scheduled.name}" has been started automatically.`,
+          link:   `/roundtable/${task.id}`,
+          metadata: { scheduledTaskId: scheduled.id, taskId: task.id },
+        })
+      }
+    } catch (err) {
+      console.error(`[ScheduledTaskRunner] Failed to run scheduled task ${scheduled.id}:`, err)
+
+      await prisma.scheduledTaskRun.update({
+        where: { id: run.id },
+        data:  { status: 'failed', completedAt: new Date(), errorMessage: err instanceof Error ? err.message : 'Unknown error' },
+      })
+
+      await prisma.scheduledTask.update({
+        where: { id: scheduled.id },
+        data:  { failCount: { increment: 1 } },
+      })
+
+      if (scheduled.notifyOnFail) {
+        await createNotification({
+          userId: scheduled.userId,
+          type:   'task_failed',
+          title:  'Scheduled task failed',
+          body:   `"${scheduled.name}" failed to start. Check your scheduled tasks.`,
+          link:   '/dashboard/scheduled',
+          metadata: { scheduledTaskId: scheduled.id, error: err instanceof Error ? err.message : 'Unknown' },
+        })
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Memory Decay Worker — weekly Sunday 3am
+// ---------------------------------------------------------------------------
+
+async function processMemoryDecay(): Promise<void> {
+  console.log('[MemoryDecay] Running confidence decay for stale inferred memories...')
+  await decayStaleMemories()
+  console.log('[MemoryDecay] Done')
+}
+
+// ---------------------------------------------------------------------------
+// Clarification Timeout Checker — every 5 minutes
+// ---------------------------------------------------------------------------
+
+async function processClarificationTimeouts(): Promise<void> {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+
+  const timedOut = await prisma.task.findMany({
+    where: {
+      status:    'WAITING_CLARIFICATION',
+      createdAt: { lt: tenMinutesAgo },
+    },
+    select: { id: true },
+    take:   50,
+  })
+
+  for (const task of timedOut) {
+    // Auto-skip unanswered questions
+    await prisma.taskClarification.updateMany({
+      where: { taskId: task.id, answer: null },
+      data:  { skipped: true },
+    })
+    // Resume orchestration
+    console.log(`[ClarificationTimeout] Auto-proceeding task ${task.id} after timeout`)
+    orchestrateTask(task.id).catch((err) =>
+      console.error(`[ClarificationTimeout] Failed to resume task ${task.id}:`, err)
+    )
+  }
+}
+
+// ---------------------------------------------------------------------------
 // startCronWorkers — registers all queues and workers
 // ---------------------------------------------------------------------------
 
@@ -617,6 +824,54 @@ export function startCronWorkers(): void {
     { repeat: { pattern: '* * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
   )
   new Worker('queue-monitor', processQueueMonitor, { connection: bullConnection })
+
+  // ---- Sabha AI learning check: every 15 minutes ----
+  sabhaLearningQueue.add(
+    'check',
+    {},
+    { repeat: { pattern: '*/15 * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('sabha-learning', processSabhaLearning, { connection: bullConnection })
+
+  // ---- Scheduled task runner: every minute ----
+  scheduledTaskQueue.add(
+    'run',
+    {},
+    { repeat: { pattern: '* * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('scheduled-tasks', processScheduledTasks, { connection: bullConnection })
+
+  // ---- Memory decay: weekly Sunday 3am ----
+  memoryDecayQueue.add(
+    'decay',
+    {},
+    { repeat: { pattern: '0 3 * * 0' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('memory-decay', processMemoryDecay, { connection: bullConnection })
+
+  // ---- Clarification timeout: every 5 minutes ----
+  clarificationTimeoutQueue.add(
+    'check',
+    {},
+    { repeat: { pattern: '*/5 * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('clarification-timeout', processClarificationTimeouts, { connection: bullConnection })
+
+  // ---- Presence pruning: every 1 minute ----
+  presencePruneQueue.add(
+    'prune',
+    {},
+    { repeat: { pattern: '* * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('presence-prune', async () => { await pruneStaleParticipants() }, { connection: bullConnection })
+
+  // ---- Expert review expiry: every 30 minutes ----
+  expireReviewsQueue.add(
+    'expire',
+    {},
+    { repeat: { pattern: '*/30 * * * *' }, removeOnComplete: 10, removeOnFail: 5 }
+  )
+  new Worker('expire-reviews', async (_job: Job) => { await expireStaleReviews() }, { connection: bullConnection })
 
   console.log('[cron-workers] All cron workers started')
 }

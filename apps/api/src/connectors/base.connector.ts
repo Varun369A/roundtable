@@ -5,6 +5,7 @@ export interface ConnectorInput {
   model: AIModel
   taskId: string
   subtaskId: string
+  userApiKey?: string
   options?: {
     maxTokens?: number
     temperature?: number

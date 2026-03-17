@@ -19,15 +19,17 @@ export class ClaudeConnector extends BaseConnector {
   }
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const apiKey = input.userApiKey || process.env.ANTHROPIC_API_KEY
+    if (!apiKey) {
       throw new Error('ANTHROPIC_API_KEY not set')
     }
 
     const start = Date.now()
     const apiModel = MODEL_MAP[this.model] || 'claude-3-5-sonnet-20241022'
+    const client = new Anthropic({ apiKey })
 
     return this.withRetry(async () => {
-      const response = await this.client.messages.create({
+      const response = await client.messages.create({
         model: apiModel,
         max_tokens: input.options?.maxTokens || 4096,
         messages: [{ role: 'user', content: input.prompt }],

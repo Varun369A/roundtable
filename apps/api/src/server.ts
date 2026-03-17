@@ -4,13 +4,14 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
+import multipart from '@fastify/multipart'
 import { env } from '@sabha/config'
 import { authRoutes } from './routes/auth'
 import { taskRoutes } from './routes/tasks'
 import { healthRoutes } from './routes/health'
 import { orchestrationRoutes } from './routes/orchestration'
 import { streamRoutes } from './routes/stream'
-import { marketplaceRoutes } from './routes/marketplace'
+import { marketplaceRoutes, taskReviewRoutes } from './routes/marketplace'
 import { billingRoutes } from './routes/billing'
 import { webhookRoutes } from './routes/webhooks'
 import { languageRoutes } from './routes/language'
@@ -23,6 +24,21 @@ import { feedbackRoutes } from './routes/feedback'
 import { notificationRoutes } from './routes/notifications'
 import { codeProjectRoutes } from './routes/code-projects'
 import { githubOAuthRoutes } from './routes/github-oauth'
+import { envVarsRoutes } from './routes/env-vars'
+import { aiConnectionsRoutes } from './routes/ai-connections'
+import { routingPreferencesRoutes } from './routes/routing-preferences'
+import { clarificationsRoutes } from './routes/clarifications'
+import { memoryRoutes } from './routes/memory'
+import { steeringRoutes } from './routes/steering'
+import { scheduledTasksRoutes } from './routes/scheduled-tasks'
+import { sessionsRoutes } from './routes/sessions'
+import { workflowsRoutes } from './routes/workflows'
+import { voiceRoutes } from './routes/voice'
+import { verificationsRoutes } from './routes/verifications'
+import { integrationsRoutes } from './routes/integrations'
+import { creditsRoutes } from './routes/credits'
+import { verticalPacksRoutes } from './routes/vertical-packs'
+import { seedBuiltInPacks } from './lib/vertical-pack-manager'
 import { startCronWorkers } from './jobs'
 import { registerHttpMetrics } from './middleware/http-metrics'
 import { redis } from './lib/redis'
@@ -78,6 +94,15 @@ await app.register(jwt, {
   sign: { expiresIn: env.JWT_EXPIRES_IN },
 })
 
+// Multipart file uploads (25 MB limit — enforced here and re-checked in voice routes)
+await app.register(multipart, {
+  limits: {
+    fileSize: 26_214_400, // 25 MB
+    files: 1,             // one file per request
+    fields: 10,           // allow accompanying metadata fields
+  },
+})
+
 // Global rate limit — by IP (shared across all routes)
 await app.register(rateLimit, {
   global: true,
@@ -105,6 +130,7 @@ await app.register(taskRoutes, { prefix: '/api/v1/tasks' })
 await app.register(orchestrationRoutes, { prefix: '/api/v1/tasks' })
 await app.register(streamRoutes, { prefix: '/api/v1/stream' })
 await app.register(marketplaceRoutes, { prefix: '/api/v1/marketplace' })
+await app.register(taskReviewRoutes,  { prefix: '/api/v1/tasks' })
 await app.register(billingRoutes, { prefix: '/api/v1/billing' })
 await app.register(webhookRoutes, { prefix: '/api/v1/webhooks' })
 await app.register(languageRoutes, { prefix: '/api/v1/language' })
@@ -116,6 +142,20 @@ await app.register(feedbackRoutes, { prefix: '/api/v1/feedback' })
 await app.register(notificationRoutes, { prefix: '/api/v1/notifications' })
 await app.register(codeProjectRoutes,  { prefix: '/api/v1/code-projects' })
 await app.register(githubOAuthRoutes,  { prefix: '/api/v1/github' })
+await app.register(envVarsRoutes,      { prefix: '/api/v1' })
+await app.register(aiConnectionsRoutes,       { prefix: '/api/v1/ai-connections' })
+await app.register(routingPreferencesRoutes,  { prefix: '/api/v1/routing-preferences' })
+await app.register(clarificationsRoutes,      { prefix: '/api/v1' })
+await app.register(memoryRoutes,              { prefix: '/api/v1' })
+await app.register(steeringRoutes,            { prefix: '/api/v1' })
+await app.register(scheduledTasksRoutes,      { prefix: '/api/v1' })
+await app.register(sessionsRoutes,            { prefix: '/api/v1' })
+await app.register(workflowsRoutes,           { prefix: '/api/v1' })
+await app.register(voiceRoutes,               { prefix: '/api/v1' })
+await app.register(verificationsRoutes,       { prefix: '/api/v1' })
+await app.register(integrationsRoutes,        { prefix: '/api/v1' })
+await app.register(creditsRoutes,             { prefix: '/api/v1' })
+await app.register(verticalPacksRoutes,       { prefix: '/api/v1' })
 
 // ─── Global error handler ────────────────────────────────────────────────────
 
@@ -200,6 +240,14 @@ const start = async () => {
     taskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Task job failed'))
     subtaskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Subtask job failed'))
     app.log.info('BullMQ workers started')
+
+    // Seed built-in vertical packs (idempotent upsert — safe on every startup)
+    try {
+      await seedBuiltInPacks()
+      app.log.info('Vertical packs seeded')
+    } catch (seedErr) {
+      app.log.error(seedErr, 'Vertical pack seeding failed — API continues without them')
+    }
 
     // Start cron workers (healing, digests, template analytics, queue monitor)
     // Isolated try/catch so cron failures don't kill the API server

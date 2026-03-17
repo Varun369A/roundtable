@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import FileTree from '@/components/workspace/FileTree'
 import CodeViewer from '@/components/workspace/CodeViewer'
+import { EnvVarsPanel } from '@/components/workspace/EnvVarsPanel'
 
 interface CodeFile {
   path:     string
@@ -41,6 +42,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
   const [repoInput,  setRepoInput]  = useState('')
   const [showPush,   setShowPush]   = useState(false)
   const [assembling, setAssembling] = useState(false)
+  const [activeTab,  setActiveTab]  = useState<'code' | 'env'>('code')
 
   const load = useCallback(async () => {
     const [projRes, ghRes] = await Promise.all([
@@ -239,23 +241,45 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
         </div>
       </header>
 
-      {/* ── Main layout ───────────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-h-0">
-
-        {/* File tree sidebar */}
-        <aside className="w-56 border-r border-zinc-800 bg-zinc-900/40 shrink-0 overflow-hidden">
-          <FileTree
-            files={project.files}
-            selected={selected?.path ?? null}
-            onSelect={setSelected}
-          />
-        </aside>
-
-        {/* Code viewer */}
-        <main className="flex-1 min-w-0 bg-zinc-950">
-          <CodeViewer file={selected} />
-        </main>
+      {/* ── Tab bar ───────────────────────────────────────────────────────── */}
+      <div className="flex border-b border-zinc-800 shrink-0 bg-zinc-900/30">
+        {(['code', 'env'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 ${
+              activeTab === tab
+                ? 'text-white border-indigo-500'
+                : 'text-zinc-500 border-transparent hover:text-zinc-300'
+            }`}
+          >
+            {tab === 'code' ? '💻 Files' : '🔑 Env Variables'}
+          </button>
+        ))}
       </div>
+
+      {/* ── Main layout ───────────────────────────────────────────────────── */}
+      {activeTab === 'code' ? (
+        <div className="flex flex-1 min-h-0">
+          {/* File tree sidebar */}
+          <aside className="w-56 border-r border-zinc-800 bg-zinc-900/40 shrink-0 overflow-hidden">
+            <FileTree
+              files={project.files}
+              selected={selected?.path ?? null}
+              onSelect={setSelected}
+            />
+          </aside>
+
+          {/* Code viewer */}
+          <main className="flex-1 min-w-0 bg-zinc-950">
+            <CodeViewer file={selected} />
+          </main>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto">
+          <EnvVarsPanel projectId={project.id} />
+        </div>
+      )}
 
       {/* ── Push to GitHub modal ──────────────────────────────────────────── */}
       {showPush && (

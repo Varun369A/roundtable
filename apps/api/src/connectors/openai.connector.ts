@@ -25,13 +25,15 @@ export class OpenAIConnector extends BaseConnector {
   }
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
-    if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set')
+    const apiKey = input.userApiKey || process.env.OPENAI_API_KEY
+    if (!apiKey) throw new Error('OPENAI_API_KEY not set')
 
     const start = Date.now()
     const apiModel = MODEL_MAP[this.model] || 'gpt-4o'
+    const client = new OpenAI({ apiKey })
 
     return this.withRetry(async () => {
-      const response = await this.client.chat.completions.create({
+      const response = await client.chat.completions.create({
         model: apiModel,
         max_tokens: input.options?.maxTokens || 4096,
         temperature: input.options?.temperature || 0.7,

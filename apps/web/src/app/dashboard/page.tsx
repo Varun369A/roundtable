@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import NotificationBell from '@/components/NotificationBell'
+import CreditBadge from '@/components/credits/CreditBadge'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -260,8 +261,16 @@ export default function DashboardPage() {
           />
           <Link href="/templates" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Templates</Link>
           <Link href="/marketplace" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Marketplace</Link>
+          <Link href="/marketplace/experts" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Experts</Link>
+          <Link href="/packs" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">AI Packs</Link>
+          <Link href="/settings/ai-connections" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">AI Keys</Link>
+          <Link href="/settings/roundtable" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Roundtable</Link>
           <Link href="/settings/language" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Language</Link>
           <Link href="/settings/billing" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Billing</Link>
+          <Link href="/workflows" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Workflows</Link>
+          <Link href="/dashboard/scheduled" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Scheduled</Link>
+          <Link href="/credits" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Credits</Link>
+          <CreditBadge />
           <NotificationBell />
         </div>
       </header>

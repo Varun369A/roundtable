@@ -5,6 +5,8 @@ import { decomposeTask, type SubtaskDefinition } from './task-decomposer'
 import { initializeContext, appendSubtaskResult, buildPromptWithContext, clearContextCache, getContext } from './context-manager'
 import { enqueueTask } from '../jobs/queue'
 import { processInputLanguage, getUserLanguagePreference } from './language-layer'
+import { generateClarifications, saveClarifications, buildClarificationContext } from '../lib/clarification-generator'
+import { getMemoryContext } from '../lib/memory-manager'
 
 /**
  * Entry point — called when user triggers a task.
@@ -21,18 +23,51 @@ import { processInputLanguage, getUserLanguagePreference } from './language-laye
  *   2. Decompose into subtask DAG via task-decomposer
  */
 export async function orchestrateTask(taskId: string): Promise<void> {
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    select: { id: true, originalGoal: true, userId: true, templateId: true, status: true },
+  })
+
+  if (!task) throw new Error(`Task ${taskId} not found`)
+
+  // If task is resuming after clarification, skip the clarification phase
+  const isResuming = task.status === 'WAITING_CLARIFICATION'
+
+  if (!isResuming) {
+    // ── Phase 0: Clarification round (only for new tasks) ──────────────────
+    const memoryCtx = await getMemoryContext(task.userId)
+
+    // Load template category for better question generation
+    let templateCategory: string | undefined
+    if (task.templateId) {
+      const tmpl = await prisma.roundtableTemplate.findUnique({
+        where: { id: task.templateId },
+        select: { category: true },
+      })
+      templateCategory = tmpl?.category
+    }
+
+    const questions = await generateClarifications({
+      taskId:           task.id,
+      goal:             task.originalGoal,
+      userId:           task.userId,
+      templateCategory,
+      memoryContext:    memoryCtx,
+    })
+
+    if (questions.length > 0) {
+      await saveClarifications(task.id, questions)
+      // Pause here — orchestration will resume when user submits answers
+      // via POST /api/v1/tasks/:id/clarifications/answer
+      return
+    }
+  }
+
   // Mark as routing
   await prisma.task.update({
     where: { id: taskId },
     data: { status: 'ROUTING' },
   })
-
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
-    select: { id: true, originalGoal: true, userId: true, templateId: true },
-  })
-
-  if (!task) throw new Error(`Task ${taskId} not found`)
 
   try {
     // Process language — detect and translate if needed
@@ -72,13 +107,35 @@ export async function orchestrateTask(taskId: string): Promise<void> {
       subtaskDefinitions = decomposeTask(intent)
     }
 
-    // Step 3: Initialize context
+    // Override models with user's routing preferences
+    const userPrefs = await prisma.userRoutingPreference.findMany({
+      where: { userId: task.userId },
+    })
+    const prefMap = new Map(userPrefs.map((p) => [p.taskCategory, p.preferredModel]))
+
+    for (const def of subtaskDefinitions) {
+      const override = prefMap.get(def.category)
+      if (override) def.assignedModel = override as any
+    }
+
+    // Step 3: Initialize context — inject user memory + clarification answers
+    const [memoryContext, clarificationContext] = await Promise.all([
+      getMemoryContext(task.userId),
+      buildClarificationContext(task.id),
+    ])
+
+    const enrichedGoal = [
+      goalForProcessing,
+      memoryContext     ? `\n${memoryContext}` : '',
+      clarificationContext ? `\n${clarificationContext}` : '',
+    ].join('')
+
     await initializeContext({
       taskId: task.id,
-      originalGoal: goalForProcessing,
+      originalGoal: enrichedGoal,
       userId: task.userId,
       language: langContext.originalLanguage.code,
-      constraints: intent.constraints,
+      constraints: intent?.constraints ?? [],
     })
 
     // Step 4: Save subtasks to DB

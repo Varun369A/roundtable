@@ -18,10 +18,11 @@ export class GeminiConnector extends BaseConnector {
   readonly provider = 'google'
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
-    if (!process.env.GOOGLE_AI_API_KEY) throw new Error('GOOGLE_AI_API_KEY not set')
+    const apiKey = input.userApiKey || process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) throw new Error('GOOGLE_AI_API_KEY not set')
 
     const start = Date.now()
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`
 
     return this.withRetry(async () => {
       const response = await fetch(apiUrl, {

@@ -13,18 +13,18 @@ export interface SubtaskDefinition {
  * Routing table — maps category to best model.
  * Rule-based V1. Will become ML-based in Month 9.
  */
-const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
+export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
   research:      'perplexity-sonar',
   copywriting:   'claude-3-5-sonnet',
   strategy:      'claude-3-5-sonnet',
-  images:        'dalle-3',
+  images:        'midjourney-v6',
   video:         'runway-gen3',
   audio:         'elevenlabs',
   presentation:  'gamma',
   code:          'claude-3-5-sonnet',
   translation:   'sarvam-1',
   data_analysis: 'gpt-4o',
-  general:       'gpt-4o',
+  general:       'claude-3-5-sonnet',
 }
 
 /**
@@ -168,4 +168,22 @@ function buildInputInstruction(category: TaskCategory, intent: ParsedIntent): st
   }
 
   return templates[category] || `Complete: ${intent.goal}`
+}
+
+/**
+ * Returns the optimal primary model for a given TemplateCategory.
+ * Used when template category context is known at orchestration time.
+ */
+export function getModelForTemplateCategory(templateCategory: string): AIModel {
+  const TEMPLATE_MODELS: Record<string, AIModel> = {
+    development: 'claude-3-5-sonnet',
+    design:      'midjourney-v6',
+    marketing:   'claude-3-5-sonnet',
+    business:    'claude-3-5-sonnet',
+    content:     'claude-3-5-sonnet',
+    research:    'perplexity-sonar',
+    learning:    'gemini-pro',
+    personal:    'claude-3-5-sonnet',
+  }
+  return TEMPLATE_MODELS[templateCategory] || 'claude-3-5-sonnet'
 }

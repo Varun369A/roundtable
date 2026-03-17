@@ -12,6 +12,28 @@ import { sendTaskCompletionEmail } from '../lib/email'
 import { createNotification } from '../lib/notifications'
 import { firewallPrompt } from '../lib/ai-firewall'
 import { triggerCodeAssembly } from '../routes/code-projects'
+import { generatePreview } from '../lib/preview-generator'
+import { detectErrors } from '../lib/error-detector'
+import { resolveUserApiKey } from '../lib/key-resolver'
+import { inferMemoryFromTask } from '../lib/memory-manager'
+import { onWorkflowStepComplete } from '../lib/workflow-executor'
+import { verifyTaskOutputs } from '../lib/quality-verifier'
+import { forwardTaskEventToSession } from '../lib/session-manager'
+import {
+  checkRound1Complete,
+  checkRound2Complete,
+  createReviewSubtasks,
+  createSynthesisSubtask,
+  synthesisExists,
+  hasReviewRound,
+  checkSynthesisComplete,
+} from '../orchestration/discussion-engine'
+import {
+  calculateTaskCredits,
+  debitWallet,
+  payReferralBonus,
+  InsufficientCreditsError,
+} from '../lib/credit-manager'
 
 // ─── Queue definitions ────────────────────────────────────────────────────────
 
@@ -105,12 +127,40 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       // Build full prompt
       const rawPrompt = buildPromptWithContext(context, subtask.inputPrompt)
 
+      // ── Mid-generation steering: inject pending user instructions ─────────
+      const pendingSteering = await prisma.taskSteeringMessage.findFirst({
+        where:   { taskId, appliedAt: null },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+      })
+      let steeringPrefix = ''
+      if (pendingSteering) {
+        steeringPrefix = `[User steering instruction — apply immediately]: ${pendingSteering.message}\n\n`
+        // Mark as applied (non-blocking)
+        prisma.taskSteeringMessage.update({
+          where: { id: pendingSteering.id },
+          data:  { appliedToSubtaskId: subtaskId, appliedAt: new Date() },
+        }).catch(() => {})
+        // Notify via SSE
+        redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+          event:              'steering_applied',
+          taskId,
+          subtaskId,
+          steeringMessage:    pendingSteering.message,
+          steeringId:         pendingSteering.id,
+        })).catch(() => {})
+      }
+
+      const promptWithSteering = steeringPrefix + rawPrompt
+
       // AI Firewall — sanitize before sending to AI model
-      const firewallResult = await firewallPrompt(rawPrompt, taskId, context.userId)
+      const firewallResult = await firewallPrompt(promptWithSteering, taskId, context.userId)
       if (!firewallResult.allowed) {
         throw Object.assign(new Error('Prompt blocked by AI firewall'), { code: 'FIREWALL_BLOCKED' })
       }
       const fullPrompt = firewallResult.sanitized
+
+      // Resolve user's own API key (BYOAI — free usage if user provides their key)
+      const userApiKey = await resolveUserApiKey(context.userId, subtask.assignedModel as AIModel)
 
       // Execute via connector
       const output = await connectorRegistry.execute(subtask.assignedModel as AIModel, {
@@ -118,6 +168,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         model: subtask.assignedModel as AIModel,
         taskId,
         subtaskId,
+        userApiKey,
       })
 
       // Save output to DB
@@ -152,6 +203,63 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         executor: subtask.assignedModel as AIModel,
         outputContent: output.content || output.fileUrl || '',
       })
+
+      // ── Sabha AI: collect knowledge from high-quality completions ─────────
+      if (output.type === 'text' && output.content && output.content.length > 500) {
+        const qualityScore = Math.min(1, output.content.length / 3000) * 0.7 +
+          (output.content.includes('\n') ? 0.2 : 0) +
+          (output.content.includes('```') ? 0.1 : 0)
+
+        if (qualityScore >= 0.4) {
+          const taskMeta = await prisma.task.findUnique({
+            where: { id: taskId },
+            select: { template: { select: { category: true } } },
+          })
+          prisma.sabhaKnowledge.create({
+            data: {
+              category: subtask.category as any,
+              templateCategory: taskMeta?.template?.category ?? null,
+              inputSummary: subtask.inputPrompt.slice(0, 500),
+              outputSummary: output.content.slice(0, 3000),
+              model: subtask.assignedModel as any,
+              qualityScore,
+              taskId,
+              subtaskId,
+            },
+          }).catch(() => {}) // non-blocking, best-effort
+        }
+      }
+
+      // ── Auto error detection for code subtasks ────────────────────────────
+      let autoFixSubtaskId: string | null = null
+      if (subtask.category === 'code' && output.type === 'text' && output.content) {
+        const detection = detectErrors(output.content, subtask.category)
+        if (detection.hasErrors && detection.correctionPrompt) {
+          // Create a fix subtask
+          const fixSubtask = await prisma.subtask.create({
+            data: {
+              taskId,
+              title: `Auto-fix: ${subtask.title}`,
+              category: subtask.category,
+              assignedModel: subtask.assignedModel,
+              status: 'PENDING',
+              dependsOn: [subtaskId],
+              inputPrompt: detection.correctionPrompt,
+              executionOrder: subtask.executionOrder + 0.5,
+            },
+          })
+          autoFixSubtaskId = fixSubtask.id
+
+          // Emit auto-fix notification via SSE
+          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+            event: 'auto_fix_started',
+            taskId,
+            subtaskId: fixSubtask.id,
+            originalSubtaskId: subtaskId,
+            errors: detection.errors,
+          }))
+        }
+      }
 
       // Translate output back to user's language if needed
       const { translatedContent, costUsd: translationCost } = await translateSubtaskOutput({
@@ -188,18 +296,56 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         })
       }
 
+      // Generate live preview for the output
+      const taskForPreview = await prisma.task.findUnique({
+        where: { id: taskId },
+        select: { template: { select: { category: true } } },
+      })
+      const templateCategory = taskForPreview?.template?.category ?? 'general'
+      const preview = generatePreview(templateCategory, subtask.title, {
+        type: output.type,
+        content: translatedContent || output.content,
+        fileUrl: output.fileUrl,
+      })
+
       // Emit SSE event — user sees output in their language
       await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
         event: 'subtask_completed',
         subtaskId,
         title: subtask.title,
         model: subtask.assignedModel,
+        role: subtask.role,
+        roundNumber: subtask.roundNumber,
+        reviewsSubtaskId: subtask.reviewsSubtaskId,
         output: {
           type: output.type,
           content: translatedContent?.slice(0, 2000) || output.content?.slice(0, 2000),
           fileUrl: output.fileUrl,
         },
+        preview: {
+          type: preview.type,
+          html: preview.html,
+        },
       }))
+
+      // Forward event to multiplayer session channel (if session exists)
+      forwardTaskEventToSession(taskId, JSON.stringify({
+        event: 'subtask_completed',
+        subtaskId,
+        title: subtask.title,
+        model: subtask.assignedModel,
+        role:  subtask.role,
+        roundNumber: subtask.roundNumber,
+      })).catch(() => {})
+
+      // Enqueue auto-fix subtask immediately if created
+      if (autoFixSubtaskId) {
+        await subtaskQueue.add(
+          `subtask:${autoFixSubtaskId}`,
+          { subtaskId: autoFixSubtaskId, taskId },
+          { jobId: `subtask:${autoFixSubtaskId}` }
+        )
+      }
 
       // Enqueue next ready subtasks (DAG progression)
       await enqueueNextSubtasks(taskId)
@@ -263,6 +409,57 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
   const readyIds = await getReadySubtasks(taskId)
 
   if (readyIds.length === 0) {
+    // ── Discussion Engine: check if we need to trigger the next round ─────
+    // Round 1 → Round 2 (peer review)
+    if (!(await hasReviewRound(taskId))) {
+      const round1Complete = await checkRound1Complete(taskId)
+      if (round1Complete) {
+        const reviewIds = await createReviewSubtasks(taskId)
+        if (reviewIds.length > 0) {
+          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+            event: 'discussion_round_started',
+            taskId,
+            round: 2,
+            subtaskIds: reviewIds,
+          }))
+          await Promise.all(
+            reviewIds.map((id) =>
+              subtaskQueue.add(`subtask:${id}`, { subtaskId: id, taskId }, { jobId: `subtask:${id}` })
+            )
+          )
+          return  // wait for reviews to complete
+        }
+      }
+    }
+
+    // Round 2 → Round 3 (synthesis)
+    if (await hasReviewRound(taskId) && !(await synthesisExists(taskId))) {
+      if (await checkRound2Complete(taskId)) {
+        const synthesisId = await createSynthesisSubtask(taskId)
+        if (synthesisId) {
+          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+            event: 'synthesis_started',
+            taskId,
+            subtaskId: synthesisId,
+          }))
+          await subtaskQueue.add(
+            `subtask:${synthesisId}`,
+            { subtaskId: synthesisId, taskId },
+            { jobId: `subtask:${synthesisId}` }
+          )
+          return  // wait for synthesis
+        }
+      }
+    }
+
+    // If synthesis just completed, emit event
+    if (await synthesisExists(taskId) && await checkSynthesisComplete(taskId)) {
+      await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+        event: 'synthesis_complete',
+        taskId,
+      }))
+    }
+
     // Check if task is now complete
     const allSubtasks = await prisma.subtask.findMany({
       where: { taskId },
@@ -329,6 +526,65 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
       // Auto-assemble code workspace for development category tasks
       if (task && task.template?.category === 'development') {
         triggerCodeAssembly(taskId, task.userId, task.title).catch(() => {})
+      }
+
+      // Infer user memory from completed task (non-blocking, background)
+      if (task) {
+        inferMemoryFromTask(task.userId, taskId).catch(() => {})
+      }
+
+      // Verify quality of all SYNTHESIS subtask outputs (non-blocking)
+      verifyTaskOutputs(taskId).catch(() => {})
+
+      // Advance workflow if this task is part of one (non-blocking)
+      onWorkflowStepComplete(taskId).catch(() => {})
+
+      // ── Phase 4: Debit credits for completed task ─────────────────────
+      if (task) {
+        ;(async () => {
+          try {
+            // Determine whether the discussion engine ran for this task
+            // (any subtask with role REVIEW or SYNTHESIS signals discussion engine use)
+            const allSubtaskRoles = await prisma.subtask.findMany({
+              where: { taskId },
+              select: { role: true },
+            })
+            const hasDiscussion = allSubtaskRoles.some(
+              (s) => s.role === 'REVIEW' || s.role === 'SYNTHESIS'
+            )
+
+            // Expert review check — task must have an ExpertReview to add the surcharge
+            const hasExpertReview = await prisma.expertReview
+              .findFirst({ where: { taskId } })
+              .then((r) => r !== null)
+              .catch(() => false)
+
+            const creditsToCharge = calculateTaskCredits(
+              allSubtasks.length,
+              hasDiscussion,
+              hasExpertReview
+            )
+
+            await debitWallet(
+              task.userId,
+              creditsToCharge,
+              'TASK_USAGE',
+              `Credits for task: ${task.title}`,
+              { taskId }
+            )
+          } catch (err) {
+            if (err instanceof InsufficientCreditsError) {
+              console.warn(
+                `[CreditManager] User ${task.userId} has insufficient credits for task ${taskId} — task already completed, skipping debit`
+              )
+            } else {
+              console.error(`[CreditManager] Failed to debit credits for task ${taskId}:`, err)
+            }
+          }
+        })().catch(() => {})
+
+        // Pay referral bonus to referrer after referee's first task (non-blocking)
+        payReferralBonus(task.userId).catch(() => {})
       }
 
       metrics.tasksCompleted.inc()

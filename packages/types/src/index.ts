@@ -123,12 +123,13 @@ export interface RoundtableTemplate {
 // ─── Tasks ──────────────────────────────────────────────────────────────────
 
 export type TaskStatus =
-  | 'PENDING'       // created, not yet routed
-  | 'ROUTING'       // router is building the plan
-  | 'IN_PROGRESS'   // AIs are working
-  | 'COMPLETED'     // all subtasks done
-  | 'FAILED'        // something went wrong
-  | 'CANCELLED'     // user cancelled
+  | 'PENDING'                 // created, not yet routed
+  | 'WAITING_CLARIFICATION'   // paused — awaiting user answers to pre-task questions
+  | 'ROUTING'                 // router is building the plan
+  | 'IN_PROGRESS'             // AIs are working
+  | 'COMPLETED'               // all subtasks done
+  | 'FAILED'                  // something went wrong
+  | 'CANCELLED'               // user cancelled
 
 export type TaskVisibility = 'private' | 'workspace'
 
@@ -138,6 +139,8 @@ export type SubtaskStatus =
   | 'COMPLETED'
   | 'FAILED'
   | 'SKIPPED'
+
+export type SubtaskRole = 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
 
 export type AIModel =
   | 'claude-3-5-sonnet'
@@ -153,6 +156,10 @@ export type AIModel =
   | 'runway-gen3'
   | 'sarvam-1'
   | 'gamma'
+  | 'sabha-ai'
+  | 'groq'
+  | 'cohere'
+  | 'whisper'
 
 export type TaskCategory =
   | 'research'
@@ -192,6 +199,9 @@ export interface Subtask {
   assignedModel: AIModel
   status: SubtaskStatus
   dependsOn: string[]   // subtask IDs this depends on
+  role: SubtaskRole
+  roundNumber: number
+  reviewsSubtaskId?: string
   input: string
   output?: SubtaskOutput
   costUsd?: number
@@ -298,7 +308,7 @@ export const PLANS: Record<PlanId, Plan> = {
     roundtableTasksPerMonth: 100,
     concurrentTasks: 5,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'perplexity-sonar', 'dalle-3', 'elevenlabs'],
+    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'gpt-4o', 'perplexity-sonar', 'dalle-3', 'elevenlabs'],
     features: ['5 AIs', '100 roundtable tasks', 'All templates', 'Priority support']
   },
   pro: {
@@ -309,7 +319,7 @@ export const PLANS: Record<PlanId, Plan> = {
     roundtableTasksPerMonth: 500,
     concurrentTasks: 50,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'sarvam-1', 'gamma'],
+    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'sarvam-1', 'gamma'],
     features: ['All AIs', 'Unlimited single tasks', '500 roundtable tasks', 'Custom templates', 'API access']
   },
   power: {
@@ -320,7 +330,7 @@ export const PLANS: Record<PlanId, Plan> = {
     roundtableTasksPerMonth: -1,
     concurrentTasks: 200,
     teamMembers: 10,
-    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
+    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
     features: ['Everything in Pro', 'Unlimited roundtable', 'Team workspace (10 members)', 'Priority routing', 'API access']
   },
   enterprise: {
@@ -331,7 +341,121 @@ export const PLANS: Record<PlanId, Plan> = {
     roundtableTasksPerMonth: -1,
     concurrentTasks: -1,
     teamMembers: -1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
+    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
     features: ['Custom contract', 'Unlimited teams', 'SSO/SAML', 'Audit logs', 'SLA', 'On-prem option', 'Dedicated account manager']
   }
+}
+
+// ─── Phase 3: Output Quality Verification ────────────────────────────────────
+
+export type VerificationStatus = 'PENDING' | 'RUNNING' | 'PASSED' | 'PARTIAL' | 'FAILED'
+
+export interface VerificationIssue {
+  type: 'factual' | 'completeness' | 'citation' | 'coherence' | 'hallucination'
+  severity: 'low' | 'medium' | 'high'
+  description: string
+  suggestion?: string
+}
+
+export interface VerificationCitation {
+  text: string       // the claim being cited
+  source: string     // source name
+  url?: string
+  confidence: number // 0-1
+}
+
+export interface SubtaskVerification {
+  id: string
+  subtaskId: string
+  status: VerificationStatus
+  confidenceScore: number    // 0-1 overall quality
+  factualScore: number
+  completenessScore: number
+  citationsFound: number
+  issues: VerificationIssue[]
+  citations: VerificationCitation[]
+  verifiedAt?: Date
+  verifiedBy?: string
+}
+
+// ─── Phase 3: Agent Execution ────────────────────────────────────────────────
+
+export type ActionStatus =
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'EXECUTING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'EXPIRED'
+
+export type ActionType =
+  | 'GITHUB_PUSH'
+  | 'GITHUB_PR'
+  | 'GITHUB_ISSUE'
+  | 'GMAIL_SEND'
+  | 'GMAIL_DRAFT'
+  | 'NOTION_PAGE'
+  | 'NOTION_DB_ROW'
+  | 'WEBHOOK'
+  | 'SLACK_MESSAGE'
+
+export interface ExecutionAction {
+  id: string
+  subtaskId: string
+  taskId: string
+  userId: string
+  type: ActionType
+  status: ActionStatus
+  integrationId?: string
+  payload: Record<string, unknown>
+  result?: Record<string, unknown>
+  requiresApproval: boolean
+  approvedAt?: Date
+  rejectedAt?: Date
+  rejectedReason?: string
+  executedAt?: Date
+  expiresAt?: Date
+  errorMessage?: string
+  createdAt: Date
+}
+
+// ─── Phase 3: User Integrations ──────────────────────────────────────────────
+
+export type IntegrationProvider =
+  | 'GITHUB'
+  | 'GMAIL'
+  | 'NOTION'
+  | 'SLACK'
+  | 'JIRA'
+  | 'LINEAR'
+  | 'WEBHOOK'
+
+export interface UserIntegration {
+  id: string
+  userId: string
+  provider: IntegrationProvider
+  displayName: string
+  isActive: boolean
+  scopes: string[]
+  metadata: Record<string, unknown>
+  connectedAt: Date
+  lastUsedAt?: Date
+  tokenExpiresAt?: Date
+}
+
+// ─── Phase 3: Voice Transcription ────────────────────────────────────────────
+
+export interface VoiceTranscription {
+  id: string
+  userId: string
+  taskId?: string
+  provider: 'whisper' | 'sarvam'
+  language: string
+  durationSecs: number
+  originalText: string
+  processedText: string
+  confidence: number
+  audioFileUrl?: string
+  createdAt: Date
 }
