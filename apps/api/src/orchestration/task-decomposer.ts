@@ -52,7 +52,14 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
 
   for (let i = 0; i < sortedCategories.length; i++) {
     const category = sortedCategories[i]
-    const model = ROUTING_TABLE[category]
+    let model = ROUTING_TABLE[category]
+
+    // Language-aware routing: for non-English tasks, route content generation
+    // to Sarvam (India-first language model). Strategy/reasoning stays on Claude
+    // since logical frameworks are language-agnostic.
+    if (intent.language !== 'en') {
+      if (category === 'copywriting') model = 'sarvam-1'
+    }
 
     // Resolve dependencies
     const dependencyCategories = DEPENDENCY_RULES[category] || []

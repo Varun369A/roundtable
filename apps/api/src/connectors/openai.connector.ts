@@ -30,7 +30,8 @@ export class OpenAIConnector extends BaseConnector {
 
     const start = Date.now()
     const apiModel = MODEL_MAP[this.model] || 'gpt-4o'
-    const client = new OpenAI({ apiKey })
+    // Reuse the singleton client unless a user-provided key was given
+    const client = input.userApiKey ? new OpenAI({ apiKey }) : this.client
 
     return this.withRetry(async () => {
       const response = await client.chat.completions.create({
@@ -44,7 +45,7 @@ export class OpenAIConnector extends BaseConnector {
           },
           { role: 'user', content: input.prompt },
         ],
-      })
+      }, { signal: AbortSignal.timeout(60_000) })
 
       const choice = response.choices[0]
       const inputTokens  = response.usage?.prompt_tokens     || 0

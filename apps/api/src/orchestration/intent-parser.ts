@@ -65,8 +65,22 @@ export async function parseIntent(userGoal: string): Promise<ParsedIntent> {
 
       const content = message.content[0]
       if (content.type === 'text') {
-        const parsed = JSON.parse(content.text) as ParsedIntent
-        return parsed
+        try {
+          const parsed = JSON.parse(content.text) as ParsedIntent
+          return parsed
+        } catch (parseErr) {
+          console.warn('[IntentParser] JSON parse failed, using minimal fallback:', parseErr)
+          const rawText = content.text
+          return {
+            goal: rawText,
+            categories: ['general'],
+            subject: rawText.substring(0, 100),
+            deliverables: [],
+            language: 'en',
+            urgency: 'normal',
+            constraints: [],
+          }
+        }
       }
     } catch (err) {
       console.warn('[IntentParser] AI parsing failed, falling back to rule-based:', err)

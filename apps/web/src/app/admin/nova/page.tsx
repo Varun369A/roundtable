@@ -49,21 +49,21 @@ export default function NovaPage() {
     setLoading(true)
 
     try {
-      const res = await apiFetch('/api/v1/admin/nova/chat', {
+      const data = await apiFetch('/api/v1/admin/nova/chat', {
         method: 'POST',
         body: JSON.stringify({
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
           sessionId,
         }),
       })
-      const data = await res.json()
 
       if (data.success) {
-        setSessionId(data.data.sessionId)
+        const d = data.data as any
+        setSessionId(d.sessionId)
         setMessages((m) => [...m, {
           role: 'assistant',
-          content: data.data.message,
-          toolsUsed: data.data.toolsUsed,
+          content: d.message,
+          toolsUsed: d.toolsUsed,
           timestamp: new Date(),
         }])
       } else {

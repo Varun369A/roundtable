@@ -67,11 +67,18 @@ const PII_PATTERNS: PiiPattern[] = [
     description: 'Email address detected and redacted',
   },
   {
-    // Indian +91 and international phone numbers
-    regex: /(?:\+91[\s\-]?)?(?:\(?\d{3,5}\)?[\s\-]?)?\d{3,4}[\s\-]?\d{4,5}(?!\d)/g,
+    // Indian mobile numbers (6-9 starting digit, 10 digits total) — linear pattern, no backtracking
+    regex: /(?<!\d)[6-9]\d{9}(?!\d)/g,
     placeholder: '[PHONE]',
     threatType: FirewallThreatType.PII_PHONE,
-    description: 'Phone number detected and redacted',
+    description: 'Indian phone number detected and redacted',
+  },
+  {
+    // International phone numbers (10-15 digits, optional leading +) — linear pattern
+    regex: /(?<!\d)[+]?[0-9]{10,15}(?!\d)/g,
+    placeholder: '[PHONE]',
+    threatType: FirewallThreatType.PII_PHONE,
+    description: 'International phone number detected and redacted',
   },
   {
     // Credit/debit card 16 digits (various separators)
@@ -220,6 +227,85 @@ const INJECTION_PATTERNS: ThreatPattern[] = [
     type: FirewallThreatType.JAILBREAK,
     description: 'Jailbreak: safety disable attempt',
   },
+  // Additional patterns from spec
+  {
+    regex: /forget\s+(?:your|all|previous)?\s*instructions/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: instruction erasure attempt',
+  },
+  {
+    regex: /reveal\s+(?:your|the)?\s*(?:system\s+)?prompt/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: system prompt exfiltration attempt',
+  },
+  {
+    regex: /(?:print|show|list|display)\s+(?:all\s+)?(?:users|accounts|records|data)/gi,
+    score: 30,
+    type: FirewallThreatType.DATA_EXFILTRATION,
+    description: 'Data exfiltration: bulk data dump attempt',
+  },
+  {
+    regex: /show\s+(?:me\s+)?(?:other|another)\s+(?:user|users|account)/gi,
+    score: 30,
+    type: FirewallThreatType.DATA_EXFILTRATION,
+    description: 'Data exfiltration: cross-user data access attempt',
+  },
+  {
+    regex: /what\s+is\s+(?:your\s+)?(?:system\s+)?prompt/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: system prompt probing',
+  },
+  {
+    regex: /\bdisregard\b/gi,
+    score: 15,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: disregard instruction attempt',
+  },
+  {
+    regex: /new\s+instructions?(?:\s+are|\s+follow|\s*:)/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: new instructions substitution',
+  },
+  // ── Indian language injection patterns (romanised transliteration) ──────────
+  {
+    // Hindi: "sab instructions bhool jao / bhul jao" (forget all instructions)
+    regex: /(?:sab|saari?)\s+instructions?\s+(?:bhoo?l|mat mano)/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: Hindi instruction erasure attempt',
+  },
+  {
+    // Hindi: "ab se tum X ho" (you are now X)
+    regex: /ab\s+(?:se\s+)?tum\b/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: Hindi role reassignment attempt',
+  },
+  {
+    // Hindi: "naye nirdesh" (new instructions) / "naye instructions"
+    regex: /nay[ei]\s+(?:nirdesh|instructions?)/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: Hindi new instructions substitution',
+  },
+  {
+    // Tamil romanised: "murai maatru" (change rules) / "vilaiyadal" (jailbreak-like)
+    regex: /murai\s+maa?tru/gi,
+    score: 20,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Prompt injection: Tamil rule-change attempt',
+  },
+  {
+    // Devanagari script: instruction override keywords (नियम बदलो, सब भूल जाओ)
+    regex: /[\u0900-\u097F]{3,}\s+[\u0900-\u097F]{3,}\s+[\u0900-\u097F]{3,}/g,
+    score: 10,
+    type: FirewallThreatType.PROMPT_INJECTION,
+    description: 'Devanagari script injection pattern detected (flagged for review)',
+  },
 ]
 
 const EXFILTRATION_PATTERNS: ThreatPattern[] = [
@@ -324,6 +410,10 @@ export async function firewall(
   text: string,
   options: FirewallOptions = {}
 ): Promise<FirewallResult> {
+  // Unicode NFKC normalisation — prevents look-alike character bypass attacks
+  // (e.g. full-width "ｉｇｎｏｒｅ" → "ignore", homoglyph substitutions)
+  text = text.normalize('NFKC')
+
   const blockOnRiskScore = options.blockOnRiskScore ?? 80
   const maxLength = options.maxLength ?? 8000
 
@@ -372,6 +462,9 @@ export async function firewallPrompt(
   taskId?: string,
   userId?: string
 ): Promise<FirewallResult> {
+  if (prompt.length > 50_000) {
+    prompt = prompt.substring(0, 50_000) // truncate enormous inputs before regex scanning
+  }
   const result = await firewall(prompt, { context: 'ai_prompt' })
 
   if (result.threats.length > 0) {

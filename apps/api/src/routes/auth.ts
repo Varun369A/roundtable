@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@sabha/db'
 import { env } from '@sabha/config'
@@ -15,8 +15,26 @@ import { requireAuth } from '../middleware/auth'
 import { metrics } from '../lib/metrics'
 import { checkLoginRateLimit, recordLoginFailure, clearLoginFailures } from '../middleware/auth-rate-limit'
 import { isEnabled, FLAGS } from '../lib/feature-flags'
-import { sendWelcomeEmail } from '../lib/email'
+import { sendWelcomeEmail, sendVerificationEmail } from '../lib/email'
 import { grantSignupBonus } from './credits'
+
+function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string) {
+  const isProduction = process.env.NODE_ENV === 'production'
+  reply.setCookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 15 * 60, // 15 minutes
+  })
+  reply.setCookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/api/v1/auth/refresh',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  })
+}
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -154,6 +172,24 @@ export async function authRoutes(app: FastifyInstance) {
     // Grant signup bonus credits (non-blocking, fire-and-forget)
     grantSignupBonus(user.id).catch(() => {})
 
+    // Create email verification token and send verification email (non-blocking)
+    ;(async () => {
+      try {
+        const crypto = await import('crypto')
+        const rawToken = crypto.randomBytes(32).toString('hex')
+        const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        await prisma.emailVerification.create({ data: { userId: user.id, tokenHash, expiresAt } })
+        if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
+          const webUrl = process.env.WEB_URL || 'http://localhost:3000'
+          const verifyUrl = `${webUrl}/auth/verify-email?token=${rawToken}`
+          await sendVerificationEmail(email, name, verifyUrl)
+        }
+      } catch {
+        // Non-fatal — signup succeeds even if verification email fails
+      }
+    })()
+
     // Send welcome email (non-blocking)
     if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
       sendWelcomeEmail({ to: email, name, betaCode: betaInvite?.code }).catch(() => {})
@@ -170,6 +206,7 @@ export async function authRoutes(app: FastifyInstance) {
       ipAddress: request.ip,
     })
 
+    setAuthCookies(reply, accessToken, refreshToken)
     return reply.status(201).send({
       success: true,
       data: {
@@ -252,6 +289,7 @@ export async function authRoutes(app: FastifyInstance) {
     metrics.authSuccesses.inc({ method: 'password' })
     const { passwordHash: _, ...safeUser } = user
 
+    setAuthCookies(reply, accessToken, refreshToken)
     return reply.send({
       success: true,
       data: {
@@ -317,6 +355,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     const accessToken = app.jwt.sign({ sub: user.id, email: user.email, tier: user.tier })
 
+    setAuthCookies(reply, accessToken, newRefreshToken)
     return reply.send({
       success: true,
       data: {
@@ -343,6 +382,8 @@ export async function authRoutes(app: FastifyInstance) {
     // Revoke all refresh tokens
     await revokeAllUserTokens(request.user!.id)
 
+    reply.clearCookie('accessToken', { path: '/' })
+    reply.clearCookie('refreshToken', { path: '/api/v1/auth/refresh' })
     return reply.send({ success: true, data: { message: 'Logged out successfully' } })
   })
 
@@ -376,6 +417,7 @@ export async function authRoutes(app: FastifyInstance) {
         tier: true,
         status: true,
         emailVerified: true,
+        isEmailVerified: true,
         avatarUrl: true,
         createdAt: true,
         subscription: {

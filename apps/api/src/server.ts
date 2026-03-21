@@ -1,4 +1,16 @@
-import Fastify from 'fastify'
+// OpenTelemetry MUST be first — SDK instruments http/prisma at import time.
+// Must load before any instrumented module (fastify, prisma, etc.).
+import './lib/tracing'
+
+// Log scrubber MUST be second — before Sentry, before any other import that may log.
+// Any log line that fires before this runs can still leak API keys.
+import { installGlobalLogScrubber } from './lib/log-scrubber'
+installGlobalLogScrubber()
+
+import { initSentry, Sentry } from './lib/sentry'
+initSentry()
+
+import Fastify, { type FastifyError } from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -7,6 +19,7 @@ import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
 import { env } from '@sabha/config'
 import { authRoutes } from './routes/auth'
+import { authRecoveryRoutes } from './routes/auth-recovery'
 import { taskRoutes } from './routes/tasks'
 import { healthRoutes } from './routes/health'
 import { orchestrationRoutes } from './routes/orchestration'
@@ -38,6 +51,8 @@ import { verificationsRoutes } from './routes/verifications'
 import { integrationsRoutes } from './routes/integrations'
 import { creditsRoutes } from './routes/credits'
 import { verticalPacksRoutes } from './routes/vertical-packs'
+import { gdprRoutes } from './routes/gdpr'
+import { correctionsRoutes } from './routes/corrections'
 import { seedBuiltInPacks } from './lib/vertical-pack-manager'
 import { startCronWorkers } from './jobs'
 import { registerHttpMetrics } from './middleware/http-metrics'
@@ -111,7 +126,7 @@ const start = async () => {
     })
 
     await app.register(cors, {
-      origin: env.CORS_ORIGINS.split(','),
+      origin: env.CORS_ORIGINS.split(',').map(o => o.trim()),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     })
@@ -123,6 +138,10 @@ const start = async () => {
     await app.register(jwt, {
       secret: env.JWT_SECRET,
       sign: { expiresIn: env.JWT_EXPIRES_IN },
+      cookie: {
+        cookieName: 'accessToken',
+        signed: false,
+      },
     })
 
     await app.register(multipart, {
@@ -149,11 +168,42 @@ const start = async () => {
 
     await registerHttpMetrics(app)
 
+    // ── CSRF protection ────────────────────────────────────────────────────────
+
+    // CSRF protection: validate Origin header on state-changing requests
+    app.addHook('preHandler', async (request, reply) => {
+      const method = request.method.toUpperCase()
+      if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return
+
+      // Skip CSRF for requests using Bearer token auth (API clients)
+      if (request.headers.authorization?.startsWith('Bearer ')) return
+
+      // Skip CSRF for webhooks (they use signature verification instead)
+      if (request.routeOptions?.url?.startsWith('/api/v1/webhooks')) return
+
+      const origin = request.headers.origin ?? request.headers.referer ?? ''
+      const allowedOrigins = [
+        process.env.WEB_URL ?? 'http://localhost:3000',
+        'http://localhost:3000',
+        'https://sabhaai.com',
+        'https://www.sabhaai.com',
+        'https://app.sabhaai.com',
+      ]
+
+      if (origin && !allowedOrigins.some(o => origin.startsWith(o))) {
+        return reply.status(403).send({
+          success: false,
+          error: { code: 'CSRF_VIOLATION', message: 'Cross-site request blocked' },
+        })
+      }
+    })
+
     // ── Routes ─────────────────────────────────────────────────────────────────
 
     await app.register(healthRoutes,             { prefix: '/health' })
     await app.register(metricsRoutes,            { prefix: '/metrics' })
     await app.register(authRoutes,               { prefix: '/api/v1/auth' })
+    await app.register(authRecoveryRoutes,       { prefix: '/api/v1/auth' })
     await app.register(taskRoutes,               { prefix: '/api/v1/tasks' })
     await app.register(orchestrationRoutes,      { prefix: '/api/v1/tasks' })
     await app.register(streamRoutes,             { prefix: '/api/v1/stream' })
@@ -184,11 +234,20 @@ const start = async () => {
     await app.register(integrationsRoutes,       { prefix: '/api/v1' })
     await app.register(creditsRoutes,            { prefix: '/api/v1' })
     await app.register(verticalPacksRoutes,      { prefix: '/api/v1' })
+    await app.register(gdprRoutes,               { prefix: '/api/v1/account' })
+    await app.register(correctionsRoutes,        { prefix: '/api/v1' })
 
     // ── Global error handler ───────────────────────────────────────────────────
 
-    app.setErrorHandler((error, request, reply) => {
+    app.setErrorHandler((error: FastifyError, request, reply) => {
       app.log.error({ err: error, url: request.url, method: request.method })
+
+      // Capture 5xx errors in Sentry (4xx client errors are expected, not bugs)
+      if (!error.statusCode || error.statusCode >= 500) {
+        Sentry.captureException(error, {
+          extra: { url: request.url, method: request.method },
+        })
+      }
 
       if ((error as NodeJS.ErrnoException).code === 'CIRCUIT_OPEN') {
         return reply.status(503).send({

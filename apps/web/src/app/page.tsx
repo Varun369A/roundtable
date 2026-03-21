@@ -1,8 +1,11 @@
 import Link from 'next/link'
+import { SoftwareAppJsonLd, OrganizationJsonLd } from '@/components/seo/JsonLd'
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen flex flex-col">
+      <SoftwareAppJsonLd />
+      <OrganizationJsonLd />
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">

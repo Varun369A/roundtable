@@ -190,10 +190,30 @@ class CircuitBreakerRegistry {
 
 export const circuitBreakerRegistry = new CircuitBreakerRegistry()
 
-// Slow connectors: keep open longer before trying again
-circuitBreakerRegistry.configure('runway-gen3', { openDurationMs: 60_000, failureThreshold: 3 })
-circuitBreakerRegistry.configure('midjourney-v6', { openDurationMs: 60_000, failureThreshold: 3 })
-// Fast text models: recover quickly
+// ── Image / video generation — slow, expensive; keep open longer ─────────────
+circuitBreakerRegistry.configure('runway-gen3',    { openDurationMs: 60_000, failureThreshold: 3 })
+circuitBreakerRegistry.configure('midjourney-v6',  { openDurationMs: 60_000, failureThreshold: 3 })
+circuitBreakerRegistry.configure('dalle-3',        { openDurationMs: 60_000, failureThreshold: 3 })
+circuitBreakerRegistry.configure('stability-xl',   { openDurationMs: 60_000, failureThreshold: 3 })
+
+// ── Premium text models — 20s window; Opus is expensive, recover conservatively
+circuitBreakerRegistry.configure('claude-3-opus',  { openDurationMs: 20_000, failureThreshold: 4 })
+
+// ── Standard text models — 15s recovery window ───────────────────────────────
 circuitBreakerRegistry.configure('claude-3-5-sonnet', { openDurationMs: 15_000 })
-circuitBreakerRegistry.configure('gpt-4o', { openDurationMs: 15_000 })
-circuitBreakerRegistry.configure('gemini-pro', { openDurationMs: 15_000 })
+circuitBreakerRegistry.configure('gpt-4o',            { openDurationMs: 15_000 })
+circuitBreakerRegistry.configure('gpt-4-turbo',       { openDurationMs: 15_000 })
+circuitBreakerRegistry.configure('gemini-pro',         { openDurationMs: 15_000 })
+circuitBreakerRegistry.configure('gemini-1-5-pro',     { openDurationMs: 15_000 })
+circuitBreakerRegistry.configure('cohere',             { openDurationMs: 15_000 })
+
+// ── Research / specialised — moderate recovery ───────────────────────────────
+circuitBreakerRegistry.configure('perplexity-sonar', { openDurationMs: 20_000 })
+circuitBreakerRegistry.configure('sarvam-1',         { openDurationMs: 20_000 }) // Indian language model
+circuitBreakerRegistry.configure('gamma',            { openDurationMs: 30_000, failureThreshold: 3 })
+
+// ── Ultra-fast inference (Groq) — recover very quickly ───────────────────────
+circuitBreakerRegistry.configure('groq', { openDurationMs: 10_000, failureThreshold: 6 })
+
+// ── Sabha's own model ─────────────────────────────────────────────────────────
+circuitBreakerRegistry.configure('sabha-ai', { openDurationMs: 15_000 })

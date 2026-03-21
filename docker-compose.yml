@@ -18,20 +18,94 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    container_name: sabha_redis
+  # PgBouncer — transaction-mode connection pooler.
+  # Apps connect to :5433; PgBouncer maintains a smaller pool to Postgres.
+  # Required before 25+ concurrent tasks to prevent connection exhaustion.
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: sabha_pgbouncer
+    environment:
+      DB_USER: sabha
+      DB_PASSWORD: sabha_dev
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: sabha_db
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+      SERVER_RESET_QUERY: DISCARD ALL
+      AUTH_TYPE: plain
+    ports:
+      - "5433:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U sabha"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  valkey:
+    image: valkey/valkey:7.2-alpine
+    container_name: sabha_valkey
     ports:
       - "6379:6379"
     volumes:
-      - sabha_redis_data:/data
-    command: redis-server --appendonly yes
+      - sabha_valkey_data:/data
+    command: valkey-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus — metrics scraper.
+  # Scrapes /metrics endpoint on the API server (port 3001).
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: sabha_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - sabha_prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Grafana — metrics dashboard.
+  # Default login: admin / sabha_grafana_dev (change in production).
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: sabha_grafana
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: sabha_grafana_dev
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/sabha.json
+    volumes:
+      - sabha_grafana_data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 15s
       timeout: 5s
       retries: 5
 
 volumes:
   sabha_postgres_data:
-  sabha_redis_data:
+  sabha_valkey_data:
+  sabha_prometheus_data:
+  sabha_grafana_data:

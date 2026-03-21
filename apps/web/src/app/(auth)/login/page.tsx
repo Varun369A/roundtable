@@ -52,31 +52,44 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-1.5">Email</label>
+            <label htmlFor="email" className="block text-sm text-zinc-400 mb-1.5">Email</label>
             <input
+              id="email"
               type="email"
               required
+              aria-required="true"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              aria-invalid={error ? 'true' : undefined}
               className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-brand-500 focus:outline-none transition-colors"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-1.5">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="password" className="block text-sm text-zinc-400">Password</label>
+              <Link href="/auth/forgot-password" className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
+                Forgot password?
+              </Link>
+            </div>
             <input
+              id="password"
               type="password"
               required
+              aria-required="true"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={error ? 'login-error' : 'password-hint'}
               className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-brand-500 focus:outline-none transition-colors"
               placeholder="Your password"
             />
+            <span id="password-hint" className="sr-only">Enter your account password</span>
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p id="login-error" role="alert" className="text-red-400 text-sm">{error}</p>
           )}
 
           <button
@@ -84,7 +97,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 rounded-xl font-semibold transition-colors"
           >
-            {loading ? 'Logging in...' : 'Log in'}
+            <span aria-live="polite">{loading ? 'Logging in...' : 'Log in'}</span>
           </button>
         </form>
 

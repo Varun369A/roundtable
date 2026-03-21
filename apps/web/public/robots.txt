@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /marketplace
+Allow: /packs
+Allow: /about
+Allow: /features
+Allow: /blog
+Allow: /use-cases
+Allow: /terms
+Allow: /privacy
+Allow: /changelog
+
+Disallow: /dashboard
+Disallow: /roundtable
+Disallow: /settings
+Disallow: /admin
+Disallow: /login
+Disallow: /signup
+Disallow: /auth
+Disallow: /credits
+Disallow: /workflows
+Disallow: /api
+
+Sitemap: https://sabhaai.com/sitemap.xml

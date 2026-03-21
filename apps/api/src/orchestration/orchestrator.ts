@@ -83,6 +83,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
     const goalForProcessing = langContext.translatedGoal
 
     let subtaskDefinitions: SubtaskDefinition[]
+    let intent: Awaited<ReturnType<typeof parseIntent>> | undefined
 
     if (task.templateId) {
       // ── Template mode: use prescribed agent lineup ────────────────────────
@@ -92,7 +93,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
 
       if (!template) throw new Error(`Template ${task.templateId} not found`)
 
-      const agents = template.agents as TemplateAgent[]
+      const agents = template.agents as unknown as TemplateAgent[]
       subtaskDefinitions = decomposeFromTemplate(agents, goalForProcessing)
 
       // Increment template usage counter (non-blocking)
@@ -103,7 +104,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
 
     } else {
       // ── Auto mode: AI intent parsing + smart decomposition ───────────────
-      const intent = await parseIntent(goalForProcessing)
+      intent = await parseIntent(goalForProcessing)
       subtaskDefinitions = decomposeTask(intent)
     }
 
@@ -116,6 +117,11 @@ export async function orchestrateTask(taskId: string): Promise<void> {
     for (const def of subtaskDefinitions) {
       const override = prefMap.get(def.category)
       if (override) def.assignedModel = override as any
+    }
+
+    // Guard: reject DAGs with cycles before touching the DB
+    if (detectCycles(subtaskDefinitions)) {
+      throw new Error('Cycle detected in subtask dependency graph — task aborted')
     }
 
     // Step 3: Initialize context — inject user memory + clarification answers
@@ -147,7 +153,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
             taskId: task.id,
             title: def.title,
             category: def.category,
-            assignedModel: def.assignedModel,
+            assignedModel: def.assignedModel as any,
             status: 'PENDING',
             executionOrder: def.executionOrder,
             dependsOn: [], // resolved below
@@ -313,6 +319,44 @@ async function maybeCompleteTask(taskId: string): Promise<void> {
       })
     }
   }
+}
+
+/**
+ * Kahn's topological sort — detect cycles in the subtask DAG before committing to DB.
+ * Returns true if a cycle exists; throws so orchestration aborts cleanly.
+ *
+ * `defs[i].dependsOn` contains string indices referencing other positions in the array.
+ */
+function detectCycles(defs: SubtaskDefinition[]): boolean {
+  const n = defs.length
+  const inDegree = new Array<number>(n).fill(0)
+  const adj: number[][] = Array.from({ length: n }, () => [])
+
+  for (let i = 0; i < n; i++) {
+    for (const dep of defs[i].dependsOn) {
+      const depIdx = parseInt(dep, 10)
+      if (!Number.isNaN(depIdx) && depIdx >= 0 && depIdx < n) {
+        adj[depIdx].push(i)  // edge: dep → i
+        inDegree[i]++
+      }
+    }
+  }
+
+  const queue: number[] = []
+  for (let i = 0; i < n; i++) {
+    if (inDegree[i] === 0) queue.push(i)
+  }
+
+  let processed = 0
+  while (queue.length > 0) {
+    const node = queue.shift()!
+    processed++
+    for (const neighbor of adj[node]) {
+      if (--inDegree[neighbor] === 0) queue.push(neighbor)
+    }
+  }
+
+  return processed < n  // true = cycle detected (some nodes never reached)
 }
 
 /**

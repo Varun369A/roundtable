@@ -13,6 +13,7 @@
  * This is triggered from the queue worker after all Round-1 subtasks complete.
  */
 
+import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@sabha/db'
 import type { AIModel, TaskCategory } from '@sabha/types'
 
@@ -104,6 +105,45 @@ Produce a single, polished, definitive output that:
 4. **Delivers** a complete, production-ready result — not a summary of what was said
 
 This is the final deliverable the user will receive. Make it excellent.`
+}
+
+// ─── Review deduplication ─────────────────────────────────────────────────────
+
+/**
+ * Round 2 reviews run in parallel and don't see each other — Claude and GPT-4o
+ * routinely flag the same gaps independently. This collapses duplicates before
+ * synthesis reads them, improving output quality and reducing synthesis token cost.
+ *
+ * Uses claude-haiku for speed and cost (~₹0.30 per call).
+ * Falls back to raw reviews on any error — never blocks synthesis.
+ */
+async function deduplicateReviews(
+  reviews: Array<{ title: string; model: string; content: string }>
+): Promise<Array<{ title: string; model: string; content: string }>> {
+  if (reviews.length < 2) return reviews
+
+  const reviewText = reviews
+    .map((r, i) => `### Review ${i + 1} — ${r.model}\n${r.content}`)
+    .join('\n\n')
+
+  try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      messages: [{
+        role: 'user',
+        content: `Multiple AIs independently reviewed the same output. Many flagged the same issues. Collapse into a single deduplicated list of unique insights — remove any point that is substantively repeated, keep every distinct suggestion, gap, or strength. Format as a numbered list.\n\n${reviewText}`,
+      }],
+    })
+
+    const content = response.content[0]
+    if (content.type !== 'text') return reviews
+
+    return [{ title: 'Consolidated Peer Review', model: 'dedup-pass', content: content.text }]
+  } catch {
+    return reviews  // fall back to raw reviews on any error
+  }
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -224,7 +264,11 @@ export async function createSynthesisSubtask(taskId: string): Promise<string | n
     }),
     prisma.task.findUnique({
       where: { id: taskId },
-      select: { originalGoal: true },
+      select: {
+        originalGoal: true,
+        userId: true,
+        user: { select: { tier: true } },
+      },
     }),
   ])
 
@@ -238,7 +282,7 @@ export async function createSynthesisSubtask(taskId: string): Promise<string | n
       content: (s.output!.content ?? '').slice(0, 3000),
     }))
 
-  const reviewOutputs = reviewSubtasks
+  const rawReviewOutputs = reviewSubtasks
     .filter((s) => s.output?.content)
     .map((s) => ({
       title: s.title,
@@ -246,11 +290,20 @@ export async function createSynthesisSubtask(taskId: string): Promise<string | n
       content: (s.output!.content ?? '').slice(0, 2000),
     }))
 
-  // Choose synthesis model: sabha-ai if enabled, else claude-opus, else claude-3-5-sonnet
+  // Deduplication pass: collapse duplicate review points before synthesis reads them
+  const reviewOutputs = await deduplicateReviews(rawReviewOutputs)
+
+  // Choose synthesis model per spec:
+  // - Sabha AI if self-learning is enabled (feature flag)
+  // - Claude Opus for Studio/Enterprise — quality justifies the cost
+  // - Claude Sonnet for Free/Builder — margin-preserving default
   const sabhaState = await prisma.sabhaAIState.findUnique({ where: { id: 'singleton' } })
+  const userTier = (task as any)?.user?.tier ?? 'FREE'
+  const OPUS_TIERS = new Set(['STUDIO', 'ENTERPRISE'])
   const synthesisModel: AIModel =
     sabhaState?.status === 'ENABLED' ? 'sabha-ai' :
-    'claude-3-opus'
+    OPUS_TIERS.has(userTier)         ? 'claude-3-opus' :
+                                       'claude-3-5-sonnet'
 
   const allInitialIds = initialSubtasks.map((s) => s.id)
   const allReviewIds  = reviewSubtasks.map((s) => s.id)

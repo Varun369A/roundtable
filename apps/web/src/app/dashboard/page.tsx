@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import NotificationBell from '@/components/NotificationBell'
 import CreditBadge from '@/components/credits/CreditBadge'
+import SessionExpiryWarning from '@/components/auth/SessionExpiryWarning'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,11 @@ interface Task {
   _count?: { subtasks: number }
 }
 
+interface UserProfile {
+  isEmailVerified: boolean
+  email: string
+}
+
 interface Template {
   id: string
   name: string
@@ -27,6 +33,7 @@ interface Template {
   icon: string
   color: string
   agents: { role: string }[]
+  examplePrompts: string[]
 }
 
 interface Workspace {
@@ -58,8 +65,7 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
 
   useEffect(() => {
     apiFetch('/api/v1/templates?limit=8')
-      .then((r) => r.json())
-      .then((data) => { if (data.success) setFeatured(data.data) })
+      .then((data) => { if (data.success) setFeatured(data.data as any) })
   }, [])
 
   if (featured.length === 0) return null
@@ -158,6 +164,10 @@ export default function DashboardPage() {
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null)
   const [visibility, setVisibility] = useState<'private' | 'workspace'>('private')
   const [createError, setCreateError] = useState('')
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [resendingVerification, setResendingVerification] = useState(false)
+  const [verificationResent, setVerificationResent] = useState(false)
+  const [creditBalance, setCreditBalance] = useState<number | null>(null)
   const detectTimeout = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
@@ -167,22 +177,43 @@ export default function DashboardPage() {
   }, [])
 
   async function fetchAll() {
-    const [taskRes, wsRes] = await Promise.allSettled([
-      apiFetch('/api/v1/tasks').then((r) => r.json()),
-      apiFetch('/api/v1/workspaces/my').then((r) => r.json()),
+    const [taskRes, wsRes, meRes, creditRes] = await Promise.allSettled([
+      apiFetch('/api/v1/tasks'),
+      apiFetch('/api/v1/workspaces/my'),
+      apiFetch<{ user: { isEmailVerified: boolean; email: string } }>('/api/v1/auth/me'),
+      apiFetch<{ wallet: { balance: number } }>('/api/v1/credits/wallet'),
     ])
 
     if (taskRes.status === 'fulfilled' && taskRes.value.success) {
-      setTasks(taskRes.value.data.tasks || taskRes.value.data || [])
+      setTasks((taskRes.value.data as any).tasks || taskRes.value.data || [])
     }
 
     if (wsRes.status === 'fulfilled' && wsRes.value.success) {
-      const wsList: Workspace[] = wsRes.value.data
+      const wsList: Workspace[] = wsRes.value.data as any
       setWorkspaces(wsList)
       setActiveWorkspace(wsList[0] || null)
     }
 
+    if (meRes.status === 'fulfilled' && meRes.value.success) {
+      const u = meRes.value.data?.user
+      if (u) setUserProfile({ isEmailVerified: u.isEmailVerified, email: u.email })
+    }
+
+    if (creditRes.status === 'fulfilled' && creditRes.value.success && creditRes.value.data) {
+      setCreditBalance(creditRes.value.data.wallet.balance)
+    }
+
     setLoading(false)
+  }
+
+  async function handleResendVerification() {
+    setResendingVerification(true)
+    try {
+      const data = await apiFetch('/api/v1/auth/resend-verification', { method: 'POST' })
+      if (data.success) setVerificationResent(true)
+    } catch { /* ignore */ } finally {
+      setResendingVerification(false)
+    }
   }
 
   // Debounced language detection
@@ -191,13 +222,12 @@ export default function DashboardPage() {
     clearTimeout(detectTimeout.current)
     detectTimeout.current = setTimeout(async () => {
       try {
-        const res = await apiFetch('/api/v1/language/detect', {
+        const data = await apiFetch('/api/v1/language/detect', {
           method: 'POST',
           body: JSON.stringify({ text: goal }),
         })
-        const data = await res.json()
-        if (data.success && data.data?.language?.needsTranslation) {
-          setDetectedLang(data.data.language.name)
+        if (data.success && (data.data as any)?.language?.needsTranslation) {
+          setDetectedLang((data.data as any).language.name)
         } else {
           setDetectedLang(null)
         }
@@ -213,8 +243,8 @@ export default function DashboardPage() {
       body: JSON.stringify({ workspaceId: ws.id }),
     })
     // Re-fetch tasks for this workspace
-    const res = await apiFetch('/api/v1/tasks').then((r) => r.json())
-    if (res.success) setTasks(res.data.tasks || res.data || [])
+    const res = await apiFetch('/api/v1/tasks')
+    if (res.success) setTasks((res.data as any).tasks || res.data || [])
   }
 
   async function createTask(e: React.FormEvent) {
@@ -229,15 +259,14 @@ export default function DashboardPage() {
       if (selectedTemplate) body.templateId = selectedTemplate.id
       if (activeWorkspace && visibility === 'workspace') body.workspaceId = activeWorkspace.id
 
-      const res = await apiFetch('/api/v1/tasks', {
+      const data = await apiFetch('/api/v1/tasks', {
         method: 'POST',
         body: JSON.stringify(body),
       })
-      const data = await res.json()
       if (data.success) {
         setGoal('')
         setSelectedTemplate(null)
-        router.push(`/roundtable/${data.data.task.id}`)
+        router.push(`/roundtable/${(data.data as any).task.id}`)
       } else {
         setCreateError(data.error?.message || 'Failed to create task')
       }
@@ -253,7 +282,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="border-b border-white/5 sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between">
         <span className="text-lg font-bold">Sabha<span className="text-indigo-500">.</span></span>
-        <div className="flex items-center gap-3">
+        <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-3">
           <WorkspaceBadge
             workspaces={workspaces}
             active={activeWorkspace}
@@ -272,10 +301,35 @@ export default function DashboardPage() {
           <Link href="/credits" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Credits</Link>
           <CreditBadge />
           <NotificationBell />
-        </div>
+        </nav>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main id="main-content" className="max-w-3xl mx-auto px-6 py-10">
+
+        {/* Email verification banner */}
+        {userProfile && !userProfile.isEmailVerified && !verificationResent && (
+          <div className="flex items-center justify-between gap-4 px-4 py-3 mb-6 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+            <div className="flex items-center gap-3">
+              <span className="text-yellow-400 flex-shrink-0">⚠</span>
+              <p className="text-sm text-yellow-300">
+                Please verify your email address to unlock all Sabha features.
+              </p>
+            </div>
+            <button
+              onClick={handleResendVerification}
+              disabled={resendingVerification}
+              className="flex-shrink-0 text-xs text-yellow-400 hover:text-yellow-300 underline underline-offset-2 transition-colors disabled:opacity-50"
+            >
+              {resendingVerification ? 'Sending…' : 'Resend verification email'}
+            </button>
+          </div>
+        )}
+        {verificationResent && (
+          <div className="flex items-center gap-3 px-4 py-3 mb-6 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-emerald-400">✓</span>
+            <p className="text-sm text-emerald-300">Verification email sent — check your inbox.</p>
+          </div>
+        )}
 
         {/* Active workspace context */}
         {activeWorkspace && (
@@ -291,7 +345,7 @@ export default function DashboardPage() {
         )}
 
         {/* Task creation */}
-        <form onSubmit={createTask} className="mb-10">
+        <form onSubmit={createTask} aria-label="Create a new Roundtable task" className="mb-10">
           {/* Selected template indicator */}
           {selectedTemplate && (
             <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
@@ -310,7 +364,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <label className="block text-sm text-zinc-400 mb-3">
+          <label htmlFor="goal-input" className="block text-sm text-zinc-400 mb-3">
             {selectedTemplate
               ? `Describe your ${selectedTemplate.name.toLowerCase()} goal`
               : 'What do you want to accomplish?'}
@@ -318,6 +372,8 @@ export default function DashboardPage() {
 
           <div className="flex gap-3 mb-3">
             <textarea
+              id="goal-input"
+              aria-required="true"
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
               className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-white/20 focus:outline-none transition-colors text-white placeholder-zinc-600 resize-none text-sm"
@@ -337,6 +393,19 @@ export default function DashboardPage() {
               }}
             />
           </div>
+
+          {/* Low-credit warning */}
+          {creditBalance !== null && creditBalance < 50 && (
+            <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/8 text-sm">
+              <span className="text-amber-300 flex items-center gap-2">
+                <span aria-hidden="true">⚠</span>
+                <span>Low credits (<strong>{creditBalance}</strong> remaining). This task may cost 10–30 credits.</span>
+              </span>
+              <Link href="/credits" className="text-xs text-amber-400 hover:text-amber-300 font-medium transition-colors whitespace-nowrap">
+                Buy credits →
+              </Link>
+            </div>
+          )}
 
           {/* Controls row */}
           <div className="flex items-center justify-between gap-3">
@@ -370,7 +439,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {createError && <p className="text-red-400 text-xs mt-2">{createError}</p>}
+          {createError && <p role="alert" className="text-red-400 text-xs mt-2">{createError}</p>}
         </form>
 
         {/* Template quick-pick */}
@@ -442,6 +511,8 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      <SessionExpiryWarning />
     </div>
   )
 }

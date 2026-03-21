@@ -38,15 +38,13 @@ export default function BetaAdminPage() {
   const [copied, setCopied] = useState<string | null>(null)
 
   const loadStats = useCallback(async () => {
-    const res = await apiFetch('/api/v1/beta/stats')
-    const data = await res.json()
-    if (data.success) setStats(data.data)
+    const data = await apiFetch<BetaStats>('/api/v1/beta/stats')
+    if (data.success && data.data) setStats(data.data)
   }, [])
 
   const loadInvites = useCallback(async () => {
-    const res = await apiFetch(`/api/v1/beta/list?used=${filter}&limit=200`)
-    const data = await res.json()
-    if (data.success) setInvites(data.data.invites)
+    const data = await apiFetch(`/api/v1/beta/list?used=${filter}&limit=200`)
+    if (data.success) setInvites((data.data as { invites: typeof invites }).invites)
   }, [filter])
 
   useEffect(() => { loadStats(); loadInvites() }, [loadStats, loadInvites])

@@ -25,8 +25,8 @@ export async function routingPreferencesRoutes(app: FastifyInstance) {
     const routing = VALID_CATEGORIES.map((cat) => ({
       category: cat,
       defaultModel: (ROUTING_TABLE as any)[cat] || 'claude-3-5-sonnet',
-      userModel: prefsMap.get(cat) || null,
-      effectiveModel: prefsMap.get(cat) || (ROUTING_TABLE as any)[cat] || 'claude-3-5-sonnet',
+      userModel: prefsMap.get(cat as any) || null,
+      effectiveModel: prefsMap.get(cat as any) || (ROUTING_TABLE as any)[cat] || 'claude-3-5-sonnet',
     }))
 
     return reply.send({ success: true, data: { routing } })
@@ -49,9 +49,9 @@ export async function routingPreferencesRoutes(app: FastifyInstance) {
         preferences.map((pref, idx) => {
           if (!VALID_CATEGORIES.includes(pref.category)) return Promise.resolve()
           return prisma.userRoutingPreference.upsert({
-            where: { userId_taskCategory: { userId, taskCategory: pref.category } },
-            update: { preferredModel: pref.model, priority: idx },
-            create: { userId, taskCategory: pref.category, preferredModel: pref.model, priority: idx },
+            where: { userId_taskCategory: { userId, taskCategory: pref.category as any } },
+            update: { preferredModel: pref.model as any, priority: idx },
+            create: { userId, taskCategory: pref.category as any, preferredModel: pref.model as any, priority: idx },
           })
         })
       )
@@ -67,7 +67,7 @@ export async function routingPreferencesRoutes(app: FastifyInstance) {
     async (request: FastifyRequest<{ Params: { category: string } }>, reply: FastifyReply) => {
       const { category } = request.params
       const userId = request.user!.id
-      await prisma.userRoutingPreference.deleteMany({ where: { userId, taskCategory: category } })
+      await prisma.userRoutingPreference.deleteMany({ where: { userId, taskCategory: category as any } })
       return reply.send({ success: true })
     }
   )

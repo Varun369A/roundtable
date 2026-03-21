@@ -165,3 +165,85 @@ export async function sendBetaInviteEmail(opts: {
     `),
   })
 }
+
+export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'Reset your Sabha password',
+    html: wrapHtml(`
+      <h1>Reset your password</h1>
+      <p>Hi ${name},</p>
+      <p>We received a request to reset the password for your Sabha account. Click the button below to set a new password.</p>
+      <a href="${resetUrl}" class="btn">Reset Password →</a>
+      <hr class="divider" />
+      <p style="font-size:12px;color:#52525b">This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email — your password will not change.</p>
+      <p style="font-size:12px;color:#52525b">If the button above doesn't work, copy and paste this link into your browser:</p>
+      <p style="font-size:12px;color:#71717a;word-break:break-all">${resetUrl}</p>
+    `),
+  })
+}
+
+export async function sendVerificationEmail(to: string, name: string, verifyUrl: string): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'Verify your Sabha email address',
+    html: wrapHtml(`
+      <h1>Verify your email</h1>
+      <p>Hi ${name},</p>
+      <p>Thanks for signing up! Please verify your email address to unlock all Sabha features.</p>
+      <a href="${verifyUrl}" class="btn">Verify Email →</a>
+      <hr class="divider" />
+      <p style="font-size:12px;color:#52525b">This link expires in 24 hours. If you didn't create a Sabha account, you can safely ignore this email.</p>
+      <p style="font-size:12px;color:#52525b">If the button above doesn't work, copy and paste this link into your browser:</p>
+      <p style="font-size:12px;color:#71717a;word-break:break-all">${verifyUrl}</p>
+    `),
+  })
+}
+
+export async function sendPostVerificationWelcomeEmail(to: string, name: string): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'Welcome to Sabha — your account is verified!',
+    html: wrapHtml(`
+      <h1>You're all set, ${name}!</h1>
+      <p>Your email address has been verified. You now have full access to Sabha AI — your AI orchestration platform.</p>
+      <p>Start by creating your first Roundtable task:</p>
+      <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard →</a>
+      <hr class="divider" />
+      <p style="font-size:12px;color:#52525b">Need help getting started? Browse our <a href="${BASE_URL}/templates" style="color:#6366f1">templates library</a> to find a starting point for your first task.</p>
+    `),
+  })
+}
+
+export async function sendPaymentFailedEmail(to: string, name: string | null, planId: string): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'Action required: your Sabha payment failed',
+    html: wrapHtml(`
+      <h1>Payment failed</h1>
+      <p>Hi ${name || 'there'},</p>
+      <p>We were unable to process your payment for the <strong style="color:#fff">${planId}</strong> plan. This may be due to an expired card, insufficient funds, or a bank decline.</p>
+      <p>To keep your subscription active, please update your payment method:</p>
+      <a href="${BASE_URL}/settings/billing" class="btn">Update Payment Method →</a>
+      <hr class="divider" />
+      <p style="font-size:12px;color:#52525b">If we cannot collect payment, your account will be downgraded to the free tier at the end of your current billing period. Your data will not be deleted.</p>
+      <p style="font-size:12px;color:#52525b">If you have questions, reply to this email and our team will help.</p>
+    `),
+  })
+}
+
+export async function sendAccountDeletionEmail(to: string, name: string | null): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'Your Sabha account has been deleted',
+    html: wrapHtml(`
+      <h1>Account deleted</h1>
+      <p>Hi ${name || 'there'},</p>
+      <p>Your Sabha account has been successfully deleted. All your personal data has been anonymized per our privacy policy.</p>
+      <p>We're sorry to see you go. If you change your mind, you're always welcome to create a new account at:</p>
+      <a href="${BASE_URL}/signup" class="btn">Create New Account →</a>
+      <hr class="divider" />
+      <p style="font-size:12px;color:#52525b">If you believe this was done in error, please contact us at <a href="mailto:support@sabhaai.com" style="color:#6366f1">support@sabhaai.com</a> within 30 days.</p>
+    `),
+  })
+}

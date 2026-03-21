@@ -10,7 +10,7 @@ import { metrics } from '../lib/metrics'
 import { isEnabled, FLAGS } from '../lib/feature-flags'
 import { sendTaskCompletionEmail } from '../lib/email'
 import { createNotification } from '../lib/notifications'
-import { firewallPrompt } from '../lib/ai-firewall'
+import { firewallPrompt, firewall } from '../lib/ai-firewall'
 import { triggerCodeAssembly } from '../routes/code-projects'
 import { generatePreview } from '../lib/preview-generator'
 import { detectErrors } from '../lib/error-detector'
@@ -61,6 +61,23 @@ export const subtaskQueue = new Queue<{ subtaskId: string; taskId: string }>('sa
 
 export const queueEvents = new QueueEvents('sabha-subtasks', { connection })
 
+// Dead-letter queue — failed subtasks land here after exhausting BullMQ retries.
+// A separate healing worker processes these (manual review / retry with backoff).
+export const dlqQueue = new Queue<{
+  subtaskId:    string
+  taskId:       string
+  errorType:    string
+  errorMessage: string
+  attempts:     number
+  failedAt:     number
+}>('sabha-dead-letter', {
+  connection,
+  defaultJobOptions: {
+    removeOnComplete: { count: 200 },
+    removeOnFail:     false,  // keep all DLQ failures for audit
+  },
+})
+
 // ─── Task Queue Worker ────────────────────────────────────────────────────────
 // Picks up a task after orchestration and enqueues its first ready subtasks.
 
@@ -90,7 +107,7 @@ export const taskWorker = new Worker<{ taskId: string }>(
 
     console.log(`[TaskWorker] Enqueued ${readySubtaskIds.length} subtasks for task ${taskId}`)
   },
-  { connection, concurrency: 50 }
+  { connection, concurrency: 5 }
 )
 
 // ─── Subtask Queue Worker ─────────────────────────────────────────────────────
@@ -135,19 +152,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       let steeringPrefix = ''
       if (pendingSteering) {
         steeringPrefix = `[User steering instruction — apply immediately]: ${pendingSteering.message}\n\n`
-        // Mark as applied (non-blocking)
-        prisma.taskSteeringMessage.update({
-          where: { id: pendingSteering.id },
-          data:  { appliedToSubtaskId: subtaskId, appliedAt: new Date() },
-        }).catch(() => {})
-        // Notify via SSE
-        redis.publish(`sabha:task:${taskId}`, JSON.stringify({
-          event:              'steering_applied',
-          taskId,
-          subtaskId,
-          steeringMessage:    pendingSteering.message,
-          steeringId:         pendingSteering.id,
-        })).catch(() => {})
+        // NOTE: steering is marked as applied AFTER the subtask completes successfully (see below)
       }
 
       const promptWithSteering = steeringPrefix + rawPrompt
@@ -162,14 +167,33 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       // Resolve user's own API key (BYOAI — free usage if user provides their key)
       const userApiKey = await resolveUserApiKey(context.userId, subtask.assignedModel as AIModel)
 
-      // Execute via connector
+      // Execute via connector — hard 500-token output ceiling (token governor)
       const output = await connectorRegistry.execute(subtask.assignedModel as AIModel, {
         prompt: fullPrompt,
         model: subtask.assignedModel as AIModel,
         taskId,
         subtaskId,
         userApiKey,
+        options: { maxTokens: 500 },
       })
+
+      // ── AI Output Firewall: scan for injected threats / PII in AI-generated text ──
+      // blockOnRiskScore=90 (higher threshold for AI outputs — models don't inject;
+      // this catches prompt-injection that propagated through the model's response).
+      if (output.type === 'text' && output.content) {
+        const outputScan = await firewall(output.content, {
+          context: 'ai_output',
+          blockOnRiskScore: 90,
+        })
+        if (!outputScan.allowed) {
+          throw Object.assign(
+            new Error('AI output blocked by firewall — possible prompt injection in response'),
+            { code: 'FIREWALL_BLOCKED_OUTPUT' }
+          )
+        }
+        // Replace with PII-redacted version before persisting or broadcasting
+        output.content = outputScan.sanitized
+      }
 
       // Save output to DB
       await prisma.subtaskOutput.create({
@@ -179,7 +203,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
           content:      output.content,
           fileUrl:      output.fileUrl,
           fileSizeBytes: output.fileSizeBytes,
-          metadata:     output.metadata || {},
+          metadata:     (output.metadata || {}) as any,
         },
       })
 
@@ -195,6 +219,22 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         },
       })
 
+      // Mark steering message as applied now that the subtask completed successfully
+      if (pendingSteering) {
+        prisma.taskSteeringMessage.update({
+          where: { id: pendingSteering.id },
+          data:  { appliedToSubtaskId: subtaskId, appliedAt: new Date() },
+        }).catch(() => {})
+        // Notify via SSE
+        redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+          event:           'steering_applied',
+          taskId,
+          subtaskId,
+          steeringMessage: pendingSteering.message,
+          steeringId:      pendingSteering.id,
+        })).catch(() => {})
+      }
+
       // Update context
       await appendSubtaskResult({
         taskId,
@@ -205,6 +245,8 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       })
 
       // ── Sabha AI: collect knowledge from high-quality completions ─────────
+      // DPDP Act 2023 gate: only collect if user gave explicit training consent.
+      // trainingConsent = false by default — user must opt-in via /api/v1/account/consent.
       if (output.type === 'text' && output.content && output.content.length > 500) {
         const qualityScore = Math.min(1, output.content.length / 3000) * 0.7 +
           (output.content.includes('\n') ? 0.2 : 0) +
@@ -213,20 +255,27 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         if (qualityScore >= 0.4) {
           const taskMeta = await prisma.task.findUnique({
             where: { id: taskId },
-            select: { template: { select: { category: true } } },
-          })
-          prisma.sabhaKnowledge.create({
-            data: {
-              category: subtask.category as any,
-              templateCategory: taskMeta?.template?.category ?? null,
-              inputSummary: subtask.inputPrompt.slice(0, 500),
-              outputSummary: output.content.slice(0, 3000),
-              model: subtask.assignedModel as any,
-              qualityScore,
-              taskId,
-              subtaskId,
+            select: {
+              template:        { select: { category: true } },
+              user:            { select: { trainingConsent: true } },
             },
-          }).catch(() => {}) // non-blocking, best-effort
+          })
+
+          // Hard gate — never collect without explicit DPDP consent
+          if (taskMeta?.user?.trainingConsent === true) {
+            prisma.sabhaKnowledge.create({
+              data: {
+                category: subtask.category as any,
+                templateCategory: taskMeta?.template?.category ?? null,
+                inputSummary: subtask.inputPrompt.slice(0, 500),
+                outputSummary: output.content.slice(0, 3000),
+                model: subtask.assignedModel as any,
+                qualityScore,
+                taskId,
+                subtaskId,
+              },
+            }).catch(() => {}) // non-blocking, best-effort
+          }
         }
       }
 
@@ -275,11 +324,11 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
           userId:      (await prisma.task.findUnique({ where: { id: taskId }, select: { userId: true } }))!.userId,
           taskId,
           eventType:   'api_call',
-          aiModel:     subtask.assignedModel as AIModel,
+          aiModel:     subtask.assignedModel as any,
           costUsd:     output.costUsd,
           inputTokens:  output.inputTokens,
           outputTokens: output.outputTokens,
-          metadata:    { subtaskId, latencyMs: Date.now() - start },
+          metadata:    { subtaskId, latencyMs: Date.now() - start } as any,
         },
       })
 
@@ -382,17 +431,19 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         error: err instanceof Error ? err.message : 'Unknown error',
       }))
 
-      // Push to dead-letter queue for healing worker
+      // Push to BullMQ dead-letter queue for healing worker
       const errorCode = (err as NodeJS.ErrnoException).code || 'UNKNOWN'
       const existingAttempts = job.attemptsMade || 0
-      await redis.rpush('sabha:dead-letter', JSON.stringify({
+      await dlqQueue.add('failed', {
         subtaskId,
         taskId,
-        errorType: errorCode,
+        errorType:    errorCode,
         errorMessage: err instanceof Error ? err.message : 'Unknown error',
-        attempts: existingAttempts + 1,
-        failedAt: Date.now(),
-      }))
+        attempts:     existingAttempts + 1,
+        failedAt:     Date.now(),
+      }, {
+        jobId: `dlq:${subtaskId}:${existingAttempts + 1}`,
+      })
 
       throw err
     }
@@ -564,6 +615,14 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
               hasDiscussion,
               hasExpertReview
             )
+
+            // Idempotency guard — two subtask workers completing simultaneously
+            // could both see allDone=true and both attempt a debit for the same task
+            const alreadyCharged = await prisma.creditTransaction.findFirst({
+              where: { userId: task.userId, taskId, type: 'TASK_USAGE' },
+              select: { id: true },
+            })
+            if (alreadyCharged) return
 
             await debitWallet(
               task.userId,

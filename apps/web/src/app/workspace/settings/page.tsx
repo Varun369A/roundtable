@@ -37,13 +37,12 @@ export default function WorkspaceSettingsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    apiFetch('/api/v1/workspaces/my')
-      .then((r) => r.json())
+    apiFetch<Workspace[]>('/api/v1/workspaces/my')
       .then((data) => {
         if (data.success) {
-          setWorkspaces(data.data)
-          if (data.data.length > 0) {
-            const ws = data.data[0]
+          setWorkspaces(data.data as Workspace[])
+          if ((data.data as Workspace[]).length > 0) {
+            const ws = (data.data as Workspace[])[0]
             setActive(ws)
             setName(ws.name)
             setDescription(ws.description || '')
@@ -66,11 +65,10 @@ export default function WorkspaceSettingsPage() {
     setSaving(true)
     setError('')
     try {
-      const res = await apiFetch(`/api/v1/workspaces/${active.id}`, {
+      const data = await apiFetch(`/api/v1/workspaces/${active.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ name, description, settings }),
       })
-      const data = await res.json()
       if (data.success) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)

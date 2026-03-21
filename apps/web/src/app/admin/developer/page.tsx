@@ -62,18 +62,16 @@ export default function DeveloperPage() {
   const loadIssues = useCallback(async () => {
     setLoadingIssues(true)
     try {
-      const res = await apiFetch('/api/v1/admin/sandbox/issues')
-      const data = await res.json()
-      if (data.success) setIssues(data.data.issues)
+      const data = await apiFetch('/api/v1/admin/sandbox/issues')
+      if (data.success) setIssues((data.data as any).issues)
     } finally {
       setLoadingIssues(false)
     }
   }, [])
 
   const loadSessions = useCallback(async () => {
-    const res = await apiFetch('/api/v1/admin/sandbox/sessions')
-    const data = await res.json()
-    if (data.success) setSessions(data.data.sessions)
+    const data = await apiFetch('/api/v1/admin/sandbox/sessions')
+    if (data.success) setSessions((data.data as any).sessions)
   }, [])
 
   useEffect(() => { loadIssues(); loadSessions() }, [loadIssues, loadSessions])
@@ -81,14 +79,13 @@ export default function DeveloperPage() {
   const createSession = async (issueFocus?: string) => {
     setCreatingSession(true)
     try {
-      const res = await apiFetch('/api/v1/admin/sandbox/sessions', {
+      const data = await apiFetch('/api/v1/admin/sandbox/sessions', {
         method: 'POST',
         body: JSON.stringify({ focus: issueFocus || focus }),
       })
-      const data = await res.json()
       if (data.success) {
         await loadSessions()
-        setSelectedSession(data.data.session)
+        setSelectedSession((data.data as any).session)
         setActiveTab('sandbox')
       }
     } finally {
@@ -99,10 +96,9 @@ export default function DeveloperPage() {
   const runTest = async (sessionId: string) => {
     setRunningTest(true)
     try {
-      const res = await apiFetch(`/api/v1/admin/sandbox/sessions/${sessionId}/run`, { method: 'POST' })
-      const data = await res.json()
+      const data = await apiFetch(`/api/v1/admin/sandbox/sessions/${sessionId}/run`, { method: 'POST' })
       if (data.success) {
-        const updated = data.data.session
+        const updated = (data.data as any).session
         setSessions((s) => s.map((sess) => sess.id === sessionId ? updated : sess))
         setSelectedSession(updated)
       }
@@ -115,8 +111,7 @@ export default function DeveloperPage() {
     if (!confirm('Apply this fix to production? This cannot be undone (but no data will be deleted).')) return
     setApplyingFix(true)
     try {
-      const res = await apiFetch(`/api/v1/admin/sandbox/sessions/${sessionId}/apply`, { method: 'POST' })
-      const data = await res.json()
+      const data = await apiFetch(`/api/v1/admin/sandbox/sessions/${sessionId}/apply`, { method: 'POST' })
       if (data.success) {
         await loadSessions()
         const updated = sessions.find((s) => s.id === sessionId)

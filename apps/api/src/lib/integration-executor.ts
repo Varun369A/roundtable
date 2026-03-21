@@ -385,7 +385,7 @@ export async function executeAction(actionId: string): Promise<{ success: boolea
       where: { id: actionId },
       data: {
         status: 'COMPLETED',
-        result: result as Record<string, unknown>,
+        result: result as any,
         executedAt: new Date(),
       },
     })

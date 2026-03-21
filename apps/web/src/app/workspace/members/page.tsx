@@ -40,10 +40,9 @@ export default function WorkspaceMembersPage() {
 
   useEffect(() => {
     apiFetch('/api/v1/workspaces/my')
-      .then((r) => r.json())
       .then((data) => {
-        if (data.success && data.data.length > 0) {
-          const ws = data.data[0]
+        if (data.success && (data.data as any).length > 0) {
+          const ws = (data.data as any)[0]
           setWorkspaceId(ws.id)
           setWorkspaceName(ws.name)
           setUserRole(ws.role)
@@ -59,13 +58,12 @@ export default function WorkspaceMembersPage() {
     setError('')
     setInviteResult(null)
     try {
-      const res = await apiFetch(`/api/v1/workspaces/${workspaceId}/invite`, {
+      const data = await apiFetch(`/api/v1/workspaces/${workspaceId}/invite`, {
         method: 'POST',
         body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
       })
-      const data = await res.json()
       if (data.success) {
-        setInviteResult(data.data)
+        setInviteResult(data.data as any)
         setInviteEmail('')
       } else {
         setError(data.error?.message || 'Failed to send invite')
@@ -79,8 +77,7 @@ export default function WorkspaceMembersPage() {
 
   const handleRemoveMember = async (userId: string) => {
     if (!workspaceId) return
-    const res = await apiFetch(`/api/v1/workspaces/${workspaceId}/members/${userId}`, { method: 'DELETE' })
-    const data = await res.json()
+    const data = await apiFetch(`/api/v1/workspaces/${workspaceId}/members/${userId}`, { method: 'DELETE' })
     if (data.success) {
       setMembers((m) => m.filter((member) => member.userId !== userId))
     }
@@ -88,11 +85,10 @@ export default function WorkspaceMembersPage() {
 
   const handleRoleChange = async (userId: string, role: string) => {
     if (!workspaceId) return
-    const res = await apiFetch(`/api/v1/workspaces/${workspaceId}/members/${userId}`, {
+    const data = await apiFetch(`/api/v1/workspaces/${workspaceId}/members/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     })
-    const data = await res.json()
     if (data.success) {
       setMembers((m) => m.map((member) => member.userId === userId ? { ...member, role: role as Member['role'] } : member))
     }

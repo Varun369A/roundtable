@@ -43,7 +43,7 @@ export class WhisperConnector extends BaseConnector {
       const audioResponse = await fetch(audioUrl)
       if (!audioResponse.ok) throw new Error(`Could not fetch audio from ${audioUrl}`)
 
-      const audioBuffer = await audioResponse.arrayBuffer()
+      const audioBuffer = Buffer.from(await audioResponse.arrayBuffer())
       const audioFile = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' })
 
       const transcription = await this.client.audio.transcriptions.create({

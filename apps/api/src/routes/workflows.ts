@@ -94,15 +94,10 @@ function validateSteps(steps: unknown): { error: string } | { steps: StepInput[]
 export async function workflowsRoutes(app: FastifyInstance) {
 
   // ─── GET /workflows ──────────────────────────────────────────────────────────
-  app.get(
+  app.get<{ Querystring: { status?: string; page?: string; limit?: string } }>(
     '/workflows',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Querystring: { status?: string; page?: string; limit?: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const userId = request.user!.id
       const query = request.query as { status?: string; page?: string; limit?: string }
 
@@ -161,21 +156,12 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── POST /workflows ─────────────────────────────────────────────────────────
-  app.post(
+  app.post<{
+    Body: { name: string; description?: string; steps: StepInput[]; triggerType?: TriggerType; status?: WorkflowStatus }
+  }>(
     '/workflows',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Body: {
-          name: string
-          description?: string
-          steps: StepInput[]
-          triggerType?: TriggerType
-          status?: WorkflowStatus
-        }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const userId = request.user!.id
       const body = (request.body ?? {}) as {
         name: string
@@ -248,11 +234,12 @@ export async function workflowsRoutes(app: FastifyInstance) {
             name: body.name.trim(),
             description: body.description?.trim() ?? null,
             triggerType: body.triggerType ?? 'manual',
-            status: body.status ?? 'DRAFT',
+            status: (body.status ?? 'DRAFT') as any,
             webhookSecret,
           },
         })
 
+        // Pass 1: create steps without cross-references
         const steps = await Promise.all(
           stepsResult.steps.map((step, idx) =>
             tx.workflowStep.create({
@@ -263,11 +250,23 @@ export async function workflowsRoutes(app: FastifyInstance) {
                 goalTemplate: step.goalTemplate.trim(),
                 templateId: step.templateId ?? null,
                 assignedModel: step.assignedModel ?? null,
-                dependsOnStepOrder: step.dependsOnStepOrder ?? null,
                 outputMapping: step.outputMapping ?? {},
               },
             }),
           ),
+        )
+
+        // Pass 2: link dependsOnStepId by resolving dependsOnStepOrder → step ID
+        await Promise.all(
+          stepsResult.steps.map((step, idx) => {
+            if (step.dependsOnStepOrder == null) return Promise.resolve()
+            const depStep = steps[step.dependsOnStepOrder - 1]
+            if (!depStep) return Promise.resolve()
+            return tx.workflowStep.update({
+              where: { id: steps[idx].id },
+              data:  { dependsOnStepId: depStep.id },
+            })
+          }),
         )
 
         return { ...wf, steps }
@@ -281,13 +280,10 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── GET /workflows/:id ──────────────────────────────────────────────────────
-  app.get(
+  app.get<{ Params: { id: string } }>(
     '/workflows/:id',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id } = request.params
       const userId = request.user!.id
 
@@ -326,22 +322,13 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── PATCH /workflows/:id ────────────────────────────────────────────────────
-  app.patch(
+  app.patch<{
+    Params: { id: string }
+    Body: { name?: string; description?: string; status?: WorkflowStatus; triggerType?: TriggerType; steps?: StepInput[] }
+  }>(
     '/workflows/:id',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string }
-        Body: {
-          name?: string
-          description?: string
-          status?: WorkflowStatus
-          triggerType?: TriggerType
-          steps?: StepInput[]
-        }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id } = request.params
       const userId = request.user!.id
       const body = (request.body ?? {}) as {
@@ -438,7 +425,7 @@ export async function workflowsRoutes(app: FastifyInstance) {
         // Replace all steps atomically if provided
         if (stepsResult) {
           await tx.workflowStep.deleteMany({ where: { workflowId: id } })
-          await Promise.all(
+          const newSteps = await Promise.all(
             stepsResult.steps.map((step, idx) =>
               tx.workflowStep.create({
                 data: {
@@ -448,11 +435,21 @@ export async function workflowsRoutes(app: FastifyInstance) {
                   goalTemplate: step.goalTemplate.trim(),
                   templateId: step.templateId ?? null,
                   assignedModel: step.assignedModel ?? null,
-                  dependsOnStepOrder: step.dependsOnStepOrder ?? null,
                   outputMapping: step.outputMapping ?? {},
                 },
               }),
             ),
+          )
+          await Promise.all(
+            stepsResult.steps.map((step, idx) => {
+              if (step.dependsOnStepOrder == null) return Promise.resolve()
+              const depStep = newSteps[step.dependsOnStepOrder - 1]
+              if (!depStep) return Promise.resolve()
+              return tx.workflowStep.update({
+                where: { id: newSteps[idx].id },
+                data:  { dependsOnStepId: depStep.id },
+              })
+            }),
           )
         }
 
@@ -467,13 +464,10 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── DELETE /workflows/:id ───────────────────────────────────────────────────
-  app.delete(
+  app.delete<{ Params: { id: string } }>(
     '/workflows/:id',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id } = request.params
       const userId = request.user!.id
 
@@ -488,29 +482,19 @@ export async function workflowsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Cascade: steps and runs deleted via Prisma relation onDelete or explicit ordering
-      await prisma.$transaction([
-        prisma.workflowStepRun.deleteMany({ where: { stepRun: { run: { workflowId: id } } } }),
-        prisma.workflowRun.deleteMany({ where: { workflowId: id } }),
-        prisma.workflowStep.deleteMany({ where: { workflowId: id } }),
-        prisma.workflow.delete({ where: { id } }),
-      ])
+      // WorkflowRun and WorkflowStepRun cascade-delete via onDelete: Cascade in schema.
+      // We only need to explicitly delete steps (no cascade from Workflow to WorkflowStep needed here).
+      await prisma.workflow.delete({ where: { id } })
 
       return reply.status(204).send()
     },
   )
 
   // ─── POST /workflows/:id/run ─────────────────────────────────────────────────
-  app.post(
+  app.post<{ Params: { id: string }; Body: { triggerPayload?: Record<string, string> } }>(
     '/workflows/:id/run',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string }
-        Body: { triggerPayload?: Record<string, string> }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id } = request.params
       const userId = request.user!.id
       const body = (request.body ?? {}) as { triggerPayload?: Record<string, string> }
@@ -565,16 +549,10 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── GET /workflows/:id/runs ─────────────────────────────────────────────────
-  app.get(
+  app.get<{ Params: { id: string }; Querystring: { page?: string; limit?: string } }>(
     '/workflows/:id/runs',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string }
-        Querystring: { page?: string; limit?: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id } = request.params
       const userId = request.user!.id
       const query = request.query as { page?: string; limit?: string }
@@ -629,13 +607,10 @@ export async function workflowsRoutes(app: FastifyInstance) {
   )
 
   // ─── GET /workflows/:id/runs/:runId ──────────────────────────────────────────
-  app.get(
+  app.get<{ Params: { id: string; runId: string } }>(
     '/workflows/:id/runs/:runId',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{ Params: { id: string; runId: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { id, runId } = request.params
       const userId = request.user!.id
 
@@ -656,9 +631,6 @@ export async function workflowsRoutes(app: FastifyInstance) {
         include: {
           stepRuns: {
             orderBy: { startedAt: 'asc' },
-            include: {
-              outputValues: true,
-            },
           },
         },
       })

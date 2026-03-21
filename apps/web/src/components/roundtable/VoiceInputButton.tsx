@@ -213,6 +213,9 @@ export function VoiceInputButton({
             disabled={disabled}
             className="flex items-center gap-1 px-1.5 py-1 rounded-lg text-[10px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors border border-zinc-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Change input language"
+            aria-label={`Change input language, currently ${currentLang.label}`}
+            aria-expanded={showLangPicker}
+            aria-haspopup="listbox"
           >
             <span>{currentLang.flag}</span>
             {isNonEnglish && <span className="uppercase">{lang}</span>}

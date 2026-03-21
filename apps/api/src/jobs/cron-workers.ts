@@ -22,8 +22,17 @@ import { pruneStaleParticipants } from '../lib/session-manager'
 import { orchestrateTask } from '../orchestration/orchestrator'
 import { enqueueTask } from './queue'
 import { expireStaleReviews } from '../lib/expert-marketplace'
+import { creditWallet } from '../lib/credit-manager'
 
 const prisma = new PrismaClient()
+
+// ─── Distributed cron lock (prevents duplicate runs across API instances) ─────
+
+async function acquireCronLock(jobName: string, ttlSeconds: number): Promise<boolean> {
+  const key = `cron:lock:${jobName}`
+  const result = await redis.set(key, '1', 'EX', ttlSeconds, 'NX')
+  return result === 'OK'
+}
 
 // BullMQ connection config derived from the shared redis instance
 const bullConnection = {
@@ -48,6 +57,7 @@ const memoryDecayQueue = new Queue('memory-decay', { connection: bullConnection 
 const clarificationTimeoutQueue = new Queue('clarification-timeout', { connection: bullConnection })
 const presencePruneQueue = new Queue('presence-prune', { connection: bullConnection })
 const expireReviewsQueue = new Queue('expire-reviews', { connection: bullConnection })
+const creditExpiryQueue = new Queue('credit-expiry', { connection: bullConnection })
 
 // Subtask queue (for re-enqueuing)
 const subtaskQueue = new Queue('subtask-queue', { connection: bullConnection })
@@ -315,6 +325,8 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function processTemplateAnalytics(_job: Job): Promise<void> {
+  const acquired = await acquireCronLock('template-analytics', 82800) // 23hr lock (runs daily)
+  if (!acquired) { _job.log('Skipped — another instance running'); return }
   const since7d = new Date(Date.now() - 7 * 86_400_000)
 
   const templates = await (prisma as any).roundtableTemplate.findMany({
@@ -584,6 +596,8 @@ async function processQueueMonitor(_job: Job): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function processSabhaLearning(_job: Job): Promise<void> {
+  const acquired = await acquireCronLock('sabha-learning', 840) // 14min lock (runs every 15min)
+  if (!acquired) { _job.log('Skipped — another instance running'); return }
   const knowledgeCount = await (prisma as any).sabhaKnowledge.count()
 
   const state = await (prisma as any).sabhaAIState.upsert({
@@ -628,6 +642,8 @@ async function processSabhaLearning(_job: Job): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function processScheduledTasks(): Promise<void> {
+  const acquired = await acquireCronLock('scheduled-tasks', 55) // 55s lock (runs every minute)
+  if (!acquired) { console.log('[ScheduledTaskRunner] Skipped — another instance running'); return }
   const now = new Date()
 
   const due = await prisma.scheduledTask.findMany({
@@ -737,6 +753,8 @@ async function processScheduledTasks(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function processMemoryDecay(): Promise<void> {
+  const acquired = await acquireCronLock('memory-decay', 3600) // 1hr lock
+  if (!acquired) { console.log('[MemoryDecay] Skipped — another instance running'); return }
   console.log('[MemoryDecay] Running confidence decay for stale inferred memories...')
   await decayStaleMemories()
   console.log('[MemoryDecay] Done')
@@ -872,6 +890,53 @@ export function startCronWorkers(): void {
     { repeat: { pattern: '*/30 * * * *' }, removeOnComplete: 10, removeOnFail: 5 }
   )
   new Worker('expire-reviews', async (_job: Job) => { await expireStaleReviews() }, { connection: bullConnection })
+
+  // ---- Credit expiry: daily at 2am UTC ----
+  creditExpiryQueue.add(
+    'expire',
+    {},
+    { repeat: { pattern: '0 2 * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('credit-expiry', async (_job: Job) => {
+    // Find all promotional credit transactions that have expired
+    const expired = await prisma.creditTransaction.findMany({
+      where: {
+        expiresAt: { lt: new Date() },
+        type: 'PROMOTION',
+      },
+    })
+
+    let expiredCount = 0
+
+    for (const tx of expired) {
+      // Avoid double-expiry: check if an EXPIRY transaction already references this tx
+      const alreadyExpired = await prisma.creditTransaction.findFirst({
+        where: {
+          walletId: tx.walletId,
+          type: 'EXPIRY',
+          description: { contains: tx.id },
+        },
+      })
+      if (alreadyExpired) continue
+
+      // Cap at current wallet balance to avoid going negative
+      const wallet = await prisma.creditWallet.findUnique({ where: { id: tx.walletId } })
+      if (!wallet || wallet.balance <= 0) continue
+
+      const expireAmount = Math.min(tx.amount, wallet.balance)
+      await creditWallet(
+        wallet.userId,
+        -expireAmount,
+        'EXPIRY' as any,
+        `Promotional credits expired (tx: ${tx.id})`
+      )
+      expiredCount++
+    }
+
+    if (expiredCount > 0) {
+      console.log(`[credit-expiry] Expired ${expiredCount} promotional credit transaction(s)`)
+    }
+  }, { connection: bullConnection })
 
   console.log('[cron-workers] All cron workers started')
 }

@@ -52,6 +52,9 @@ const FALLBACK_CHAINS: Partial<Record<AIModel, AIModel[]>> = {
   'gamma':               ['gpt-4o'],
 }
 
+// ─── Fallback depth limit ─────────────────────────────────────────────────────
+const MAX_FALLBACK_DEPTH = 3
+
 // ─── Fallback error types that warrant trying the next model ──────────────────
 const FALLBACK_ERROR_CODES = new Set([
   'CIRCUIT_OPEN',
@@ -158,8 +161,8 @@ class ConnectorRegistry {
       const durationMs = Date.now() - start
       metrics.recordAiCall(model, durationMs, 0, false)
 
-      // Try fallback if error is transient
-      if (isFallbackableError(err) && fallbackDepth < 3) {
+      // Try fallback if error is transient and depth limit not exceeded
+      if (isFallbackableError(err) && fallbackDepth < MAX_FALLBACK_DEPTH) {
         const chain = FALLBACK_CHAINS[model] || []
         const nextModel = chain[fallbackDepth] as AIModel | undefined
 

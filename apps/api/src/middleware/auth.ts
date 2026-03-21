@@ -8,7 +8,9 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     const payload = await request.jwtVerify<JWTPayload>()
 
     // Check blacklist (logout case)
-    const token = request.headers.authorization?.replace('Bearer ', '') ?? ''
+    const token = request.cookies?.accessToken
+      ?? request.headers.authorization?.replace('Bearer ', '')
+      ?? ''
     if (await isAccessTokenBlacklisted(token)) {
       return reply.status(401).send({
         success: false,
@@ -38,14 +40,3 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   }
 }
 
-// Extend Fastify request type
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: {
-      id: string
-      email: string
-      tier: string
-      status: string
-    }
-  }
-}

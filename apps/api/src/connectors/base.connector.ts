@@ -35,6 +35,10 @@ export abstract class BaseConnector {
 
   abstract isAvailable(): Promise<boolean>
 
+  protected createAbortSignal(timeoutMs = 60_000): AbortSignal {
+    return AbortSignal.timeout(timeoutMs)
+  }
+
   protected handleError(err: unknown, context: string): never {
     const message = err instanceof Error ? err.message : String(err)
     throw new Error(`[${this.provider}:${this.model}] ${context}: ${message}`)
@@ -45,17 +49,22 @@ export abstract class BaseConnector {
     maxRetries = 3,
     baseDelayMs = 1000
   ): Promise<T> {
+    const RETRYABLE_ERRORS = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNABORTED', 'AbortError']
+    const isRetryable = (err: any) =>
+      err?.status === 429 ||
+      RETRYABLE_ERRORS.includes(err?.code) ||
+      err?.name === 'AbortError' ||
+      (err?.status >= 500 && err?.status < 600) ||
+      (err instanceof Error &&
+        (err.message.includes('429') || err.message.toLowerCase().includes('rate limit')))
+
     let lastErr: unknown
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         return await fn()
       } catch (err) {
         lastErr = err
-        const isRateLimit =
-          err instanceof Error &&
-          (err.message.includes('429') || err.message.toLowerCase().includes('rate limit'))
-
-        if (!isRateLimit && attempt > 0) throw err
+        if (!isRetryable(err)) throw err
 
         const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 500
         console.warn(`[${this.provider}] Retry ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms`)

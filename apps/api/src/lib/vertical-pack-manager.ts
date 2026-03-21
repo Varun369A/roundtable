@@ -294,7 +294,7 @@ export async function getPacksForUser(userId: string): Promise<PackWithSubscript
     category: pack.category,
     icon: pack.icon,
     color: pack.color,
-    agents: pack.agents as PackAgent[],
+    agents: pack.agents as unknown as PackAgent[],
     disclaimer: pack.disclaimer ?? undefined,
     isIncludedInTier: pack.isIncludedInTier,
     creditsPerTask: pack.creditsPerTask,
@@ -368,6 +368,6 @@ export async function getPackContext(
 
   return {
     systemPromptSuffix: contextLines.join('\n'),
-    agents: pack.agents as PackAgent[],
+    agents: pack.agents as unknown as PackAgent[],
   }
 }

@@ -35,13 +35,12 @@ export default function FeedbackAdminPage() {
   const [filter, setFilter] = useState<string>('all')
 
   const loadData = useCallback(async () => {
-    const [sumRes, itemsRes] = await Promise.all([
+    const [sumData, itemsData] = await Promise.all([
       apiFetch('/api/v1/feedback/summary'),
       apiFetch(`/api/v1/feedback?type=${filter}&limit=100`),
     ])
-    const [sumData, itemsData] = await Promise.all([sumRes.json(), itemsRes.json()])
-    if (sumData.success) setSummary(sumData.data)
-    if (itemsData.success) setItems(itemsData.data.items)
+    if (sumData.success) setSummary(sumData.data as any)
+    if (itemsData.success) setItems((itemsData.data as any).items)
   }, [filter])
 
   useEffect(() => { loadData() }, [loadData])

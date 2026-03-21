@@ -16,17 +16,15 @@ import type { UserTier, PlanId } from '@sabha/types'
 
 const TIER_TO_PLAN: Record<UserTier, PlanId> = {
   FREE:       'free',
-  STARTER:    'starter',
-  PRO:        'pro',
-  POWER:      'power',
+  BUILDER:    'builder',
+  STUDIO:     'studio',
   ENTERPRISE: 'enterprise',
 }
 
 const PLAN_TO_TIER: Record<PlanId, UserTier> = {
   free:       'FREE',
-  starter:    'STARTER',
-  pro:        'PRO',
-  power:      'POWER',
+  builder:    'BUILDER',
+  studio:     'STUDIO',
   enterprise: 'ENTERPRISE',
 }
 
@@ -300,5 +298,126 @@ export async function billingRoutes(app: FastifyInstance) {
         razorpayKeyId: process.env.RAZORPAY_KEY_ID,
       },
     })
+  })
+
+  // ─── GET /api/v1/billing/payment-method ───────────────────────────────────────
+  // Returns saved payment method details (last 4 digits, card type, expiry).
+  app.get('/payment-method', async (request, reply) => {
+    const userId = request.user!.id
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId },
+      select: { razorpaySubscriptionId: true, razorpayCustomerId: true, status: true },
+    })
+
+    if (!subscription?.razorpaySubscriptionId) {
+      return reply.send({
+        success: true,
+        data: { paymentMethod: null },
+      })
+    }
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return reply.status(503).send({
+        success: false,
+        error: { code: 'BILLING_UNAVAILABLE', message: 'Billing not configured' },
+      })
+    }
+
+    try {
+      // Fetch subscription from Razorpay to get payment details
+      const creds = Buffer.from(
+        `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
+      ).toString('base64')
+
+      const rzpSub = await fetch(
+        `https://api.razorpay.com/v1/subscriptions/${subscription.razorpaySubscriptionId}`,
+        { headers: { Authorization: `Basic ${creds}` } }
+      ).then((r) => r.json()) as Record<string, any>
+
+      // Extract card details from payment method if available
+      const paymentMethod = rzpSub?.payment_method ?? null
+
+      return reply.send({
+        success: true,
+        data: {
+          paymentMethod: paymentMethod
+            ? {
+                type: paymentMethod.type ?? 'card',
+                last4: paymentMethod.card?.last4 ?? null,
+                network: paymentMethod.card?.network ?? null,
+                expiryMonth: paymentMethod.card?.expiry_month ?? null,
+                expiryYear: paymentMethod.card?.expiry_year ?? null,
+              }
+            : null,
+          subscriptionStatus: subscription.status,
+        },
+      })
+    } catch (err) {
+      // Razorpay API may not return payment method for all subscription states
+      return reply.send({
+        success: true,
+        data: { paymentMethod: null, subscriptionStatus: subscription.status },
+      })
+    }
+  })
+
+  // ─── POST /api/v1/billing/update-payment ──────────────────────────────────────
+  // Returns a Razorpay checkout URL for the user to update their card.
+  app.post('/update-payment', async (request, reply) => {
+    const userId = request.user!.id
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return reply.status(503).send({
+        success: false,
+        error: { code: 'BILLING_UNAVAILABLE', message: 'Billing not configured' },
+      })
+    }
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId },
+      select: { razorpaySubscriptionId: true, status: true },
+    })
+
+    if (!subscription?.razorpaySubscriptionId) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'NO_SUBSCRIPTION', message: 'No active subscription found.' },
+      })
+    }
+
+    try {
+      const creds = Buffer.from(
+        `${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`
+      ).toString('base64')
+
+      // Razorpay allows updating card via the subscription's checkout short_url
+      const rzpSub = await fetch(
+        `https://api.razorpay.com/v1/subscriptions/${subscription.razorpaySubscriptionId}`,
+        { headers: { Authorization: `Basic ${creds}` } }
+      ).then((r) => r.json()) as Record<string, any>
+
+      const checkoutUrl: string | null = rzpSub?.short_url ?? null
+
+      if (!checkoutUrl) {
+        return reply.status(502).send({
+          success: false,
+          error: { code: 'CHECKOUT_UNAVAILABLE', message: 'Could not retrieve payment update URL from Razorpay.' },
+        })
+      }
+
+      return reply.send({
+        success: true,
+        data: {
+          checkoutUrl,
+          message: 'Open this URL to update your payment method.',
+        },
+      })
+    } catch (err) {
+      return reply.status(502).send({
+        success: false,
+        error: { code: 'RAZORPAY_ERROR', message: 'Failed to fetch payment update URL.' },
+      })
+    }
   })
 }

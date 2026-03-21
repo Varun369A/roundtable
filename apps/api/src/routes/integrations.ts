@@ -126,7 +126,7 @@ export async function integrationsRoutes(app: FastifyInstance) {
             tokenAuthTag,
             ...refreshTokenData,
             scopes: body.scopes || [],
-            metadata: body.metadata || {},
+            metadata: (body.metadata || {}) as any,
             isActive: true,
           },
           select: {

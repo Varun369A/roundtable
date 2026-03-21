@@ -38,7 +38,8 @@ export class DalleConnector extends BaseConnector {
         response_format: 'url',
       })
 
-      const imageUrl = response.data[0]?.url
+      const firstImage = response.data?.[0]
+      const imageUrl = firstImage?.url
       if (!imageUrl) throw new Error('No image URL in response')
 
       return {
@@ -47,7 +48,7 @@ export class DalleConnector extends BaseConnector {
         fileUrl: imageUrl,
         costUsd: PRICING[size] || PRICING['1024x1024'],
         latencyMs: Date.now() - start,
-        metadata: { prompt: imagePrompt, size, revisedPrompt: response.data[0]?.revised_prompt },
+        metadata: { prompt: imagePrompt, size, revisedPrompt: firstImage?.revised_prompt },
       }
     })
   }

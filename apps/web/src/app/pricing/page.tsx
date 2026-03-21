@@ -9,7 +9,8 @@ const PLANS = [
   {
     id: 'free',
     name: 'Free',
-    priceInr: 0,
+    monthlyInr: 0,
+    annualInr: 0,
     description: 'Try Sabha with no commitment.',
     features: [
       '2 AI models (Claude + GPT-4o)',
@@ -22,60 +23,46 @@ const PLANS = [
     highlight: false,
   },
   {
-    id: 'starter',
-    name: 'Starter',
-    priceInr: 499,
-    description: 'For individuals who need real AI power.',
+    id: 'builder',
+    name: 'Builder',
+    monthlyInr: 799,
+    annualInr: 638,   // 20% off
+    description: 'For individuals who bring their own API keys.',
     features: [
-      '5 AI models',
-      '100 Roundtable tasks/month',
-      'Claude, GPT-4o, Perplexity, DALL-E, ElevenLabs',
+      'Bring your own API keys (BYOAI)',
+      'All 16 AI models',
+      'Unlimited Roundtable tasks',
       'Sarvam (Indian languages)',
       'Priority support',
     ],
-    cta: 'Get Starter',
+    cta: 'Get Builder',
     highlight: false,
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    priceInr: 1299,
-    originalPriceInr: 8526,
-    description: 'The full Sabha experience. Everything, unlimited.',
+    id: 'studio',
+    name: 'Studio',
+    monthlyInr: 1999,
+    annualInr: 1599,  // 20% off
+    originalComboInr: 8526,
+    description: 'The full Sabha experience — Sabha absorbs API costs.',
     features: [
-      'All 16 AI models',
-      'Unlimited single tasks',
-      '500 Roundtable tasks/month',
-      'Midjourney, Gemini, Stability, Gamma, Runway',
-      'API access',
-      'Priority routing',
+      'All 16 AI models (Sabha pays)',
+      'Unlimited Roundtable tasks',
+      'Claude Opus synthesis',
+      'Team workspace (up to 5 seats)',
+      'API access + priority routing',
+      'Midjourney, Runway, Stability',
     ],
-    cta: 'Get Pro',
+    cta: 'Get Studio',
     highlight: true,
     badge: 'Most popular',
-  },
-  {
-    id: 'power',
-    name: 'Power',
-    priceInr: 2499,
-    description: 'For power users and small teams.',
-    features: [
-      'Everything in Pro',
-      'Unlimited Roundtable tasks',
-      'Priority queue',
-      'Advanced analytics',
-      'Custom routing rules',
-      'API access',
-    ],
-    cta: 'Get Power',
-    highlight: false,
   },
 ]
 
 const FAQS = [
   {
     q: 'Do I pay separately for each AI?',
-    a: 'No. Sabha absorbs the API costs within your plan limits. One subscription, all AIs.',
+    a: 'No. On Studio, Sabha absorbs the API costs within your plan. On Builder, you bring your own API keys — you pay the AI providers directly at their rates.',
   },
   {
     q: 'Which payment methods are accepted?',
@@ -109,6 +96,8 @@ export default function PricingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  // Fix 16: annual billing is the default — users save 20%, better for Sabha LTV
+  const [isAnnual, setIsAnnual] = useState(true)
 
   async function handleUpgrade(planId: string) {
     if (planId === 'free') { router.push('/signup'); return }
@@ -120,7 +109,7 @@ export default function PricingPage() {
     try {
       const res = await apiFetch<{ subscriptionId: string; razorpayKeyId: string }>(
         '/api/v1/billing/create-subscription',
-        { method: 'POST', body: JSON.stringify({ planId }) }
+        { method: 'POST', body: JSON.stringify({ planId, billing: isAnnual ? 'annual' : 'monthly' }) }
       )
 
       if (!res.success || !res.data) {
@@ -130,7 +119,6 @@ export default function PricingPage() {
 
       const { subscriptionId, razorpayKeyId } = res.data
 
-      // Load Razorpay script dynamically
       if (!window.Razorpay) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script')
@@ -146,7 +134,7 @@ export default function PricingPage() {
         key: razorpayKeyId,
         subscription_id: subscriptionId,
         name: 'Sabha',
-        description: `Sabha ${plan?.name} Plan`,
+        description: `Sabha ${plan?.name} Plan${isAnnual ? ' (Annual)' : ''}`,
         image: '/logo.png',
         theme: { color: '#c026d3' },
         handler: async (response: {
@@ -157,10 +145,11 @@ export default function PricingPage() {
           const verifyRes = await apiFetch('/api/v1/billing/verify-payment', {
             method: 'POST',
             body: JSON.stringify({
-              razorpayPaymentId:     response.razorpay_payment_id,
+              razorpayPaymentId:      response.razorpay_payment_id,
               razorpaySubscriptionId: response.razorpay_subscription_id,
-              razorpaySignature:     response.razorpay_signature,
+              razorpaySignature:      response.razorpay_signature,
               planId,
+              billing: isAnnual ? 'annual' : 'monthly',
             }),
           })
 
@@ -184,7 +173,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Nav */}
-      <nav className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
+      <nav role="navigation" aria-label="Main navigation" className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
         <Link href="/" className="text-xl font-bold tracking-tight">
           Sabha<span className="text-brand-500">.</span>
         </Link>
@@ -196,79 +185,129 @@ export default function PricingPage() {
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-6 py-16">
+      <main id="main-content" className="max-w-6xl mx-auto px-6 py-16">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4 tracking-tight">
             Simple, honest pricing
           </h1>
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             ChatGPT + Claude + Midjourney + ElevenLabs + Perplexity = ₹8,526/month separately.
             <br />
-            Sabha Pro = <span className="text-brand-400 font-bold">₹1,299/month.</span>
+            Sabha Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
           </p>
         </div>
 
-        {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-20">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative rounded-2xl p-6 flex flex-col ${
-                plan.highlight
-                  ? 'border-2 border-brand-500 bg-brand-500/5'
-                  : 'border border-zinc-800 bg-zinc-900/50'
-              }`}
+        {/* Annual / Monthly toggle — annual is the default */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <button
+            onClick={() => setIsAnnual(false)}
+            className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            Monthly
+          </button>
+
+          <button
+            role="switch"
+            aria-checked={isAnnual}
+            aria-label="Toggle annual billing"
+            onClick={() => setIsAnnual((v) => !v)}
+            className={`relative w-12 h-6 rounded-full transition-colors ${isAnnual ? 'bg-brand-600' : 'bg-zinc-700'}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`}
+            />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAnnual(true)}
+              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-600 rounded-full text-xs font-semibold whitespace-nowrap">
-                  {plan.badge}
-                </div>
-              )}
+              Annual
+            </button>
+            <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full">
+              Save 20%
+            </span>
+          </div>
+        </div>
 
-              <div className="mb-4">
-                <h3 className="font-bold text-lg mb-1">{plan.name}</h3>
-                <p className="text-zinc-500 text-sm">{plan.description}</p>
-              </div>
-
-              <div className="mb-6">
-                {plan.originalPriceInr && (
-                  <p className="text-zinc-600 text-sm line-through">
-                    ₹{plan.originalPriceInr.toLocaleString('en-IN')}/mo separately
-                  </p>
-                )}
-                <div className="flex items-end gap-1">
-                  <span className="text-4xl font-bold">
-                    {plan.priceInr === 0 ? 'Free' : `₹${plan.priceInr.toLocaleString('en-IN')}`}
-                  </span>
-                  {plan.priceInr > 0 && (
-                    <span className="text-zinc-500 mb-1">/month</span>
-                  )}
-                </div>
-              </div>
-
-              <ul className="space-y-2 mb-8 flex-1">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
-                    <span className={plan.highlight ? 'text-brand-400' : 'text-green-400'}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handleUpgrade(plan.id)}
-                disabled={loading === plan.id}
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 ${
+        {/* Plans */}
+        <div role="list" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
+          {PLANS.map((plan) => {
+            const price = isAnnual ? plan.annualInr : plan.monthlyInr
+            return (
+              <div
+                key={plan.id}
+                role="listitem"
+                className={`relative rounded-2xl p-6 flex flex-col ${
                   plan.highlight
-                    ? 'bg-brand-600 hover:bg-brand-500 hover:scale-105'
-                    : 'bg-zinc-800 hover:bg-zinc-700'
+                    ? 'border-2 border-brand-500 bg-brand-500/5'
+                    : 'border border-zinc-800 bg-zinc-900/50'
                 }`}
               >
-                {loading === plan.id ? 'Opening checkout…' : plan.cta}
-              </button>
-            </div>
-          ))}
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-600 rounded-full text-xs font-semibold whitespace-nowrap">
+                    {plan.badge}
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <h2 className="font-bold text-lg mb-1">{plan.name}</h2>
+                  <p id={`plan-desc-${plan.id}`} className="text-zinc-500 text-sm">{plan.description}</p>
+                </div>
+
+                <div className="mb-6">
+                  {'originalComboInr' in plan && isAnnual && (
+                    <p className="text-zinc-600 text-sm line-through">
+                      ₹{(plan as typeof plan & { originalComboInr: number }).originalComboInr.toLocaleString('en-IN')}/mo if bought separately
+                    </p>
+                  )}
+                  {!isAnnual && plan.monthlyInr > 0 && (
+                    <p className="text-zinc-600 text-sm">
+                      or ₹{plan.annualInr.toLocaleString('en-IN')}/mo billed annually
+                    </p>
+                  )}
+                  <div className="flex items-end gap-1 mt-1">
+                    <span className="text-4xl font-bold">
+                      {price === 0 ? 'Free' : `₹${price.toLocaleString('en-IN')}`}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-zinc-500 mb-1">/mo{isAnnual ? ' · billed annually' : ''}</span>
+                    )}
+                  </div>
+                  {isAnnual && plan.monthlyInr > 0 && (
+                    <p className="text-emerald-400 text-xs mt-1 font-medium">
+                      Saves ₹{((plan.monthlyInr - plan.annualInr) * 12).toLocaleString('en-IN')}/year
+                    </p>
+                  )}
+                </div>
+
+                <ul className="space-y-2 mb-8 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
+                      <span className={plan.highlight ? 'text-brand-400' : 'text-green-400'}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handleUpgrade(plan.id)}
+                  disabled={loading === plan.id}
+                  aria-label={`${plan.cta} with ${plan.name} plan`}
+                  aria-describedby={`plan-desc-${plan.id}`}
+                  className={`w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 ${
+                    plan.highlight
+                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-105'
+                      : 'bg-zinc-800 hover:bg-zinc-700'
+                  }`}
+                >
+                  {loading === plan.id ? 'Opening checkout…' : plan.cta}
+                </button>
+              </div>
+            )
+          })}
         </div>
 
         {/* Enterprise callout */}
@@ -296,16 +335,15 @@ export default function PricingPage() {
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 hover:bg-zinc-800/50 transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-medium hover:bg-zinc-800/50 transition-colors"
+                  aria-expanded={openFaq === i}
                 >
-                  <span className="font-medium text-sm">{faq.q}</span>
-                  <span className="text-zinc-500 shrink-0 transition-transform" style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none' }}>
-                    +
-                  </span>
+                  <span>{faq.q}</span>
+                  <span className="text-zinc-500 ml-4 flex-shrink-0">{openFaq === i ? '−' : '+'}</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm text-zinc-400 leading-relaxed">
-                    {faq.a}
+                  <div className="px-5 pb-4 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800">
+                    <p className="pt-3">{faq.a}</p>
                   </div>
                 )}
               </div>
@@ -313,11 +351,6 @@ export default function PricingPage() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-zinc-800 mt-20 py-8 text-center text-zinc-600 text-sm">
-        <p>Sabha · Payments secured by Razorpay · All prices in INR incl. GST</p>
-      </footer>
     </div>
   )
 }

@@ -90,7 +90,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
   // Override tier, suspend/unsuspend, make admin
   app.patch<{ Params: { id: string } }>('/:id', async (request, reply) => {
     const body = z.object({
-      tier:   z.enum(['FREE', 'STARTER', 'PRO', 'POWER', 'ENTERPRISE']).optional(),
+      tier:   z.enum(['FREE', 'BUILDER', 'STUDIO', 'ENTERPRISE']).optional(),
       status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
       isAdmin: z.boolean().optional(),
     }).safeParse(request.body)

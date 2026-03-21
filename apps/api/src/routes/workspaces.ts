@@ -15,7 +15,7 @@ function toSlug(name: string, suffix: string): string {
 }
 
 const TIER_TO_PLAN: Record<UserTier, PlanId> = {
-  FREE: 'free', STARTER: 'starter', PRO: 'pro', POWER: 'power', ENTERPRISE: 'enterprise',
+  FREE: 'free', BUILDER: 'builder', STUDIO: 'studio', ENTERPRISE: 'enterprise',
 }
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────

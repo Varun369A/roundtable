@@ -11,14 +11,9 @@
  *   POST   /tasks/:taskId/reactions         — add reaction (auth or guest with participantId)
  *   GET    /tasks/:taskId/reactions         — list all reactions for task's session
  *   PATCH  /sessions/:sessionId/settings    — update session settings (owner only)
- *
- * Rate limiting notes:
- *   - /join         → rate-limited to 10 req/min per IP by upstream middleware
- *   - /heartbeat    → rate-limited to 120 req/min per IP (every 30s client cadence)
- *   - /reactions    → rate-limited to 30 req/min per IP
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { prisma } from '@sabha/db'
 import { requireAuth } from '../middleware/auth'
 import {
@@ -30,7 +25,6 @@ import {
   getOnlineParticipants,
   addReaction,
   getReactions,
-  pruneStaleParticipants,
 } from '../lib/session-manager'
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
@@ -44,18 +38,13 @@ function isPositiveInt(val: unknown): val is number {
 export async function sessionsRoutes(app: FastifyInstance) {
 
   // ─── POST /tasks/:taskId/session ────────────────────────────────────────────
-  // requireAuth — create a multiplayer session for a task the caller owns.
-  // Returns the existing session unchanged if one already exists.
-  app.post(
+  app.post<{
+    Params: { taskId: string }
+    Body: { isPublic?: boolean; allowSteering?: boolean; expiresInHours?: number }
+  }>(
     '/tasks/:taskId/session',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Params: { taskId: string }
-        Body: { isPublic?: boolean; allowSteering?: boolean; expiresInHours?: number }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { taskId } = request.params
       const userId = request.user!.id
       const body = (request.body ?? {}) as {
@@ -64,7 +53,6 @@ export async function sessionsRoutes(app: FastifyInstance) {
         expiresInHours?: number
       }
 
-      // Type-check optional body fields
       if (body.isPublic !== undefined && typeof body.isPublic !== 'boolean') {
         return reply.status(400).send({
           success: false,
@@ -90,7 +78,6 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Ownership check
       const task = await prisma.task.findFirst({
         where: { id: taskId, userId },
         select: { id: true },
@@ -102,27 +89,26 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Return existing session if one already exists for this task
-      const existing = await (prisma as any).roundtableSession?.findFirst({
+      const existing = await prisma.roundtableSession.findFirst({
         where: { taskId },
-        select: {
-          id: true,
-          accessCode: true,
-          isPublic: true,
-          allowSteering: true,
-          expiresAt: true,
-        },
+        select: { id: true, accessCode: true, isPublic: true, allowSteering: true, expiresAt: true },
       })
 
       if (existing) {
         const shareUrl = `${process.env.WEB_URL}/roundtable/${taskId}?code=${existing.accessCode}`
-        return reply.send({
-          success: true,
-          data: { session: { ...existing, shareUrl } },
-        })
+        return reply.send({ success: true, data: { session: { ...existing, shareUrl } } })
       }
 
-      const session = await createSession(taskId, {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, avatarUrl: true },
+      })
+
+      const session = await createSession({
+        taskId,
+        ownerId: userId,
+        ownerName: user?.name ?? 'Owner',
+        ownerAvatar: user?.avatarUrl ?? undefined,
         isPublic: body.isPublic ?? false,
         allowSteering: body.allowSteering ?? false,
         expiresInHours: body.expiresInHours ?? 24,
@@ -147,13 +133,9 @@ export async function sessionsRoutes(app: FastifyInstance) {
   )
 
   // ─── GET /sessions/:code ─────────────────────────────────────────────────────
-  // Public — no auth required. Resolves session metadata by its short access code.
-  app.get(
+  app.get<{ Params: { code: string } }>(
     '/sessions/:code',
-    async (
-      request: FastifyRequest<{ Params: { code: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { code } = request.params
 
       if (!code || typeof code !== 'string' || code.trim().length === 0) {
@@ -172,7 +154,6 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Expired sessions are logically absent
       if (session.expiresAt && new Date(session.expiresAt) < new Date()) {
         return reply.status(404).send({
           success: false,
@@ -189,7 +170,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
             task: session.task,
             isPublic: session.isPublic,
             allowSteering: session.allowSteering,
-            participantCount: session.participantCount,
+            participantCount: session.participants.length,
           },
         },
       })
@@ -197,21 +178,16 @@ export async function sessionsRoutes(app: FastifyInstance) {
   )
 
   // ─── POST /sessions/:code/join ───────────────────────────────────────────────
-  // Auth optional. Authenticated users supply nothing extra; guests supply displayName.
-  app.post(
+  app.post<{
+    Params: { code: string }
+    Body: { displayName?: string }
+  }>(
     '/sessions/:code/join',
-    async (
-      request: FastifyRequest<{
-        Params: { code: string }
-        Body: { displayName?: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { code } = request.params
       const body = (request.body ?? {}) as { displayName?: string }
 
-      // Attempt to verify JWT — soft auth (ignore failure)
-      let authenticatedUser: { id: string; email: string; tier: string; status: string } | null = null
+      let authenticatedUser: { id: string; email: string; tier: string; status: string; name?: string; avatarUrl?: string } | null = null
       try {
         const payload = await request.jwtVerify<{ sub: string }>()
         authenticatedUser = await prisma.user.findUnique({
@@ -220,27 +196,20 @@ export async function sessionsRoutes(app: FastifyInstance) {
         }) as any
         if (authenticatedUser?.status !== 'ACTIVE') authenticatedUser = null
       } catch {
-        // No token or invalid — guest path
+        // Guest path
       }
 
-      // Guest validation
       if (!authenticatedUser) {
         if (!body.displayName || typeof body.displayName !== 'string' || !body.displayName.trim()) {
           return reply.status(400).send({
             success: false,
-            error: {
-              code: 'DISPLAY_NAME_REQUIRED',
-              message: 'displayName is required for guest participants',
-            },
+            error: { code: 'DISPLAY_NAME_REQUIRED', message: 'displayName is required for guest participants' },
           })
         }
         if (body.displayName.trim().length > 30) {
           return reply.status(400).send({
             success: false,
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'displayName must be 30 characters or fewer',
-            },
+            error: { code: 'VALIDATION_ERROR', message: 'displayName must be 30 characters or fewer' },
           })
         }
       }
@@ -260,20 +229,18 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      const participant = await joinSession(session.id, {
-        userId: (authenticatedUser as any)?.id ?? null,
-        displayName: authenticatedUser
-          ? ((authenticatedUser as any).name ?? (authenticatedUser as any).email)
-          : body.displayName!.trim(),
-        avatarUrl: authenticatedUser ? ((authenticatedUser as any).avatarUrl ?? null) : null,
-        isGuest: !authenticatedUser,
-      })
+      const result = await joinSession(
+        session.id,
+        authenticatedUser?.id ?? null,
+        authenticatedUser ? (authenticatedUser.name ?? authenticatedUser.email) : body.displayName!.trim(),
+        authenticatedUser?.avatarUrl ?? undefined,
+      )
 
       return reply.status(201).send({
         success: true,
         data: {
-          participantId: participant.id,
-          role: participant.role,
+          participantId: result.participantId,
+          role: result.role,
           sessionId: session.id,
         },
       })
@@ -281,16 +248,12 @@ export async function sessionsRoutes(app: FastifyInstance) {
   )
 
   // ─── POST /sessions/:sessionId/leave ─────────────────────────────────────────
-  // Auth optional. Participant identified by participantId in body.
-  app.post(
+  app.post<{
+    Params: { sessionId: string }
+    Body: { participantId: string }
+  }>(
     '/sessions/:sessionId/leave',
-    async (
-      request: FastifyRequest<{
-        Params: { sessionId: string }
-        Body: { participantId: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { sessionId } = request.params
       const body = (request.body ?? {}) as { participantId: string }
 
@@ -308,17 +271,12 @@ export async function sessionsRoutes(app: FastifyInstance) {
   )
 
   // ─── POST /sessions/:sessionId/heartbeat ─────────────────────────────────────
-  // Lightweight keep-alive — no auth required. Clients call every ~30s.
-  app.post(
+  app.post<{
+    Params: { sessionId: string }
+    Body: { participantId: string }
+  }>(
     '/sessions/:sessionId/heartbeat',
-    async (
-      request: FastifyRequest<{
-        Params: { sessionId: string }
-        Body: { participantId: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
-      const { sessionId } = request.params
+    async (request, reply) => {
       const body = (request.body ?? {}) as { participantId: string }
 
       if (!body.participantId || typeof body.participantId !== 'string') {
@@ -328,43 +286,29 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      await heartbeat(sessionId, body.participantId)
+      await heartbeat(body.participantId)
 
       return reply.status(200).send({ success: true, data: {} })
     },
   )
 
   // ─── GET /sessions/:sessionId/participants ───────────────────────────────────
-  // Returns currently online participants for the session.
-  app.get(
+  app.get<{ Params: { sessionId: string } }>(
     '/sessions/:sessionId/participants',
-    async (
-      request: FastifyRequest<{ Params: { sessionId: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { sessionId } = request.params
-
       const participants = await getOnlineParticipants(sessionId)
-
-      return reply.send({
-        success: true,
-        data: { participants },
-      })
+      return reply.send({ success: true, data: { participants } })
     },
   )
 
   // ─── POST /tasks/:taskId/reactions ───────────────────────────────────────────
-  // Auth required for logged-in users; guests may use participantId instead.
-  // Rate limiting notes: throttled to 30/min per IP by upstream middleware.
-  app.post(
+  app.post<{
+    Params: { taskId: string }
+    Body: { subtaskId?: string; reaction: string; participantId?: string }
+  }>(
     '/tasks/:taskId/reactions',
-    async (
-      request: FastifyRequest<{
-        Params: { taskId: string }
-        Body: { subtaskId?: string; reaction: string; participantId?: string }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { taskId } = request.params
       const body = (request.body ?? {}) as {
         subtaskId?: string
@@ -372,7 +316,6 @@ export async function sessionsRoutes(app: FastifyInstance) {
         participantId?: string
       }
 
-      // Attempt soft auth
       let userId: string | null = null
       try {
         const payload = await request.jwtVerify<{ sub: string }>()
@@ -382,20 +325,16 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
         if (user?.status === 'ACTIVE') userId = user.id
       } catch {
-        // Guest path — participantId required
+        // Guest path
       }
 
       if (!userId && !body.participantId) {
         return reply.status(401).send({
           success: false,
-          error: {
-            code: 'AUTH_REQUIRED',
-            message: 'Must be authenticated or provide a participantId',
-          },
+          error: { code: 'AUTH_REQUIRED', message: 'Must be authenticated or provide a participantId' },
         })
       }
 
-      // Validate reaction
       if (!body.reaction || typeof body.reaction !== 'string' || !body.reaction.trim()) {
         return reply.status(400).send({
           success: false,
@@ -409,8 +348,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Verify session exists for task
-      const session = await (prisma as any).roundtableSession?.findFirst({
+      const session = await prisma.roundtableSession.findFirst({
         where: { taskId },
         select: { id: true },
       })
@@ -421,32 +359,19 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      const result = await addReaction(session.id, {
-        taskId,
-        subtaskId: body.subtaskId ?? null,
-        reaction: body.reaction.trim(),
-        userId,
-        participantId: body.participantId ?? null,
-      })
+      await addReaction(session.id, body.subtaskId ?? null, userId, body.reaction.trim())
 
-      return reply.status(201).send({
-        success: true,
-        data: { reactionId: result.id },
-      })
+      return reply.status(201).send({ success: true, data: {} })
     },
   )
 
   // ─── GET /tasks/:taskId/reactions ────────────────────────────────────────────
-  // Returns all reactions attached to the task's session.
-  app.get(
+  app.get<{ Params: { taskId: string } }>(
     '/tasks/:taskId/reactions',
-    async (
-      request: FastifyRequest<{ Params: { taskId: string } }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { taskId } = request.params
 
-      const session = await (prisma as any).roundtableSession?.findFirst({
+      const session = await prisma.roundtableSession.findFirst({
         where: { taskId },
         select: { id: true },
       })
@@ -458,26 +383,18 @@ export async function sessionsRoutes(app: FastifyInstance) {
       }
 
       const reactions = await getReactions(session.id)
-
-      return reply.send({
-        success: true,
-        data: { reactions },
-      })
+      return reply.send({ success: true, data: { reactions } })
     },
   )
 
   // ─── PATCH /sessions/:sessionId/settings ─────────────────────────────────────
-  // requireAuth — only the session owner may update settings.
-  app.patch(
+  app.patch<{
+    Params: { sessionId: string }
+    Body: { allowSteering?: boolean; isPublic?: boolean }
+  }>(
     '/sessions/:sessionId/settings',
     { preHandler: [requireAuth] },
-    async (
-      request: FastifyRequest<{
-        Params: { sessionId: string }
-        Body: { allowSteering?: boolean; isPublic?: boolean }
-      }>,
-      reply: FastifyReply,
-    ) => {
+    async (request, reply) => {
       const { sessionId } = request.params
       const userId = request.user!.id
       const body = (request.body ?? {}) as { allowSteering?: boolean; isPublic?: boolean }
@@ -495,8 +412,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
         })
       }
 
-      // Fetch session + verify ownership via task
-      const session = await (prisma as any).roundtableSession?.findUnique({
+      const session = await prisma.roundtableSession.findUnique({
         where: { id: sessionId },
         include: { task: { select: { userId: true } } },
       })
@@ -519,22 +435,13 @@ export async function sessionsRoutes(app: FastifyInstance) {
       if (body.allowSteering !== undefined) updateData.allowSteering = body.allowSteering
       if (body.isPublic !== undefined) updateData.isPublic = body.isPublic
 
-      const updated = await (prisma as any).roundtableSession?.update({
+      const updated = await prisma.roundtableSession.update({
         where: { id: sessionId },
         data: updateData,
-        select: {
-          id: true,
-          isPublic: true,
-          allowSteering: true,
-          expiresAt: true,
-          accessCode: true,
-        },
+        select: { id: true, isPublic: true, allowSteering: true, expiresAt: true, accessCode: true },
       })
 
-      return reply.send({
-        success: true,
-        data: { session: updated },
-      })
+      return reply.send({ success: true, data: { session: updated } })
     },
   )
 }

@@ -1,6 +1,6 @@
 // ─── User & Auth ────────────────────────────────────────────────────────────
 
-export type UserTier = 'FREE' | 'STARTER' | 'PRO' | 'POWER' | 'ENTERPRISE'
+export type UserTier = 'FREE' | 'BUILDER' | 'STUDIO' | 'ENTERPRISE'
 export type UserStatus = 'ACTIVE' | 'SUSPENDED' | 'DELETED'
 
 export interface User {
@@ -221,6 +221,7 @@ export interface SubtaskOutput {
 
 export interface ContextObject {
   taskId: string
+  userId: string
   originalGoal: string
   templateId?: string
   userProfile: {
@@ -274,7 +275,7 @@ export interface ApiError {
 
 // ─── Billing ─────────────────────────────────────────────────────────────────
 
-export type PlanId = 'free' | 'starter' | 'pro' | 'power' | 'enterprise'
+export type PlanId = 'free' | 'builder' | 'studio' | 'enterprise'
 
 export interface Plan {
   id: PlanId
@@ -293,56 +294,45 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'free',
     name: 'Free',
     priceInr: 0,
-    tasksPerMonth: 5,
-    roundtableTasksPerMonth: 2,
+    tasksPerMonth: 3,  // 3 free tasks/month using Sabha's own API keys
+    roundtableTasksPerMonth: 3,
     concurrentTasks: 1,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o'],
-    features: ['2 AIs', '5 tasks/month', 'Personal workspace']
+    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'perplexity-sonar'],
+    features: ['3 tasks/month', 'Sabha covers API costs', 'All 9 specialist AIs', 'Upgrade to connect own keys']
   },
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    priceInr: 499,
-    tasksPerMonth: 100,
-    roundtableTasksPerMonth: 100,
+  builder: {
+    id: 'builder',
+    name: 'Builder',
+    priceInr: 799,  // founding members: ₹499 locked for life
+    tasksPerMonth: -1,  // unlimited — user pays their own API providers
+    roundtableTasksPerMonth: -1,
     concurrentTasks: 5,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'gpt-4o', 'perplexity-sonar', 'dalle-3', 'elevenlabs'],
-    features: ['5 AIs', '100 roundtable tasks', 'All templates', 'Priority support']
+    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'dalle-3', 'stability-xl', 'elevenlabs', 'sarvam-1'],
+    features: ['Unlimited tasks', 'Your own API keys', 'All 9 specialist AIs', 'GitHub push', 'Download ZIP', 'Claude Sonnet synthesis']
   },
-  pro: {
-    id: 'pro',
-    name: 'Pro',
-    priceInr: 1299,
-    tasksPerMonth: -1,
-    roundtableTasksPerMonth: 500,
-    concurrentTasks: 50,
-    teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'sarvam-1', 'gamma'],
-    features: ['All AIs', 'Unlimited single tasks', '500 roundtable tasks', 'Custom templates', 'API access']
-  },
-  power: {
-    id: 'power',
-    name: 'Power',
-    priceInr: 2499,
+  studio: {
+    id: 'studio',
+    name: 'Studio',
+    priceInr: 1999,  // founding members: ₹999 locked for life
     tasksPerMonth: -1,
     roundtableTasksPerMonth: -1,
-    concurrentTasks: 200,
-    teamMembers: 10,
-    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
-    features: ['Everything in Pro', 'Unlimited roundtable', 'Team workspace (10 members)', 'Priority routing', 'API access']
+    concurrentTasks: 20,
+    teamMembers: 5,
+    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1'],
+    features: ['Everything in Builder', 'Claude Opus synthesis', 'Team workspace (5 members)', 'Priority routing', 'Midjourney + Runway']
   },
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    priceInr: -1,
+    priceInr: 4999,
     tasksPerMonth: -1,
     roundtableTasksPerMonth: -1,
     concurrentTasks: -1,
     teamMembers: -1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'sabha-ai', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1', 'gamma'],
-    features: ['Custom contract', 'Unlimited teams', 'SSO/SAML', 'Audit logs', 'SLA', 'On-prem option', 'Dedicated account manager']
+    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1'],
+    features: ['Everything in Studio', 'Unlimited teams', 'SSO/SAML', 'Audit logs', 'SLA', 'On-prem option', 'Dedicated account manager']
   }
 }
 

@@ -4,12 +4,11 @@ import { redis } from '../lib/redis'
 import { PLANS } from '@sabha/types'
 import type { PlanId, UserTier } from '@sabha/types'
 
-// Map UserTier → PlanId
+// Map UserTier → PlanId (spec plan names)
 const TIER_TO_PLAN: Record<UserTier, PlanId> = {
   FREE:       'free',
-  STARTER:    'starter',
-  PRO:        'pro',
-  POWER:      'power',
+  BUILDER:    'builder',
+  STUDIO:     'studio',
   ENTERPRISE: 'enterprise',
 }
 
@@ -35,7 +34,7 @@ export async function enforcePlanLimits(
   if (plan.tasksPerMonth === -1) return
 
   // Get current month usage from Redis (fast path)
-  const monthKey = `usage:${user.id}:${getMonthKey()}`
+  const monthKey = `sabha:${user.id}:usage:${getMonthKey()}`
   const usageStr = await redis.get(monthKey)
   const usage = usageStr ? parseInt(usageStr, 10) : 0
 
@@ -86,7 +85,7 @@ export async function enforcePlanLimits(
  * Decrement usage counter when a task is cancelled.
  */
 export async function decrementUsage(userId: string): Promise<void> {
-  const monthKey = `usage:${userId}:${getMonthKey()}`
+  const monthKey = `sabha:${userId}:usage:${getMonthKey()}`
   const current = await redis.get(monthKey)
   if (current && parseInt(current, 10) > 0) {
     await redis.decr(monthKey)
@@ -124,11 +123,13 @@ export async function getCurrentUsage(userId: string, tier: UserTier): Promise<{
 
 function getMonthKey(): string {
   const now = new Date()
+  // getMonth() is 0-indexed; +1 gives the human month number (1-12)
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
 function getMonthStart(): Date {
   const now = new Date()
+  // Date constructor month param is 0-indexed — matches getMonth() directly (no +1 needed here)
   return new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
 }
 

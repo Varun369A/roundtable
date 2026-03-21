@@ -20,15 +20,14 @@ export default function JoinWorkspacePage() {
     }
 
     try {
-      const res = await apiFetch('/api/v1/workspaces/join', {
+      const data = await apiFetch('/api/v1/workspaces/join', {
         method: 'POST',
         body: JSON.stringify({ token }),
       })
-      const data = await res.json()
 
       if (data.success) {
         setStatus('success')
-        setWorkspaceId(data.data.workspaceId)
+        setWorkspaceId((data.data as any).workspaceId)
         setTimeout(() => router.push('/dashboard'), 2000)
       } else {
         setStatus('error')

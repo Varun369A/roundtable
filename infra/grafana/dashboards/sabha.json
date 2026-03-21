@@ -1,0 +1,85 @@
+{
+  "title": "Sabha Platform",
+  "uid": "sabha-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Tasks Completed / min",
+      "type": "graph",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "rate(sabha_tasks_completed_total[1m])",
+          "legendFormat": "completed/min"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Tasks Failed / min",
+      "type": "graph",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "rate(sabha_tasks_failed_total[1m])",
+          "legendFormat": "failed/min"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Active SSE Connections",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sabha_sse_connections_active",
+          "legendFormat": "active SSE"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "HTTP Request Rate",
+      "type": "graph",
+      "gridPos": { "x": 6, "y": 8, "w": 18, "h": 8 },
+      "targets": [
+        {
+          "expr": "rate(http_request_duration_seconds_count[1m])",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "p95 HTTP Latency (ms)",
+      "type": "graph",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) * 1000",
+          "legendFormat": "p95 latency"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Subtask Queue Depth",
+      "type": "graph",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sabha_subtask_queue_waiting",
+          "legendFormat": "waiting"
+        },
+        {
+          "expr": "sabha_subtask_queue_active",
+          "legendFormat": "active"
+        }
+      ]
+    }
+  ]
+}

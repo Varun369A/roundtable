@@ -39,3 +39,27 @@
     background: theme('colors.zinc.500');
   }
 }
+
+/* Ensure visible focus indicators */
+*:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .text-gray-400 {
+    color: #9ca3af;
+  }
+  .bg-gray-800 {
+    background-color: #1f2937;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

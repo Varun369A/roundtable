@@ -26,7 +26,8 @@ export class ClaudeConnector extends BaseConnector {
 
     const start = Date.now()
     const apiModel = MODEL_MAP[this.model] || 'claude-3-5-sonnet-20241022'
-    const client = new Anthropic({ apiKey })
+    // Reuse the singleton client unless a user-provided key was given
+    const client = input.userApiKey ? new Anthropic({ apiKey }) : this.client
 
     return this.withRetry(async () => {
       const response = await client.messages.create({
@@ -34,7 +35,7 @@ export class ClaudeConnector extends BaseConnector {
         max_tokens: input.options?.maxTokens || 4096,
         messages: [{ role: 'user', content: input.prompt }],
         system: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output. Do not add unnecessary preamble.',
-      })
+      }, { signal: AbortSignal.timeout(60_000) })
 
       const content = response.content[0]
       if (content.type !== 'text') throw new Error('Unexpected response type')

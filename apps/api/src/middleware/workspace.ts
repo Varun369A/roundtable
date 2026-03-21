@@ -78,6 +78,7 @@ export function requireWorkspaceRole(minRole: WorkspaceRole) {
         success: false,
         error: { code: 'INSUFFICIENT_ROLE', message: `This action requires ${minRole} role or higher` },
       })
+      return
     }
   }
 }

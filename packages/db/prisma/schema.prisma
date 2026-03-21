@@ -12,9 +12,8 @@ datasource db {
 
 enum UserTier {
   FREE
-  STARTER
-  PRO
-  POWER
+  BUILDER   // ₹799/month — user brings own API keys, unlimited tasks
+  STUDIO    // ₹1,999/month — Claude Opus synthesis, team workspace
   ENTERPRISE
 }
 
@@ -143,6 +142,18 @@ model User {
   updatedAt     DateTime    @updatedAt
   lastActiveAt  DateTime    @default(now())
 
+  // Free tier task budget — decremented on every Sabha-funded task
+  freeTasksRemaining Int       @default(3)
+
+  // Founding member — first 200 paying users get locked-in discounted pricing
+  foundingMember     Boolean   @default(false)
+
+  // DPDP Act 2023 — India's Digital Personal Data Protection Act.
+  // User must explicitly consent before their task data is used to train Sabha-AI.
+  // Never inferred, never defaulted to true, never coerced.
+  trainingConsent    Boolean   @default(false)
+  trainingConsentAt  DateTime? // when they gave consent (required for audit)
+
   // Beta access
   betaCode           String?   // the invite code used to sign up
   isBeta             Boolean   @default(false)
@@ -179,6 +190,11 @@ model User {
   packSubscriptions   UserPackSubscription[]
   expertProfile       ExpertProfile?
   expertReviewsRequested ExpertReview[]     @relation("ReviewRequester")
+  passwordResetTokens    PasswordResetToken[]
+  emailVerifications     EmailVerification[]
+  dataRequests           DataRequest[]
+  isEmailVerified        Boolean              @default(false)
+  emailVerifiedAt        DateTime?
 
   @@index([email])
   @@index([tier])
@@ -340,6 +356,12 @@ model Task {
   // Accumulated cost tracking
   totalCostUsd  Decimal     @default(0) @db.Decimal(10, 6)
 
+  // Abandonment tracking (Fix 19 — funnel analytics + product iteration)
+  abandonedAtRound  Int?        // 1, 2, or 3 — which Roundtable round user left at
+  abandonedAt       DateTime?   // when client disconnected / user navigated away
+  timeToCompleteMs  Int?        // ms from createdAt → completedAt (null if not completed)
+  templateUsed      Boolean     @default(false) // was a template used?
+
   // Metadata
   ipAddress     String?
   userAgent     String?
@@ -362,6 +384,8 @@ model Task {
   executionActions    ExecutionAction[]
   voiceTranscriptions VoiceTranscription[]
   expertReviews       ExpertReview[]
+  versions            TaskVersion[]
+  corrections         TaskCorrection[]
 
   @@index([userId])
   @@index([status])
@@ -858,10 +882,12 @@ model UserAIConnection {
   provider       String   // matches ProviderDef.key e.g. "anthropic", "openai"
   displayName    String?  // user-visible label
   encryptedKey   String   // AES-256-GCM encrypted API key
+  salt           String?  // scrypt salt for per-user key derivation (hex, 32 bytes)
   iv             String   // GCM IV (hex)
   authTag        String   // GCM auth tag (hex)
-  isVerified     Boolean  @default(false) // key passed test call
-  isActive       Boolean  @default(true)
+  isVerified     Boolean   @default(false) // key passed test call
+  verifiedAt     DateTime?               // timestamp of last successful verification
+  isActive       Boolean   @default(true)
   lastUsedAt     DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -1532,4 +1558,206 @@ model UserPackSubscription {
 
   @@unique([userId, packId])
   @@map("user_pack_subscriptions")
+}
+
+// ─── Launch Readiness: Auth & Compliance ──────────────────────────────────────
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique  // SHA-256 of the raw token (never store raw)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_verifications")
+}
+
+// ─── Launch Readiness: Webhook Idempotency ────────────────────────────────────
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String   // "razorpay" | "github" | "slack"
+  eventId     String   // provider's event ID
+  eventType   String
+  processedAt DateTime @default(now())
+  payload     Json     @default("{}")
+
+  @@unique([provider, eventId])
+  @@map("webhook_events")
+}
+
+// ─── Launch Readiness: GDPR Data Requests ─────────────────────────────────────
+
+enum DataRequestStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DataRequestType {
+  EXPORT
+  DELETION
+}
+
+model DataRequest {
+  id          String            @id @default(cuid())
+  userId      String
+  type        DataRequestType
+  status      DataRequestStatus @default(PENDING)
+  downloadUrl String?           // signed URL for export zip
+  expiresAt   DateTime?         // download link expires after 7 days
+  completedAt DateTime?
+  errorMessage String?
+  requestedAt DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("data_requests")
+}
+
+// ─── Spec: Provider Spending Limits ──────────────────────────────────────────
+
+model UserProviderLimit {
+  id        String @id @default(cuid())
+  userId    String
+  provider  String  // "openai" | "anthropic" | "google" | "perplexity" | etc.
+  limitInr  Float   // monthly spend ceiling set by user
+  warningAt Float   // warning fires at this threshold (e.g. 0.8 × limitInr)
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_provider_limits")
+}
+
+// ─── Spec: Build Version History ─────────────────────────────────────────────
+
+model BuildVersion {
+  id            String   @id @default(cuid())
+  taskId        String
+  userId        String
+  versionNumber Int
+  description   String   // e.g. "Initial build", "Dark mode + login fix"
+  githubCommit  String?  // commit SHA if auto-push was enabled
+  createdAt     DateTime @default(now())
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("build_versions")
+}
+
+// ─── Task Versioning & Corrections ───────────────────────────────────────────
+// Build version snapshot — created after initial completion and each correction.
+
+model TaskVersion {
+  id            String   @id @default(cuid())
+  taskId        String
+  versionNumber Int
+  description   String                          // "Initial build" | "Correction: <desc>"
+  snapshot      Json                            // { subtaskId: { content, model, role, title } }
+  githubCommit  String?                         // commit SHA if auto-pushed
+  createdAt     DateTime @default(now())
+
+  task        Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  corrections TaskCorrection[]
+
+  @@unique([taskId, versionNumber])
+  @@index([taskId])
+  @@map("task_versions")
+}
+
+// User-submitted correction request — mini-roundtable re-run of affected subtasks.
+model TaskCorrection {
+  id                 String    @id @default(cuid())
+  taskId             String
+  userId             String
+  description        String    @db.Text          // User's natural language correction
+  affectedCategories String[]                    // TaskCategory values that were re-run
+  status             String    @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED | FAILED
+  resultVersionId    String?                     // TaskVersion created after this correction
+  githubCommitUrl    String?
+  createdAt          DateTime  @default(now())
+  completedAt        DateTime?
+
+  task          Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  resultVersion TaskVersion? @relation(fields: [resultVersionId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_corrections")
+}
+
+// ─── Spec: Sabha-AI Training Pipeline (internal only — zero user-facing refs) ─
+
+model SabhaAITrainingRecord {
+  id                 String   @id @default(cuid())
+  taskId             String   @unique
+  goal               String
+  intentParse        Json
+  round1Outputs      Json
+  round2Reviews      Json
+  deduplicatedReview String
+  finalSynthesis     String
+  qualityScore       Float?   // 0-10 computed 30 min post-completion
+  userDownloaded     Boolean  @default(false)
+  userRequestedFix   Boolean  @default(false)
+  userRating         Int?
+  usedForTraining    Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  // No userId — privacy-safe by design. No PII stored in training data.
+
+  @@index([qualityScore])
+  @@index([usedForTraining])
+  @@map("sabha_ai_training_records")
+}
+
+// ─── UPI Prepaid Credit Purchases ─────────────────────────────────────────────
+// Bridge for Indian users without international credit cards.
+// UPI payment → Razorpay webhook → credits deposited to CreditWallet.
+
+enum UpiPaymentStatus {
+  PENDING    // order created, awaiting payment
+  PAID       // Razorpay confirmed payment
+  CREDITED   // credits deposited to wallet (idempotency: only once)
+  FAILED     // payment failed / expired
+  REFUNDED
+}
+
+model UpiPayment {
+  id                 String           @id @default(cuid())
+  userId             String
+  creditPackId       String           // which CreditPack was purchased
+  razorpayOrderId    String           @unique  // from Razorpay order creation
+  razorpayPaymentId  String?          // populated after successful payment
+  amountInrPaise     Int              // amount charged (paise, e.g. 49900 = ₹499)
+  creditsGranted     Int              // credits including bonus
+  status             UpiPaymentStatus @default(PENDING)
+  webhookReceivedAt  DateTime?
+  creditedAt         DateTime?        // when credits were deposited
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([razorpayOrderId])
+  @@index([status])
+  @@map("upi_payments")
 }

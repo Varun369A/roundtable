@@ -77,9 +77,6 @@ export async function feedbackRoutes(app: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
         take: query.limit,
         skip: query.offset,
-        include: {
-          // include basic user info if userId present
-        },
       }),
       prisma.feedback.count({ where }),
     ])

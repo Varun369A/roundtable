@@ -84,6 +84,7 @@ export async function steeringRoutes(app: FastifyInstance) {
       const msg = await prisma.taskSteeringMessage.create({
         data: {
           taskId,
+          userId: request.user!.id,
           message: body.message.trim(),
           priority,
         },

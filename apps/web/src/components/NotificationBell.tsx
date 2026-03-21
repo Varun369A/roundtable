@@ -37,8 +37,7 @@ export default function NotificationBell() {
   const loadNotifications = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await apiFetch('/api/v1/notifications?limit=20')
-      const data = await res.json()
+      const data = await apiFetch('/api/v1/notifications?limit=20')
       if (data.success) {
         setNotifications(data.data.items)
         setUnreadCount(data.data.unreadCount)

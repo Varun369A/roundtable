@@ -24,6 +24,13 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   PERPLEXITY_API_KEY: z.string().optional(),
+
+  // Admin
+  ADMIN_SECRET: z.string().optional(),
+
+  // Key vault — 32-byte hex master key for per-user API key encryption
+  // Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  VAULT_MASTER_KEY: z.string().min(64).optional(),
 })
 
 function validateEnv() {

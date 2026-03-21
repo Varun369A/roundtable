@@ -135,13 +135,12 @@ function UseTemplateModal({ template, onClose }: { template: Template; onClose: 
     }
     setLoading(true)
     try {
-      const res = await apiFetch('/api/v1/tasks', {
+      const data = await apiFetch('/api/v1/tasks', {
         method: 'POST',
         body: JSON.stringify({ goal: goal.trim(), templateId: template.id }),
       })
-      const data = await res.json()
       if (data.success) {
-        router.push(`/roundtable/${data.data.task.id}`)
+        router.push(`/roundtable/${(data.data as any).task.id}`)
       } else {
         setError(data.error?.message || 'Failed to create task')
       }
@@ -251,13 +250,12 @@ export default function TemplatesPage() {
       if (activeCategory !== 'all') params.set('category', activeCategory)
       if (search) params.set('search', search)
 
-      const [catRes, tplRes] = await Promise.all([
+      const [catData, tplData] = await Promise.all([
         apiFetch('/api/v1/templates/categories'),
         apiFetch(`/api/v1/templates?${params}`),
       ])
-      const [catData, tplData] = await Promise.all([catRes.json(), tplRes.json()])
-      if (catData.success) setCategories(catData.data)
-      if (tplData.success) setTemplates(tplData.data)
+      if (catData.success) setCategories(catData.data as any)
+      if (tplData.success) setTemplates(tplData.data as any)
     } finally {
       setLoading(false)
     }

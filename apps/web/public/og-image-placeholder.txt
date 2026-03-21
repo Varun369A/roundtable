@@ -1,0 +1,6 @@
+OG Image required: 1200x630px
+Design: Dark background (#0f0f1a), "Sabha" in large white text, "One Platform. Every AI." subtitle,
+        AI model logos arranged in a roundtable shape, indigo/purple gradient accents.
+Tool: Use Figma, Canva, or https://og-image.vercel.app to generate.
+Save as: og-image.png (same directory as this file)
+Also needed: og-pricing.png (same design but with pricing table visual)

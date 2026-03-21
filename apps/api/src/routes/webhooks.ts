@@ -1,21 +1,33 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { prisma } from '@sabha/db'
 import { verifyWebhookSignature } from '../lib/razorpay'
+import { sendPaymentFailedEmail } from '../lib/email'
+import { createNotification } from '../lib/notifications'
 import type { PlanId, UserTier } from '@sabha/types'
 
+async function ensureIdempotent(provider: string, eventId: string, eventType: string, payload: unknown): Promise<boolean> {
+  try {
+    await (prisma as any).webhookEvent.create({
+      data: { provider, eventId, eventType, payload: payload as any }
+    })
+    return true  // first time processing
+  } catch (e: any) {
+    if (e.code === 'P2002') return false  // already processed (unique constraint)
+    throw e
+  }
+}
+
 const PLAN_TO_TIER: Record<string, UserTier> = {
-  starter:    'STARTER',
-  pro:        'PRO',
-  power:      'POWER',
+  builder:    'BUILDER',
+  studio:     'STUDIO',
   enterprise: 'ENTERPRISE',
 }
 
 // Map Razorpay plan IDs back to our plan keys
 function getPlanFromRazorpayPlanId(razorpayPlanId: string): PlanId | null {
   const mapping: Record<string, PlanId> = {
-    [process.env.RAZORPAY_PLAN_STARTER    || '']: 'starter',
-    [process.env.RAZORPAY_PLAN_PRO        || '']: 'pro',
-    [process.env.RAZORPAY_PLAN_POWER      || '']: 'power',
+    [process.env.RAZORPAY_PLAN_BUILDER    || '']: 'builder',
+    [process.env.RAZORPAY_PLAN_STUDIO     || '']: 'studio',
     [process.env.RAZORPAY_PLAN_ENTERPRISE || '']: 'enterprise',
   }
   return mapping[razorpayPlanId] || null
@@ -27,7 +39,7 @@ export async function webhookRoutes(app: FastifyInstance) {
   app.post(
     '/razorpay',
     {
-      config: { rawBody: true },
+      config: { rawBody: true } as Record<string, unknown>,
     },
     async (request: FastifyRequest, reply) => {
       const signature = request.headers['x-razorpay-signature'] as string
@@ -72,6 +84,18 @@ export async function webhookRoutes(app: FastifyInstance) {
       }
 
       app.log.info({ webhookEvent: event.event }, '[Webhook] Received Razorpay event')
+
+      // Idempotency: use subscription or payment ID as the event's unique identifier
+      const entityId =
+        (event.payload.subscription?.entity as any)?.id ||
+        (event.payload.payment?.entity as any)?.id ||
+        rawBody.substring(0, 64)
+
+      const isNew = await ensureIdempotent('razorpay', `${event.event}:${entityId}`, event.event, event.payload)
+      if (!isNew) {
+        app.log.info({ webhookEvent: event.event }, '[Webhook] Duplicate event — skipping')
+        return reply.status(200).send({ received: true })
+      }
 
       try {
         await handleWebhookEvent(event)
@@ -205,6 +229,39 @@ async function handleWebhookEvent(event: {
             },
           })
         }
+      }
+      break
+    }
+
+    case 'subscription.charged.failed': {
+      if (!sub) break
+      const subId = (sub as any).id as string
+      if (!subId) break
+
+      // Find the subscription record by Razorpay subscription ID
+      const subscription = await prisma.subscription.findFirst({
+        where: { razorpaySubscriptionId: subId },
+      })
+      if (!subscription) break
+
+      // Send dunning email and create in-app notification
+      const dunningUser = await prisma.user.findUnique({
+        where: { id: subscription.userId },
+        select: { id: true, email: true, name: true },
+      })
+
+      if (dunningUser) {
+        // Fire dunning email non-blocking — payment failure is already bad UX, don't let email errors cascade
+        sendPaymentFailedEmail(dunningUser.email, dunningUser.name, subscription.planId).catch(() => {})
+
+        await createNotification({
+          userId: dunningUser.id,
+          type: 'system_alert',
+          title: 'Payment failed',
+          body: 'Your subscription payment failed. Please update your payment method to continue using Sabha.',
+          link: '/settings/billing',
+          metadata: { razorpaySubId: subId, planId: subscription.planId },
+        }).catch(() => {})
       }
       break
     }

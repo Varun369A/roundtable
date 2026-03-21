@@ -135,11 +135,15 @@ export function PreviewPane({ updates, templateCategory, isGenerating }: Preview
         </div>
       )}
 
-      {/* Preview iframe — sandboxed, no scripts */}
+      {/* Preview iframe — fully sandboxed.
+          SECURITY: allow-same-origin is intentionally absent.
+          Granting it would let AI-generated HTML read document.cookie /
+          localStorage and make credentialed same-origin requests.
+          Empty sandbox = isolated origin, no scripts, no storage access. */}
       <div className="flex-1 overflow-hidden">
         <iframe
           srcDoc={srcDoc}
-          sandbox="allow-same-origin"
+          sandbox=""
           className="w-full h-full border-0"
           title="Live Preview"
         />

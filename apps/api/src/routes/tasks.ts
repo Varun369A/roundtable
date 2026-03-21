@@ -7,6 +7,13 @@ import { metrics } from '../lib/metrics'
 import { sanitizeText } from '../middleware/request-validator'
 import { firewall } from '../lib/ai-firewall'
 
+function truncateTitle(text: string, maxLen = 80): string {
+  if (text.length <= maxLen) return text
+  const truncated = text.substring(0, maxLen)
+  const lastSpace = truncated.lastIndexOf(' ')
+  return (lastSpace > maxLen * 0.6 ? truncated.substring(0, lastSpace) : truncated) + '...'
+}
+
 const createTaskSchema = z.object({
   goal: z.string().min(10).max(4000),
   templateId: z.string().optional(),
@@ -46,8 +53,8 @@ export async function taskRoutes(app: FastifyInstance) {
     }
     const sanitizedGoal = fwResult.sanitized  // PII redacted but task proceeds
 
-    // Generate a short title from the goal (first 60 chars, clean)
-    const title = sanitizedGoal.slice(0, 60).trim() + (sanitizedGoal.length > 60 ? '...' : '')
+    // Generate a short title from the goal — truncate at word boundary
+    const title = truncateTitle(sanitizedGoal, 80)
 
     const { templateId, workspaceId, visibility } = body.data
 

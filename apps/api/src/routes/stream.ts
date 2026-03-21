@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '@sabha/db'
 import { isAccessTokenBlacklisted } from '../lib/tokens'
 import { metrics } from '../lib/metrics'
-import Redis from 'ioredis'
+import { redis } from '../lib/redis'
 
 /**
  * GET /api/v1/stream/task/:id
@@ -162,10 +162,11 @@ export async function streamRoutes(app: FastifyInstance) {
       }
 
       // ── Subscribe to Redis pub/sub for live updates ────────────────────────────
-      // Each SSE connection gets its own Redis subscriber instance —
-      // this is required by the Redis pub/sub protocol (a subscribed client
-      // can only issue subscribe/unsubscribe commands, not regular commands).
-      const subscriber = new Redis(process.env.REDIS_URL || 'redis://localhost:6379')
+      // Each SSE connection gets its own dedicated subscriber — the pub/sub
+      // protocol requires a separate client (subscribed clients can only
+      // issue subscribe/unsubscribe, not regular commands).
+      // duplicate() inherits the same connection config as the shared client.
+      const subscriber = redis.duplicate()
       const channel    = `sabha:task:${taskId}`
 
       await subscriber.subscribe(channel)

@@ -26,6 +26,7 @@ export async function initializeContext(params: {
 
   const context: ContextObject = {
     taskId: params.taskId,
+    userId: params.userId,
     originalGoal: params.originalGoal,
     userProfile: {
       language: params.language || 'en',
@@ -42,7 +43,7 @@ export async function initializeContext(params: {
   // Persist to DB
   await prisma.task.update({
     where: { id: params.taskId },
-    data: { contextObject: context as unknown as Record<string, unknown> },
+    data: { contextObject: context as any },
   })
 
   return context
@@ -93,8 +94,9 @@ export async function appendSubtaskResult(params: {
   const context = await getContext(params.taskId)
   if (!context) throw new Error(`Context not found for task ${params.taskId}`)
 
-  // Create a concise summary (first 500 chars of output)
-  const summary = params.outputContent.slice(0, 500) + (params.outputContent.length > 500 ? '...' : '')
+  // Summarise output — 1,500 chars keeps enough context for dependent AIs to write
+  // properly informed copy; indirect context is naturally compressed by the model's window
+  const summary = params.outputContent.slice(0, 1500) + (params.outputContent.length > 1500 ? '...' : '')
 
   const completedEntry: CompletedSubtaskSummary = {
     id: params.subtaskId,
@@ -115,7 +117,7 @@ export async function appendSubtaskResult(params: {
   // Persist to DB
   await prisma.task.update({
     where: { id: params.taskId },
-    data: { contextObject: updatedContext as unknown as Record<string, unknown> },
+    data: { contextObject: updatedContext as any },
   })
 
   return updatedContext

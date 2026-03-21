@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 
 interface ClarificationQuestion {
@@ -14,9 +14,12 @@ interface ClarificationModalProps {
   taskId: string
   questions: ClarificationQuestion[]
   onComplete: () => void
+  triggerRef?: React.RefObject<HTMLElement>
 }
 
-export function ClarificationModal({ taskId, questions, onComplete }: ClarificationModalProps) {
+const MODAL_TITLE_ID = 'clarification-modal-title'
+
+export function ClarificationModal({ taskId, questions, onComplete, triggerRef }: ClarificationModalProps) {
   const sorted = [...questions].sort((a, b) => a.orderIndex - b.orderIndex)
 
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -29,19 +32,46 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
   const [skipping, setSkipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const modalRef    = useRef<HTMLDivElement>(null)
+  const skipBtnRef  = useRef<HTMLButtonElement>(null)
 
   const current = sorted[currentIndex]
   const total = sorted.length
   const isLast = currentIndex === total - 1
   const currentAnswer = answers[current?.id] || ''
 
-  // Auto-focus textarea on step change
+  // Auto-focus textarea when step changes
   useEffect(() => {
     const timer = setTimeout(() => {
       textareaRef.current?.focus()
     }, 50)
     return () => clearTimeout(timer)
   }, [currentIndex])
+
+  // Focus trap: keep Tab/Shift+Tab inside the modal
+  const handleKeyDownTrap = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab') return
+    const modal = modalRef.current
+    if (!modal) return
+
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+    const first = focusable[0]
+    const last  = focusable[focusable.length - 1]
+
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault()
+        last?.focus()
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault()
+        first?.focus()
+      }
+    }
+  }, [])
 
   function handleAnswerChange(value: string) {
     if (!current) return
@@ -52,6 +82,10 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
     if (currentIndex < total - 1) {
       setCurrentIndex((i) => i + 1)
     }
+  }
+
+  function returnFocusToTrigger() {
+    triggerRef?.current?.focus()
   }
 
   async function handleSubmit() {
@@ -70,6 +104,7 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
         setError(res.error?.message || 'Failed to submit answers. Please try again.')
         return
       }
+      returnFocusToTrigger()
       onComplete()
     } catch {
       setError('Network error — please try again.')
@@ -89,6 +124,7 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
         setError(res.error?.message || 'Failed to skip. Please try again.')
         return
       }
+      returnFocusToTrigger()
       onComplete()
     } catch {
       setError('Network error — please try again.')
@@ -111,18 +147,31 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
   if (!current) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onKeyDown={handleKeyDownTrap}
+    >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        aria-hidden="true"
+        onClick={() => { returnFocusToTrigger(); onComplete() }}
+      />
 
       {/* Card */}
-      <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={MODAL_TITLE_ID}
+        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
+      >
 
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-zinc-800">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-white">Before we begin…</h2>
+              <h2 id={MODAL_TITLE_ID} className="text-lg font-semibold text-white">Before we begin…</h2>
               <p className="text-sm text-zinc-400 mt-1">
                 Sabha needs a few details to deliver better results
               </p>
@@ -171,8 +220,10 @@ export function ClarificationModal({ taskId, questions, onComplete }: Clarificat
         <div className="px-6 pb-6 flex items-center justify-between gap-3">
           {/* Skip all */}
           <button
+            ref={skipBtnRef}
             onClick={handleSkipAll}
             disabled={submitting || skipping}
+            aria-label="Skip all questions and start the roundtable immediately"
             className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {skipping ? 'Skipping…' : 'Skip all & start →'}

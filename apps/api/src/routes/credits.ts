@@ -10,6 +10,7 @@ import {
   applyReferralCode,
   InsufficientCreditsError,
 } from '../lib/credit-manager'
+import { createUpiOrder, verifyRazorpaySignature, creditUpiPayment } from '../lib/upi-credits'
 
 // ─── Signup bonus ─────────────────────────────────────────────────────────────
 
@@ -306,6 +307,7 @@ export async function creditsRoutes(app: FastifyInstance) {
         payload?: {
           payment?: {
             entity?: {
+              id?: string
               order_id?: string
               notes?: Record<string, string>
             }
@@ -320,6 +322,7 @@ export async function creditsRoutes(app: FastifyInstance) {
 
       const notes = payload.payload?.payment?.entity?.notes ?? {}
       const { packId, userId } = notes
+      const razorpayPaymentId = payload.payload?.payment?.entity?.id
 
       if (!packId || !userId) {
         app.log.error({ payload }, 'Razorpay webhook: missing packId or userId in notes')
@@ -339,21 +342,111 @@ export async function creditsRoutes(app: FastifyInstance) {
 
       const totalCredits = pack.credits + (pack.bonusCredits ?? 0)
 
+      // Idempotency guard — Razorpay retries payment.captured on 5xx; without this
+      // each retry would credit the user again
+      if (razorpayPaymentId) {
+        const alreadyProcessed = await prisma.creditTransaction.findFirst({
+          where: { userId, type: 'PURCHASE', description: { contains: razorpayPaymentId } },
+          select: { id: true },
+        })
+        if (alreadyProcessed) {
+          app.log.info({ userId, packId, razorpayPaymentId }, 'Duplicate Razorpay webhook — skipping')
+          return reply.send({ success: true })
+        }
+      }
+
       try {
         await creditWallet(
           userId,
           totalCredits,
           'PURCHASE',
-          `Purchased ${pack.name} — ${pack.credits} credits${pack.bonusCredits > 0 ? ` + ${pack.bonusCredits} bonus` : ''}`
+          `Purchased ${pack.name} — ${pack.credits} credits${pack.bonusCredits > 0 ? ` + ${pack.bonusCredits} bonus` : ''} [${razorpayPaymentId ?? 'unknown'}]`
         )
         app.log.info({ userId, packId, totalCredits }, 'Credits purchased via Razorpay webhook')
       } catch (err) {
         app.log.error({ err, userId, packId }, 'Failed to credit wallet after Razorpay payment')
-        // Return 500 so Razorpay retries — crediting on retry is safe (idempotency is on Razorpay's side via payment ID, not ours here)
         return reply.status(500).send({ success: false })
       }
 
       return reply.send({ success: true })
     }
   )
+
+  // ─── POST /credits/upi/order ──────────────────────────────────────────────
+  // Create a Razorpay order for a UPI credit pack purchase.
+  // Returns { orderId, amountInrPaise, currency, razorpayKey } for the checkout JS.
+  app.post(
+    '/credits/upi/order',
+    {
+      preHandler: [requireAuth],
+      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = z.object({ creditPackId: z.string().min(1) }).safeParse(request.body)
+      if (!body.success) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+        })
+      }
+
+      const userId = request.user!.id
+      try {
+        const order = await createUpiOrder(userId, body.data.creditPackId)
+        return reply.status(201).send({ success: true, data: order })
+      } catch (err) {
+        if ((err as Error).message === 'CREDIT_PACK_NOT_FOUND') {
+          return reply.status(404).send({
+            success: false,
+            error: { code: 'NOT_FOUND', message: 'Credit pack not found or inactive' },
+          })
+        }
+        throw err
+      }
+    }
+  )
+
+  // ─── POST /credits/upi/verify ─────────────────────────────────────────────
+  // Client calls this after Razorpay checkout succeeds with payment details.
+  // We verify the signature and deposit credits immediately (don't wait for webhook).
+  app.post(
+    '/credits/upi/verify',
+    {
+      preHandler: [requireAuth],
+      config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const body = z.object({
+        razorpayOrderId:   z.string(),
+        razorpayPaymentId: z.string(),
+        razorpaySignature: z.string(),
+      }).safeParse(request.body)
+
+      if (!body.success) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+        })
+      }
+
+      const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = body.data
+
+      // Verify signature before touching the DB
+      if (!verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature)) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_SIGNATURE', message: 'Payment verification failed' },
+        })
+      }
+
+      await creditUpiPayment(razorpayOrderId, razorpayPaymentId)
+
+      const wallet = await getOrCreateWallet(request.user!.id)
+      return reply.send({
+        success: true,
+        data: { message: 'Credits deposited', balance: wallet.balance },
+      })
+    }
+  )
+
 }
