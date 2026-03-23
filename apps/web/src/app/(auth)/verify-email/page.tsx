@@ -111,7 +111,7 @@ function VerifyEmailContent() {
           </div>
           <h1 className="text-2xl font-semibold text-white mb-3">Email verified!</h1>
           <p className="text-zinc-400 text-sm mb-8">
-            Welcome to Sabha. Your account is fully activated and ready to use.
+            Welcome to Arivarangam. Your account is fully activated and ready to use.
           </p>
           <Link
             href="/dashboard"

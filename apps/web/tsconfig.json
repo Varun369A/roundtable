@@ -21,7 +21,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@sabha/types": [
+      "@arivarangam/types": [
         "../../packages/types/src"
       ]
     },

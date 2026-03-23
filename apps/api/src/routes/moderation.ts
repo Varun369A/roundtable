@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { requireTermsAccepted } from '../middleware/terms'
 import { checkAccountStatus } from '../middleware/account-status'
@@ -56,7 +56,7 @@ export async function moderationRoutes(app: FastifyInstance): Promise<void> {
       if (!validActions.includes(adminAction)) return reply.status(400).send({ success: false, message: 'Invalid adminAction' })
       await db.adminAction.create({ data: { adminId, targetType: report.contentType, targetId: report.reportedId, action: adminAction, reason: reason ? String(reason).slice(0, 500) : `Report #${id}` } })
       if (adminAction === 'WARN_USER') {
-        await (db.notification as any).create({ data: { userId: report.reportedId, type: 'ACCOUNT_WARNING', title: 'Account Warning', body: 'Your account has received a warning for violating Sabha Terms of Service.', link: '/terms' } })
+        await (db.notification as any).create({ data: { userId: report.reportedId, type: 'ACCOUNT_WARNING', title: 'Account Warning', body: 'Your account has received a warning for violating Arivarangam Terms of Service.', link: '/terms' } })
       }
       if (['SUSPEND_USER', 'BAN_USER'].includes(adminAction)) {
         await db.user.update({ where: { id: report.reportedId }, data: { isSuspended: true, suspendedAt: new Date(), suspendedReason: `${adminAction} following report #${id}` } })

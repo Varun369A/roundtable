@@ -1,4 +1,4 @@
-import type { ParsedIntent, TaskCategory, AIModel } from '@sabha/types'
+import type { ParsedIntent, TaskCategory, AIModel } from '@arivarangam/types'
 
 export interface SubtaskDefinition {
   title: string

@@ -12,7 +12,7 @@
 
 import crypto from 'node:crypto'
 import { FastifyInstance } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { exchangeCodeForToken, getGitHubUser } from '../lib/github'
 

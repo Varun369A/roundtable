@@ -41,7 +41,7 @@ const envSchema = z.object({
 
   // ─── Email (Resend) ──────────────────────────────────────────────────────────
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default('Sabha <no-reply@sabhaai.com>'),
+  EMAIL_FROM: z.string().default('Arivarangam <no-reply@arivarangam.com>'),
 
   // ─── Storage ─────────────────────────────────────────────────────────────────
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),
@@ -115,7 +115,7 @@ const envSchema = z.object({
 
   // ─── Monitoring ──────────────────────────────────────────────────────────────
   SENTRY_DSN: z.string().optional(),
-  OTEL_SERVICE_NAME: z.string().default('sabha-api'),
+  OTEL_SERVICE_NAME: z.string().default('arivarangam-api'),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
   OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
   GRAFANA_ADMIN_PASSWORD: z.string().optional(),

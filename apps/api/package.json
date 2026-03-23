@@ -1,5 +1,5 @@
 {
-  "name": "@sabha/api",
+  "name": "@arivarangam/api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -30,9 +30,9 @@
     "@opentelemetry/sdk-trace-node": "^1.25.0",
     "@opentelemetry/semantic-conventions": "^1.25.0",
     "@prisma/instrumentation": "^5.0.0",
-    "@sabha/config": "*",
-    "@sabha/db": "*",
-    "@sabha/types": "*",
+    "@arivarangam/config": "*",
+    "@arivarangam/db": "*",
+    "@arivarangam/types": "*",
     "@sentry/node": "^8.0.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.7.0",

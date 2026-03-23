@@ -74,7 +74,7 @@ export default function FeedbackWidget() {
             <div className="p-8 text-center">
               <div className="text-4xl mb-3">🙏</div>
               <p className="text-white font-medium">Thanks for your feedback!</p>
-              <p className="text-zinc-500 text-sm mt-1">It helps us improve Sabha.</p>
+              <p className="text-zinc-500 text-sm mt-1">It helps us improve Arivarangam.</p>
             </div>
           ) : (
             <div className="p-4 space-y-3">

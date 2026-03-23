@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { getCurrentUsage } from '../middleware/plan-limits'
 import {
@@ -11,8 +11,8 @@ import {
   verifyPaymentSignature,
   RAZORPAY_PLAN_IDS,
 } from '../lib/razorpay'
-import { PLANS } from '@sabha/types'
-import type { UserTier, PlanId } from '@sabha/types'
+import { PLANS } from '@arivarangam/types'
+import type { UserTier, PlanId } from '@arivarangam/types'
 
 const TIER_TO_PLAN: Record<UserTier, PlanId> = {
   FREE:       'free',

@@ -10,7 +10,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <span className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </span>
           <div className="flex items-center gap-4">
             <Link href="/pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">

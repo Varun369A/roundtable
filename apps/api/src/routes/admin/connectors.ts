@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
 import { connectorRegistry } from '../../connectors/registry'

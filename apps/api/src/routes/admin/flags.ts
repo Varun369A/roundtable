@@ -9,7 +9,7 @@
 
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { invalidateFlag } from '../../lib/feature-flags'
 
 const flagSchema = z.object({

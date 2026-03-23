@@ -16,7 +16,7 @@ export async function emitToConversation(
 ): Promise<void> {
   try {
     await redis.publish(
-      `sabha:ws:${conversationId}`,
+      `arivarangam:ws:${conversationId}`,
       JSON.stringify(event)
     )
   } catch (err) {

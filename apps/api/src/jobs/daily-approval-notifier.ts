@@ -1,4 +1,4 @@
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 
 function startOfDay(date: Date): Date {
   const d = new Date(date)
@@ -36,7 +36,7 @@ export async function runDailyApprovalNotifier(): Promise<void> {
         userId: admin.id,
         type: 'SYSTEM' as any,
         title: `${todayContent.length} posts ready for today`,
-        body: `Sabha's daily content is ready for review. Tap to approve.`,
+        body: `Arivarangam's daily content is ready for review. Tap to approve.`,
         link: '/admin/marketing/today'
       }
     })

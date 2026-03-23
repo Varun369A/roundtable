@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { validateCronExpression, getNextRunTime } from '../lib/cron-expression'
 import { enqueueTask } from '../jobs/queue'

@@ -11,7 +11,7 @@
 
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from '../../lib/redis'
 import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
@@ -82,7 +82,7 @@ export async function sandboxRoutes(app: FastifyInstance): Promise<void> {
       const focus = body?.focus as string | undefined
       const ctx   = await gatherPlatformContext()
 
-      const analysisPrompt = `You are a platform reliability engineer analyzing Sabha's AI platform.
+      const analysisPrompt = `You are a platform reliability engineer analyzing Arivarangam's AI platform.
 ${focus ? `\nFocus area: ${focus}\n` : ''}
 Here is the current platform context:
 
@@ -448,7 +448,7 @@ Respond with valid JSON in this exact format:
         recentBugReports:     recentBugs.length,
       }
 
-      const analysisPrompt = `You are Sabha's reliability assistant. Analyze these platform health signals and list the top issues.
+      const analysisPrompt = `You are Arivarangam's reliability assistant. Analyze these platform health signals and list the top issues.
 
 Platform signals:
 ${JSON.stringify(contextSummary, null, 2)}

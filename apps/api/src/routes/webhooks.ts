@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { verifyWebhookSignature } from '../lib/razorpay'
 import { sendPaymentFailedEmail } from '../lib/email'
 import { createNotification } from '../lib/notifications'
-import type { PlanId, UserTier } from '@sabha/types'
+import type { PlanId, UserTier } from '@arivarangam/types'
 
 async function ensureIdempotent(provider: string, eventId: string, eventType: string, payload: unknown): Promise<boolean> {
   try {
@@ -267,7 +267,7 @@ async function handleWebhookEvent(event: {
           userId: dunningUser.id,
           type: 'system_alert',
           title: 'Payment failed',
-          body: 'Your subscription payment failed. Please update your payment method to continue using Sabha.',
+          body: 'Your subscription payment failed. Please update your payment method to continue using Arivarangam.',
           link: '/settings/billing',
           metadata: { razorpaySubId: subId, planId: subscription.planId },
         }).catch(() => {})

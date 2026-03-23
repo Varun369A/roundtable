@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { requireTermsAccepted } from '../middleware/terms'
 import { checkAccountStatus } from '../middleware/account-status'
@@ -158,7 +158,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
 
     const user = await db.user.findUnique({ where: { id: passport.userId }, select: { name: true } })
     const name = passport.displayName || user?.name || username
-    const headline = (passport.title || passport.headline || 'Sabha User').slice(0, 60)
+    const headline = (passport.title || passport.headline || 'Arivarangam User').slice(0, 60)
     const taskCount = await db.task.count({ where: { userId: passport.userId, status: 'COMPLETED' } })
     const reputationScore = passport.reputationScore ?? 0
     const topSkills = passport.skills.slice(0, 3).map((s: any) => s.skillName).join(' · ')
@@ -182,8 +182,8 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect x="0" y="0" width="4" height="630" fill="#6366f1"/>
 
-  <!-- Sabha wordmark -->
-  <text x="1140" y="54" text-anchor="end" font-size="22" font-weight="700" fill="#6366f1" font-family="Inter,Arial,sans-serif">Sabha</text>
+  <!-- Arivarangam wordmark -->
+  <text x="1140" y="54" text-anchor="end" font-size="22" font-weight="700" fill="#6366f1" font-family="Inter,Arial,sans-serif">Arivarangam</text>
 
   <!-- Avatar -->
   ${avatar}
@@ -212,7 +212,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   <text x="60" y="500" font-size="36" font-family="Inter,Arial,sans-serif">${topAchievements}</text>` : ''}
 
   <!-- URL watermark -->
-  <text x="60" y="590" font-size="20" fill="#4b5563" font-family="Inter,Arial,sans-serif">sabhaai.com/u/${username}</text>
+  <text x="60" y="590" font-size="20" fill="#4b5563" font-family="Inter,Arial,sans-serif">arivarangam.com/u/${username}</text>
   <text x="1140" y="590" text-anchor="end" font-size="18" fill="#4b5563" font-family="Inter,Arial,sans-serif">Digital Passport</text>
 </svg>`
 

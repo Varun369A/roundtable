@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 const MODEL_MAP: Partial<Record<AIModel, string>> = {
   'gpt-4o':      'gpt-4o',
@@ -41,7 +41,7 @@ export class OpenAIConnector extends BaseConnector {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
+            content: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
           },
           { role: 'user', content: input.prompt },
         ],

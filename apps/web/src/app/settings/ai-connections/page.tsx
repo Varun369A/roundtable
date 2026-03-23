@@ -82,7 +82,7 @@ export default function AIConnectionsPage() {
         <h1 className="text-2xl font-bold text-white mb-2">AI Connections</h1>
         <p className="text-zinc-400 text-sm leading-relaxed">
           Connect your own AI provider accounts. When you use your own API key, those AI tasks run on
-          <strong className="text-zinc-200"> your quota — free of Sabha credits</strong>. Sabha's defaults are
+          <strong className="text-zinc-200"> your quota — free of Arivarangam credits</strong>. Arivarangam's defaults are
           used for any provider you haven't connected.
         </p>
       </div>
@@ -124,14 +124,14 @@ export default function AIConnectionsPage() {
         </div>
       )}
 
-      {/* Sabha defaults info */}
+      {/* Arivarangam defaults info */}
       <div className="mb-6 p-4 rounded-xl border border-zinc-800 bg-zinc-900/30">
         <div className="flex items-start gap-3">
           <span className="text-lg mt-0.5">⚡</span>
           <div>
-            <p className="text-sm font-medium text-zinc-300">Sabha Defaults (always available)</p>
+            <p className="text-sm font-medium text-zinc-300">Arivarangam Defaults (always available)</p>
             <p className="text-xs text-zinc-500 mt-1">
-              All AI models work out of the box using Sabha's API keys — deducted from your plan credits.
+              All AI models work out of the box using Arivarangam's API keys — deducted from your plan credits.
               Connect your own keys above to use them for free on your quota.
             </p>
           </div>

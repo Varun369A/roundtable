@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <h1 className="mt-4 text-xl font-semibold text-white">Forgot your password?</h1>
           <p className="mt-2 text-zinc-400 text-sm">

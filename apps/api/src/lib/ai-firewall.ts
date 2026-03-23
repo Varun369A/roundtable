@@ -9,7 +9,7 @@
  * Logs all threats to DB (FirewallLog model) for audit.
  */
 
-import { PrismaClient } from '@sabha/db'
+import { PrismaClient } from '@arivarangam/db'
 
 const prisma = new PrismaClient()
 

@@ -10,11 +10,11 @@
  * NOTE: This file requires @fastify/multipart to be registered on the Fastify
  * instance (done in server.ts) before these routes are used.  If multipart is
  * not present in package.json, add it:
- *   pnpm --filter @sabha/api add @fastify/multipart
+ *   pnpm --filter @arivarangam/api add @fastify/multipart
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import {
   transcribeAudio,

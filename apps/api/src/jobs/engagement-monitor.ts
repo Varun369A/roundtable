@@ -1,4 +1,4 @@
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { getConnector } from '../lib/social-connectors'
 import { Anthropic } from '@anthropic-ai/sdk'
 
@@ -14,17 +14,17 @@ function subDays(date: Date, days: number): Date {
 
 async function generateReply(content: string, authorHandle: string, originalPostBody: string | null): Promise<string> {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  const prompt = `You are managing social media for Sabha, an AI orchestration platform.
-Someone has commented or mentioned Sabha.
+  const prompt = `You are managing social media for Arivarangam, an AI orchestration platform.
+Someone has commented or mentioned Arivarangam.
 
 Original post context: ${originalPostBody ?? 'Direct mention'}
 Their message: ${content}
 Their handle: ${authorHandle}
 
 Write a genuine, helpful reply under 100 words.
-If they ask about Sabha: answer clearly and invite them to try free.
-If they praise Sabha: thank them warmly and personally.
-If they criticise Sabha: acknowledge honestly and offer to help.
+If they ask about Arivarangam: answer clearly and invite them to try free.
+If they praise Arivarangam: thank them warmly and personally.
+If they criticise Arivarangam: acknowledge honestly and offer to help.
 If they ask a technical question: answer it helpfully.
 Never be promotional. Always be human.`
 

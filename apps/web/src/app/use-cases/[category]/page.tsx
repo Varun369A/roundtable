@@ -32,38 +32,38 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Finance',
     subtitle: 'AI for CAs, CFOs, and Finance Teams',
     description:
-      'Sabha\'s Finance Pack brings multi-AI intelligence to Indian financial workflows — from GST filing to audit preparation, RBI compliance, and investment analysis. Pre-tuned for Indian tax law and regulatory frameworks.',
+      'Arivarangam\'s Finance Pack brings multi-AI intelligence to Indian financial workflows — from GST filing to audit preparation, RBI compliance, and investment analysis. Pre-tuned for Indian tax law and regulatory frameworks.',
     icon: '📊',
     useCases: [
       {
         title: 'GST Analysis & Filing Prep',
         description:
-          'Upload invoices and reconciliation sheets. Sabha identifies discrepancies, flags input tax credit mismatches, and generates a pre-filing summary aligned with GSTR-1 and GSTR-3B formats.',
+          'Upload invoices and reconciliation sheets. Arivarangam identifies discrepancies, flags input tax credit mismatches, and generates a pre-filing summary aligned with GSTR-1 and GSTR-3B formats.',
       },
       {
         title: 'CA Audit Checklist Generation',
         description:
-          'Given a client\'s industry, turnover, and audit scope, Sabha generates a comprehensive statutory audit checklist covering Companies Act 2013, SA standards, and sector-specific regulations.',
+          'Given a client\'s industry, turnover, and audit scope, Arivarangam generates a comprehensive statutory audit checklist covering Companies Act 2013, SA standards, and sector-specific regulations.',
       },
       {
         title: 'Financial Statement Summarisation',
         description:
-          'Paste a P&L or balance sheet and Sabha produces a plain-English executive summary highlighting key ratios, anomalies, and year-on-year trends — ready for board presentations.',
+          'Paste a P&L or balance sheet and Arivarangam produces a plain-English executive summary highlighting key ratios, anomalies, and year-on-year trends — ready for board presentations.',
       },
       {
         title: 'RBI & SEBI Compliance Drafting',
         description:
-          'Draft regulatory correspondence, board resolutions, and disclosures aligned with RBI circulars and SEBI listing obligations using Sabha\'s Finance-trained prompts.',
+          'Draft regulatory correspondence, board resolutions, and disclosures aligned with RBI circulars and SEBI listing obligations using Arivarangam\'s Finance-trained prompts.',
       },
       {
         title: 'Investment Research Reports',
         description:
-          'Sabha combines Perplexity\'s live web search with Claude\'s analytical reasoning to produce structured equity research notes, including risk factors and valuation commentary.',
+          'Arivarangam combines Perplexity\'s live web search with Claude\'s analytical reasoning to produce structured equity research notes, including risk factors and valuation commentary.',
       },
       {
         title: 'Budget vs Actuals Variance Analysis',
         description:
-          'Upload your budget and actuals spreadsheet. Sabha explains each significant variance, suggests root causes, and drafts a management commentary suitable for the board pack.',
+          'Upload your budget and actuals spreadsheet. Arivarangam explains each significant variance, suggests root causes, and drafts a management commentary suitable for the board pack.',
       },
     ],
   },
@@ -71,18 +71,18 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Legal',
     subtitle: 'AI for Lawyers, In-House Counsel, and Law Firms',
     description:
-      'Sabha\'s Legal Pack assists Indian legal professionals with contract drafting, case research, litigation support, and compliance work — trained on Indian statutes, case law, and court procedures.',
+      'Arivarangam\'s Legal Pack assists Indian legal professionals with contract drafting, case research, litigation support, and compliance work — trained on Indian statutes, case law, and court procedures.',
     icon: '⚖️',
     useCases: [
       {
         title: 'Contract Drafting & Review',
         description:
-          'Draft NDAs, service agreements, employment contracts, and vendor agreements using Indian law templates. Sabha flags unfair clauses, suggests balanced alternatives, and explains risks in plain language.',
+          'Draft NDAs, service agreements, employment contracts, and vendor agreements using Indian law templates. Arivarangam flags unfair clauses, suggests balanced alternatives, and explains risks in plain language.',
       },
       {
         title: 'Indian Case Law Research',
         description:
-          'Describe your legal issue and Sabha researches relevant Supreme Court, High Court, and tribunal judgments via Perplexity, then synthesises the key holdings and applicable precedents.',
+          'Describe your legal issue and Arivarangam researches relevant Supreme Court, High Court, and tribunal judgments via Perplexity, then synthesises the key holdings and applicable precedents.',
       },
       {
         title: 'Legal Notice Drafting',
@@ -97,7 +97,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
       {
         title: 'Due Diligence Summaries',
         description:
-          'Upload a bundle of contracts or corporate documents and Sabha produces a structured due diligence summary identifying key risks, unusual clauses, and missing standard protections.',
+          'Upload a bundle of contracts or corporate documents and Arivarangam produces a structured due diligence summary identifying key risks, unusual clauses, and missing standard protections.',
       },
     ],
   },
@@ -105,18 +105,18 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Healthcare',
     subtitle: 'AI for Doctors, Hospitals, and Health Administrators',
     description:
-      'Sabha\'s Health Pack supports Indian healthcare professionals with clinical documentation, patient communication, medical coding, and NABH compliance — built around Indian healthcare standards.',
+      'Arivarangam\'s Health Pack supports Indian healthcare professionals with clinical documentation, patient communication, medical coding, and NABH compliance — built around Indian healthcare standards.',
     icon: '🏥',
     useCases: [
       {
         title: 'Patient Discharge Summary Drafting',
         description:
-          'Provide clinical notes and Sabha generates a structured discharge summary including diagnosis, treatment summary, medications, follow-up instructions, and ICD-10 codes.',
+          'Provide clinical notes and Arivarangam generates a structured discharge summary including diagnosis, treatment summary, medications, follow-up instructions, and ICD-10 codes.',
       },
       {
         title: 'ICD-10 & SNOMED Coding Assistance',
         description:
-          'Describe symptoms, diagnoses, or procedures and Sabha suggests the most accurate ICD-10 and SNOMED-CT codes with justifications — reducing coding errors and claim rejections.',
+          'Describe symptoms, diagnoses, or procedures and Arivarangam suggests the most accurate ICD-10 and SNOMED-CT codes with justifications — reducing coding errors and claim rejections.',
       },
       {
         title: 'NABH Accreditation Documentation',
@@ -131,7 +131,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
       {
         title: 'Clinical Research Summaries',
         description:
-          'Sabha combines Claude\'s analytical reasoning with Perplexity\'s live PubMed search to produce structured literature reviews and evidence summaries for clinical questions.',
+          'Arivarangam combines Claude\'s analytical reasoning with Perplexity\'s live PubMed search to produce structured literature reviews and evidence summaries for clinical questions.',
       },
       {
         title: 'Medical Insurance Pre-Auth Letters',
@@ -144,13 +144,13 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Education',
     subtitle: 'AI for Teachers, Educators, and EdTech Builders',
     description:
-      'Sabha\'s Education Pack helps Indian educators create CBSE/NCERT-aligned content, personalised assessments, and lesson materials — supporting curriculum from Class 1 to competitive exam preparation.',
+      'Arivarangam\'s Education Pack helps Indian educators create CBSE/NCERT-aligned content, personalised assessments, and lesson materials — supporting curriculum from Class 1 to competitive exam preparation.',
     icon: '📚',
     useCases: [
       {
         title: 'CBSE/NCERT Lesson Plan Generation',
         description:
-          'Specify class, subject, chapter, and duration. Sabha generates a structured lesson plan with learning objectives, activities, formative assessments, and homework aligned to NCERT outcomes.',
+          'Specify class, subject, chapter, and duration. Arivarangam generates a structured lesson plan with learning objectives, activities, formative assessments, and homework aligned to NCERT outcomes.',
       },
       {
         title: 'Question Paper & Assessment Creation',
@@ -160,7 +160,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
       {
         title: 'Personalised Explanation Generation',
         description:
-          'Describe a student\'s learning gap and Sabha generates a personalised explanation using analogies, examples, and visual descriptions calibrated to their grade level and learning style.',
+          'Describe a student\'s learning gap and Arivarangam generates a personalised explanation using analogies, examples, and visual descriptions calibrated to their grade level and learning style.',
       },
       {
         title: 'Competitive Exam Prep Content',
@@ -178,7 +178,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'HR',
     subtitle: 'AI for HR Managers, People Teams, and Recruiters',
     description:
-      'Sabha\'s HR Pack streamlines Indian HR workflows — from hiring and onboarding to appraisals, compliance, and employee communication — with templates aligned to Indian labour law.',
+      'Arivarangam\'s HR Pack streamlines Indian HR workflows — from hiring and onboarding to appraisals, compliance, and employee communication — with templates aligned to Indian labour law.',
     icon: '👥',
     useCases: [
       {
@@ -217,13 +217,13 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Marketing',
     subtitle: 'AI for Marketing Teams, Agencies, and Brand Managers',
     description:
-      'Sabha accelerates Indian marketing workflows — from campaign ideation and copywriting to SEO content, social media, and localisation across Indian languages and regional markets.',
+      'Arivarangam accelerates Indian marketing workflows — from campaign ideation and copywriting to SEO content, social media, and localisation across Indian languages and regional markets.',
     icon: '📣',
     useCases: [
       {
         title: 'Campaign Ideation & Concept Development',
         description:
-          'Run a Sabha Roundtable with your brand brief. Multiple AIs generate independent campaign concepts, critique each other\'s ideas, and Sabha synthesises the strongest unified concept.',
+          'Run a Arivarangam Roundtable with your brand brief. Multiple AIs generate independent campaign concepts, critique each other\'s ideas, and Arivarangam synthesises the strongest unified concept.',
       },
       {
         title: 'Multi-Language Ad Copy',
@@ -243,7 +243,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
       {
         title: 'Competitive Intelligence Reports',
         description:
-          'Sabha uses Perplexity to research competitor positioning, pricing, and recent campaigns, then synthesises a structured competitive landscape report with strategic implications.',
+          'Arivarangam uses Perplexity to research competitor positioning, pricing, and recent campaigns, then synthesises a structured competitive landscape report with strategic implications.',
       },
     ],
   },
@@ -251,18 +251,18 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Research',
     subtitle: 'AI for Researchers, Analysts, and Knowledge Workers',
     description:
-      'Sabha dramatically accelerates research workflows — literature reviews, competitive analysis, policy research, and synthesis — by running multiple AI models in parallel and structuring their outputs.',
+      'Arivarangam dramatically accelerates research workflows — literature reviews, competitive analysis, policy research, and synthesis — by running multiple AI models in parallel and structuring their outputs.',
     icon: '🔬',
     useCases: [
       {
         title: 'Literature Review Acceleration',
         description:
-          'Describe your research question and Sabha searches PubMed, Google Scholar, and web sources via Perplexity, then Claude synthesises the findings into a structured literature review with citations.',
+          'Describe your research question and Arivarangam searches PubMed, Google Scholar, and web sources via Perplexity, then Claude synthesises the findings into a structured literature review with citations.',
       },
       {
         title: 'Competitive & Market Analysis',
         description:
-          'Run a Sabha Roundtable on a market. Each AI researches different angles — market sizing, competitor mapping, consumer trends, regulatory environment — and Sabha synthesises a comprehensive report.',
+          'Run a Arivarangam Roundtable on a market. Each AI researches different angles — market sizing, competitor mapping, consumer trends, regulatory environment — and Arivarangam synthesises a comprehensive report.',
       },
       {
         title: 'Policy & Regulatory Research',
@@ -272,7 +272,7 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
       {
         title: 'Data Interpretation & Statistical Analysis',
         description:
-          'Paste your dataset or statistical output and Sabha explains the findings in plain language, identifies anomalies, suggests further analyses, and drafts a results section.',
+          'Paste your dataset or statistical output and Arivarangam explains the findings in plain language, identifies anomalies, suggests further analyses, and drafts a results section.',
       },
       {
         title: 'Research Proposal Drafting',
@@ -290,38 +290,38 @@ const CATEGORY_DATA: Record<Category, CategoryData> = {
     title: 'Engineering',
     subtitle: 'AI for Software Engineers, Architects, and DevOps Teams',
     description:
-      'Sabha\'s engineering workflows combine Claude\'s code reasoning, GitHub integration, and multi-model review to help Indian engineering teams ship faster, review smarter, and document better.',
+      'Arivarangam\'s engineering workflows combine Claude\'s code reasoning, GitHub integration, and multi-model review to help Indian engineering teams ship faster, review smarter, and document better.',
     icon: '⚙️',
     useCases: [
       {
         title: 'Multi-File Code Generation',
         description:
-          'Describe a feature and Sabha generates the full implementation across multiple files — including tests, types, and API routes — with a clear explanation of every architectural decision.',
+          'Describe a feature and Arivarangam generates the full implementation across multiple files — including tests, types, and API routes — with a clear explanation of every architectural decision.',
       },
       {
         title: 'Code Review & Refactoring',
         description:
-          'Paste a PR diff or file and Sabha runs a multi-model review: Claude identifies logic issues, GPT-4o checks for security vulnerabilities, and Sabha synthesises a unified review with prioritised findings.',
+          'Paste a PR diff or file and Arivarangam runs a multi-model review: Claude identifies logic issues, GPT-4o checks for security vulnerabilities, and Arivarangam synthesises a unified review with prioritised findings.',
       },
       {
         title: 'Architecture Decision Records',
         description:
-          'Describe a technical decision and Sabha generates a structured ADR covering context, decision drivers, considered options, chosen solution, and consequences — ready for your wiki.',
+          'Describe a technical decision and Arivarangam generates a structured ADR covering context, decision drivers, considered options, chosen solution, and consequences — ready for your wiki.',
       },
       {
         title: 'GitHub PR with AI Commit Messages',
         description:
-          'Write code in Sabha\'s Code Workspace and push directly to GitHub with AI-generated commit messages that accurately describe the change — saving time and improving git history quality.',
+          'Write code in Arivarangam\'s Code Workspace and push directly to GitHub with AI-generated commit messages that accurately describe the change — saving time and improving git history quality.',
       },
       {
         title: 'API Documentation Generation',
         description:
-          'Upload your OpenAPI spec or codebase and Sabha generates human-readable API documentation with request/response examples, error codes, and integration guides.',
+          'Upload your OpenAPI spec or codebase and Arivarangam generates human-readable API documentation with request/response examples, error codes, and integration guides.',
       },
       {
         title: 'Debugging & Root Cause Analysis',
         description:
-          'Paste an error trace or describe a bug and Sabha runs multi-model diagnosis: each AI proposes a root cause, Sabha evaluates the hypotheses, and gives you the most likely fix with explanation.',
+          'Paste an error trace or describe a bug and Arivarangam runs multi-model diagnosis: each AI proposes a root cause, Arivarangam evaluates the hypotheses, and gives you the most likely fix with explanation.',
       },
     ],
   },
@@ -351,13 +351,13 @@ export async function generateMetadata({
   const data = CATEGORY_DATA[category as Category]
 
   if (!data) {
-    return { title: 'Use Cases — Sabha AI' }
+    return { title: 'Use Cases — Arivarangam' }
   }
 
   return {
-    title: `${data.title} Use Cases — Sabha AI`,
+    title: `${data.title} Use Cases — Arivarangam`,
     description: data.description,
-    alternates: { canonical: `https://sabhaai.com/use-cases/${category}` },
+    alternates: { canonical: `https://arivarangam.com/use-cases/${category}` },
   }
 }
 
@@ -379,7 +379,7 @@ export default async function UseCasesPage({
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-indigo-400">.</span>
+            Arivarangam<span className="text-indigo-400">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-400">
             <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
@@ -426,7 +426,7 @@ export default async function UseCasesPage({
           <div className="text-5xl mb-4">{data.icon}</div>
           <div className="text-sm text-indigo-400 font-medium mb-2">{data.subtitle}</div>
           <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Sabha for {data.title}
+            Arivarangam for {data.title}
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed max-w-2xl">{data.description}</p>
           <div className="flex gap-4 mt-8">
@@ -477,7 +477,7 @@ export default async function UseCasesPage({
       <section className="py-16 px-6 border-t border-zinc-800 text-center">
         <div className="max-w-xl mx-auto">
           <h2 className="text-2xl font-bold mb-3">
-            Ready to use Sabha for {data.title.toLowerCase()}?
+            Ready to use Arivarangam for {data.title.toLowerCase()}?
           </h2>
           <p className="text-zinc-400 text-sm mb-6">
             Start free — no credit card required. The {data.title} Pack is available on Pro.
@@ -493,7 +493,7 @@ export default async function UseCasesPage({
 
       {/* Footer */}
       <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
-        <p>© {new Date().getFullYear()} Sabha AI. Made for India.</p>
+        <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>
     </div>
   )

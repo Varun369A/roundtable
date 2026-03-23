@@ -14,7 +14,7 @@ interface NavItem {
 const STATIC_NAV: NavItem[] = [
   { href: '/settings/ai-connections', label: 'AI Connections', icon: '🔑' },
   { href: '/settings/roundtable',     label: 'My Roundtable',  icon: '⚙️' },
-  { href: '/settings/memory',         label: 'Sabha Memory',   icon: '🧠' },
+  { href: '/settings/memory',         label: 'Arivarangam Memory',   icon: '🧠' },
   { href: '/settings/integrations',   label: 'Integrations',   icon: '🔌' },
   { href: '/settings/actions',        label: 'Action Approvals', icon: '⚡' },
   { href: '/settings/billing',        label: 'Billing',        icon: '💳' },

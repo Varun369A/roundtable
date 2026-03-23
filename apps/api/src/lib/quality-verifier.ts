@@ -4,7 +4,7 @@
  * Scores factual accuracy, completeness, and extracts citations.
  */
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 

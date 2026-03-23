@@ -65,7 +65,7 @@ enum AIModel {
   groq              @map("groq")
   cohere            @map("cohere")
   whisper           @map("whisper")
-  sabha_ai          @map("sabha-ai")
+  arivarangam_ai          @map("arivarangam-ai")
 }
 
 enum TaskCategory {
@@ -142,14 +142,14 @@ model User {
   updatedAt     DateTime    @updatedAt
   lastActiveAt  DateTime    @default(now())
 
-  // Free tier task budget — decremented on every Sabha-funded task
+  // Free tier task budget — decremented on every Arivarangam-funded task
   freeTasksRemaining Int       @default(3)
 
   // Founding member — first 200 paying users get locked-in discounted pricing
   foundingMember     Boolean   @default(false)
 
   // DPDP Act 2023 — India's Digital Personal Data Protection Act.
-  // User must explicitly consent before their task data is used to train Sabha-AI.
+  // User must explicitly consent before their task data is used to train Arivarangam-AI.
   // Never inferred, never defaulted to true, never coerced.
   trainingConsent    Boolean   @default(false)
   trainingConsentAt  DateTime? // when they gave consent (required for audit)
@@ -557,8 +557,8 @@ enum NotificationType {
   system_alert
   model_fallback
   healing_applied
-  sabha_ready
-  sabha_ai_correction
+  arivarangam_ready
+  arivarangam_ai_correction
   FRIEND_REQUEST
   FRIEND_ACCEPTED
   REPO_ACCESS_GRANTED
@@ -828,16 +828,16 @@ model UsageStats {
   @@map("usage_stats")
 }
 
-// ─── Sabha AI (Self-Learning) ─────────────────────────────────────────────────
+// ─── Arivarangam AI (Self-Learning) ─────────────────────────────────────────────────
 
-enum SabhaAIStatus {
+enum ArivarangamAIStatus {
   LEARNING  // accumulating knowledge, silent
   READY     // enough knowledge, awaiting admin enablement
   ENABLED   // live and handling tasks
   DISABLED  // admin disabled
 }
 
-model SabhaKnowledge {
+model ArivarangamKnowledge {
   id               String       @id @default(cuid())
   category         TaskCategory
   templateCategory String?      // TemplateCategory value if known
@@ -851,19 +851,19 @@ model SabhaKnowledge {
 
   @@index([category])
   @@index([qualityScore])
-  @@map("sabha_knowledge")
+  @@map("arivarangam_knowledge")
 }
 
-model SabhaAIState {
+model ArivarangamAIState {
   id              String        @id @default("singleton")
-  status          SabhaAIStatus @default(LEARNING)
+  status          ArivarangamAIStatus @default(LEARNING)
   knowledgeCount  Int           @default(0)
   readyThreshold  Int           @default(50)  // examples needed to be "ready"
   enabledAt       DateTime?
   lastLearnedAt   DateTime?
   updatedAt       DateTime      @updatedAt
 
-  @@map("sabha_ai_state")
+  @@map("arivarangam_ai_state")
 }
 
 // ─── Project Environment Variables ───────────────────────────────────────────
@@ -1179,7 +1179,7 @@ model WorkflowStepRun {
   id         String  @id @default(cuid())
   runId      String
   stepId     String
-  taskId     String? // the Sabha Task created for this step
+  taskId     String? // the Arivarangam Task created for this step
   status     String  // "pending" | "running" | "completed" | "failed" | "skipped"
   output     Json    @default("{}")  // extracted output values from output mapping
   startedAt  DateTime @default(now())
@@ -1717,9 +1717,9 @@ model TaskCorrection {
   @@map("task_corrections")
 }
 
-// ─── Spec: Sabha-AI Training Pipeline (internal only — zero user-facing refs) ─
+// ─── Spec: Arivarangam-AI Training Pipeline (internal only — zero user-facing refs) ─
 
-model SabhaAITrainingRecord {
+model ArivarangamAITrainingRecord {
   id                 String   @id @default(cuid())
   taskId             String   @unique
   goal               String
@@ -1738,7 +1738,7 @@ model SabhaAITrainingRecord {
 
   @@index([qualityScore])
   @@index([usedForTraining])
-  @@map("sabha_ai_training_records")
+  @@map("arivarangam_ai_training_records")
 }
 
 // ─── UPI Prepaid Credit Purchases ─────────────────────────────────────────────
@@ -1975,7 +1975,7 @@ enum GroupCollabStatus {
 
 // ─── REPOSITORIES ─────────────────────────────────────────────────────────────
 
-model SabhaRepo {
+model ArivarangamRepo {
   id            String             @id @default(cuid())
   ownerId       String
   name          String             @db.VarChar(100)
@@ -1993,7 +1993,7 @@ model SabhaRepo {
   stars         RepoStar[]
   @@unique([ownerId, slug])
   @@index([ownerId])
-  @@map("sabha_repos")
+  @@map("arivarangam_repos")
 }
 
 enum RepoCategory {
@@ -2019,7 +2019,7 @@ model RepoCollaborator {
   grantedById String
   grantedAt   DateTime       @default(now())
   revokedAt   DateTime?
-  repo        SabhaRepo      @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  repo        ArivarangamRepo      @relation(fields: [repoId], references: [id], onDelete: Cascade)
   @@unique([repoId, userId])
   @@index([userId])
   @@map("repo_collaborators")
@@ -2046,7 +2046,7 @@ model RepoItem {
   isArchived      Boolean      @default(false)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
-  repo            SabhaRepo    @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  repo            ArivarangamRepo    @relation(fields: [repoId], references: [id], onDelete: Cascade)
   @@index([repoId])
   @@index([authorId])
   @@map("repo_items")
@@ -2062,7 +2062,7 @@ model RepoCommit {
   itemsRemoved  Int       @default(0)
   snapshot      Json
   createdAt     DateTime  @default(now())
-  repo          SabhaRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  repo          ArivarangamRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
   @@index([repoId])
   @@map("repo_commits")
 }
@@ -2072,7 +2072,7 @@ model RepoStar {
   repoId    String
   userId    String
   createdAt DateTime  @default(now())
-  repo      SabhaRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  repo      ArivarangamRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
   @@unique([repoId, userId])
   @@map("repo_stars")
 }
@@ -2296,7 +2296,7 @@ model UserContentCalendar {
 
 // ─── DIGITAL PASSPORT ─────────────────────────────────────────────────────────
 
-model SabhaPassport {
+model ArivarangamPassport {
   id           String               @id @default(cuid())
   userId       String               @unique
   username     String               @unique @db.VarChar(50)
@@ -2318,7 +2318,7 @@ model SabhaPassport {
   achievements PassportAchievement[]
   showcases    PassportShowcase[]
   views        PassportView[]
-  @@map("sabha_passports")
+  @@map("arivarangam_passports")
 }
 
 model PassportSkill {
@@ -2329,7 +2329,7 @@ model PassportSkill {
   autoDetected  Boolean       @default(true)
   isVisible     Boolean       @default(true)
   createdAt     DateTime      @default(now())
-  passport      SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  passport      ArivarangamPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
   @@unique([passportId, skill])
   @@map("passport_skills")
 }
@@ -2340,7 +2340,7 @@ model PassportAchievement {
   achievement AchievementType
   awardedAt   DateTime        @default(now())
   isVisible   Boolean         @default(true)
-  passport    SabhaPassport   @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  passport    ArivarangamPassport   @relation(fields: [passportId], references: [id], onDelete: Cascade)
   @@unique([passportId, achievement])
   @@map("passport_achievements")
 }
@@ -2369,7 +2369,7 @@ model PassportShowcase {
   taskId     String
   order      Int           @default(0)
   createdAt  DateTime      @default(now())
-  passport   SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  passport   ArivarangamPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
   @@unique([passportId, taskId])
   @@map("passport_showcases")
 }
@@ -2380,7 +2380,7 @@ model PassportView {
   viewerIp   String        @db.VarChar(45)
   referrer   String?       @db.VarChar(500)
   createdAt  DateTime      @default(now())
-  passport   SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  passport   ArivarangamPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
   @@index([passportId, createdAt])
   @@map("passport_views")
 }

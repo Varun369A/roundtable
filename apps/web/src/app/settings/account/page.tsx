@@ -139,7 +139,7 @@ export default function AccountSettingsPage() {
           <div className="mb-5">
             <h2 className="text-base font-semibold text-white mb-1">Download My Data</h2>
             <p className="text-sm text-zinc-500">
-              Request a copy of all data Sabha holds about your account. The export includes your profile,
+              Request a copy of all data Arivarangam holds about your account. The export includes your profile,
               tasks and their AI outputs, memories, credits history, billing events, and referral data.
               The download link is valid for 7 days.
             </p>

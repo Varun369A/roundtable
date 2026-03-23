@@ -11,7 +11,7 @@ const PLANS = [
     name: 'Free',
     monthlyInr: 0,
     annualInr: 0,
-    description: 'Try Sabha with no commitment.',
+    description: 'Try Arivarangam with no commitment.',
     features: [
       '2 AI models (Claude + GPT-4o)',
       '5 tasks/month',
@@ -44,9 +44,9 @@ const PLANS = [
     monthlyInr: 1999,
     annualInr: 1599,  // 20% off
     originalComboInr: 8526,
-    description: 'The full Sabha experience — Sabha absorbs API costs.',
+    description: 'The full Arivarangam experience — Arivarangam absorbs API costs.',
     features: [
-      'All 16 AI models (Sabha pays)',
+      'All 16 AI models (Arivarangam pays)',
       'Unlimited Roundtable tasks',
       'Claude Opus synthesis',
       'Team workspace (up to 5 seats)',
@@ -62,7 +62,7 @@ const PLANS = [
 const FAQS = [
   {
     q: 'Do I pay separately for each AI?',
-    a: 'No. On Studio, Sabha absorbs the API costs within your plan. On Builder, you bring your own API keys — you pay the AI providers directly at their rates.',
+    a: 'No. On Studio, Arivarangam absorbs the API costs within your plan. On Builder, you bring your own API keys — you pay the AI providers directly at their rates.',
   },
   {
     q: 'Which payment methods are accepted?',
@@ -96,7 +96,7 @@ export default function PricingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  // Fix 16: annual billing is the default — users save 20%, better for Sabha LTV
+  // Fix 16: annual billing is the default — users save 20%, better for Arivarangam LTV
   const [isAnnual, setIsAnnual] = useState(true)
 
   async function handleUpgrade(planId: string) {
@@ -133,8 +133,8 @@ export default function PricingPage() {
       const rzp = new window.Razorpay({
         key: razorpayKeyId,
         subscription_id: subscriptionId,
-        name: 'Sabha',
-        description: `Sabha ${plan?.name} Plan${isAnnual ? ' (Annual)' : ''}`,
+        name: 'Arivarangam',
+        description: `Arivarangam ${plan?.name} Plan${isAnnual ? ' (Annual)' : ''}`,
         image: '/logo.png',
         theme: { color: '#c026d3' },
         handler: async (response: {
@@ -175,7 +175,7 @@ export default function PricingPage() {
       {/* Nav */}
       <nav role="navigation" aria-label="Main navigation" className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
         <Link href="/" className="text-xl font-bold tracking-tight">
-          Sabha<span className="text-brand-500">.</span>
+          Arivarangam<span className="text-brand-500">.</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">Log in</Link>
@@ -194,7 +194,7 @@ export default function PricingPage() {
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             ChatGPT + Claude + Midjourney + ElevenLabs + Perplexity = ₹8,526/month separately.
             <br />
-            Sabha Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
+            Arivarangam Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
           </p>
         </div>
 
@@ -317,7 +317,7 @@ export default function PricingPage() {
             Custom contracts for teams. SLA, role-based access, admin dashboard, on-prem routing, dedicated account manager.
           </p>
           <a
-            href="mailto:enterprise@sabhaai.com"
+            href="mailto:enterprise@arivarangam.com"
             className="inline-block px-6 py-3 border border-zinc-700 hover:border-zinc-500 rounded-xl text-sm font-medium transition-colors"
           >
             Contact sales →

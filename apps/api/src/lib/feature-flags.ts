@@ -6,7 +6,7 @@
  *   const enabled = await isEnabled('new_dashboard', userId)
  */
 
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from './redis'
 
 const CACHE_TTL = 60 // seconds

@@ -15,7 +15,7 @@
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
 import { v4 as uuidv4 } from 'uuid'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from '../../lib/redis'
 import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
@@ -27,7 +27,7 @@ const NOVA_MODEL = 'claude-opus-4-6'
 const SESSION_TTL = 60 * 60 * 2 // 2 hours
 const MAX_SESSION_MESSAGES = 20
 
-const NOVA_SYSTEM_PROMPT = `You are NOVA, the AI assistant for Sabha's admin dashboard. You have direct access to live platform data via tools. Be concise and data-driven. When admins ask questions, call the appropriate tool to get real data before answering. When you detect issues, proactively suggest fixes. You can modify feature flags and broadcast alerts. Always confirm before destructive actions.`
+const NOVA_SYSTEM_PROMPT = `You are NOVA, the AI assistant for Arivarangam's admin dashboard. You have direct access to live platform data via tools. Be concise and data-driven. When admins ask questions, call the appropriate tool to get real data before answering. When you detect issues, proactively suggest fixes. You can modify feature flags and broadcast alerts. Always confirm before destructive actions.`
 
 // ---------------------------------------------------------------------------
 // Tool definitions

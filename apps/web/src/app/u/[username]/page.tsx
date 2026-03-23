@@ -78,17 +78,17 @@ export async function generateMetadata({
   params: { username: string }
 }): Promise<Metadata> {
   const data = await getPassport(params.username)
-  if (!data) return { title: 'Profile Not Found | Sabha' }
+  if (!data) return { title: 'Profile Not Found | Arivarangam' }
 
   const name = data.displayName || data.user?.name || params.username
   const description =
-    data.bio || data.headline || `${name}'s digital passport on Sabha AI platform`
+    data.bio || data.headline || `${name}'s digital passport on Arivarangam platform`
 
   return {
-    title: `${name} (@${data.username}) | Sabha`,
+    title: `${name} (@${data.username}) | Arivarangam`,
     description,
     openGraph: {
-      title: `${name} | Sabha Digital Passport`,
+      title: `${name} | Arivarangam Digital Passport`,
       description,
       type: 'profile',
       images: [
@@ -96,13 +96,13 @@ export async function generateMetadata({
           url: `${API_URL}/u/${data.username}/og-image`,
           width: 1200,
           height: 630,
-          alt: `${name}'s Sabha Profile`,
+          alt: `${name}'s Arivarangam Profile`,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${name} | Sabha`,
+      title: `${name} | Arivarangam`,
       description,
       images: [`${API_URL}/u/${data.username}/og-image`],
     },
@@ -154,7 +154,7 @@ export default async function PublicPassportPage({
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="font-bold text-lg text-gray-900 tracking-tight">
-            Sabha
+            Arivarangam
           </Link>
           <div className="flex gap-3">
             <Link
@@ -334,9 +334,9 @@ export default async function PublicPassportPage({
 
             {/* CTA */}
             <div className="bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl p-6 text-white">
-              <p className="font-semibold mb-1">Build with AI on Sabha</p>
+              <p className="font-semibold mb-1">Build with AI on Arivarangam</p>
               <p className="text-gray-300 text-sm mb-4">
-                Join {name} and thousands of professionals using Sabha to accomplish ambitious goals.
+                Join {name} and thousands of professionals using Arivarangam to accomplish ambitious goals.
               </p>
               <Link
                 href="/register"
@@ -352,7 +352,7 @@ export default async function PublicPassportPage({
       <footer className="mt-12 border-t border-gray-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} Sabha AI. All rights reserved.
+            © {new Date().getFullYear()} Arivarangam. All rights reserved.
           </p>
           <div className="flex gap-5 text-xs text-gray-400">
             <Link href="/privacy" className="hover:text-gray-700">Privacy</Link>

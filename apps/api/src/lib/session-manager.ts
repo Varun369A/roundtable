@@ -7,11 +7,11 @@
  * Architecture:
  * - Session has an access code (6-char, shareable link)
  * - Participants join as owner/collaborator/viewer
- * - All SSE events broadcast to sabha:session:{sessionId} channel
+ * - All SSE events broadcast to arivarangam:session:{sessionId} channel
  * - Presence tracked via heartbeat (participant marks lastSeenAt every 30s)
  * - Reactions broadcast instantly via Valkey pub/sub
  */
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from './redis'
 import crypto from 'node:crypto'
 
@@ -190,7 +190,7 @@ export async function addReaction(
   })
 
   // Broadcast to all session participants
-  await redis.publish(`sabha:session:${sessionId}`, JSON.stringify({
+  await redis.publish(`arivarangam:session:${sessionId}`, JSON.stringify({
     event:     'reaction_added',
     reactionId: saved.id,
     subtaskId,
@@ -222,7 +222,7 @@ export async function forwardTaskEventToSession(
   })
   if (!session) return
 
-  await redis.publish(`sabha:session:${session.id}`, payload)
+  await redis.publish(`arivarangam:session:${session.id}`, payload)
 }
 
 async function broadcastParticipantEvent(
@@ -230,7 +230,7 @@ async function broadcastParticipantEvent(
   event:     string,
   data:      Record<string, unknown>,
 ): Promise<void> {
-  await redis.publish(`sabha:session:${sessionId}`, JSON.stringify({
+  await redis.publish(`arivarangam:session:${sessionId}`, JSON.stringify({
     event,
     sessionId,
     ...data,

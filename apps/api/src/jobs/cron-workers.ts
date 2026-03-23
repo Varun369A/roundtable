@@ -11,7 +11,7 @@
  */
 
 import { Queue, Worker, Job } from 'bullmq'
-import { PrismaClient } from '@sabha/db'
+import { PrismaClient } from '@arivarangam/db'
 import { redis } from '../lib/redis'
 import { broadcastAdminAlert, createNotification } from '../lib/notifications'
 import { sendEmail } from '../lib/email'
@@ -80,16 +80,16 @@ async function sendUserDigestEmail(
 ): Promise<void> {
   await sendEmail({
     to: user.email,
-    subject: 'Your Sabha Weekly Summary',
+    subject: 'Your Arivarangam Weekly Summary',
     html: `
-      <h2>Your week on Sabha</h2>
+      <h2>Your week on Arivarangam</h2>
       <p>Hi ${user.name ?? user.email},</p>
       <ul>
         <li>Tasks run: <strong>${stats.taskCount}</strong></li>
         <li>Completed: <strong>${stats.completedCount}</strong></li>
         <li>Total AI cost: <strong>$${stats.totalCost.toFixed(4)}</strong></li>
       </ul>
-      <p>Keep building! <a href="${process.env.APP_URL ?? 'https://sabha.ai'}">Open Sabha →</a></p>
+      <p>Keep building! <a href="${process.env.APP_URL ?? 'https://sabha.ai'}">Open Arivarangam →</a></p>
     `,
   })
 }
@@ -542,9 +542,9 @@ async function processAdminDigest(_job: Job): Promise<void> {
 
   await sendEmail({
     to: adminEmail,
-    subject: `Sabha Admin Weekly Digest — ${new Date().toLocaleDateString()}`,
+    subject: `Arivarangam Admin Weekly Digest — ${new Date().toLocaleDateString()}`,
     html: `
-      <h2>Sabha Weekly Admin Report</h2>
+      <h2>Arivarangam Weekly Admin Report</h2>
       <h3>Week ending ${new Date().toLocaleDateString()}</h3>
       <ul>
         <li>New sign-ups: <strong>${newSignups}</strong></li>
@@ -554,7 +554,7 @@ async function processAdminDigest(_job: Job): Promise<void> {
       </ul>
       <h3>Top 3 Templates</h3>
       <pre>${topTemplateList || 'No template data'}</pre>
-      <p>View full dashboard: <a href="${process.env.APP_URL ?? 'https://sabha.ai'}/admin">Sabha Admin</a></p>
+      <p>View full dashboard: <a href="${process.env.APP_URL ?? 'https://sabha.ai'}/admin">Arivarangam Admin</a></p>
     `,
   })
 
@@ -599,16 +599,16 @@ async function processQueueMonitor(_job: Job): Promise<void> {
 
 // ---------------------------------------------------------------------------
 // sabhaLearningWorker — Every 15 minutes
-// Checks if Sabha AI has accumulated enough knowledge to be "ready".
+// Checks if Arivarangam has accumulated enough knowledge to be "ready".
 // Notifies admin when threshold is reached.
 // ---------------------------------------------------------------------------
 
-async function processSabhaLearning(_job: Job): Promise<void> {
+async function processArivarangamLearning(_job: Job): Promise<void> {
   const acquired = await acquireCronLock('sabha-learning', 840) // 14min lock (runs every 15min)
   if (!acquired) { _job.log('Skipped — another instance running'); return }
-  const knowledgeCount = await prisma.sabhaKnowledge.count()
+  const knowledgeCount = await prisma.arivarangamKnowledge.count()
 
-  const state = await prisma.sabhaAIState.upsert({
+  const state = await prisma.arivarangamAIState.upsert({
     where: { id: 'singleton' },
     update: { knowledgeCount, lastLearnedAt: new Date() },
     create: { id: 'singleton', knowledgeCount, lastLearnedAt: new Date() },
@@ -617,7 +617,7 @@ async function processSabhaLearning(_job: Job): Promise<void> {
 
   // Transition LEARNING → READY when threshold is met
   if (state.status === 'LEARNING' && knowledgeCount >= state.readyThreshold) {
-    await prisma.sabhaAIState.update({
+    await prisma.arivarangamAIState.update({
       where: { id: 'singleton' },
       data: { status: 'READY' },
     })
@@ -632,14 +632,14 @@ async function processSabhaLearning(_job: Job): Promise<void> {
       await createNotification({
         userId: admin.id,
         type: 'system_alert',
-        title: 'Sabha AI is ready',
-        body: `Sabha AI has learned from ${knowledgeCount} tasks. Go to Admin → Sabha AI to enable it.`,
+        title: 'Arivarangam is ready',
+        body: `Arivarangam has learned from ${knowledgeCount} tasks. Go to Admin → Arivarangam to enable it.`,
         link: '/admin/sabha',
         metadata: { knowledgeCount },
       }).catch(() => {})
     }
 
-    console.log(`[sabha-learning] Sabha AI reached READY state with ${knowledgeCount} knowledge entries`)
+    console.log(`[sabha-learning] Arivarangam reached READY state with ${knowledgeCount} knowledge entries`)
   } else {
     console.log(`[sabha-learning] Knowledge: ${knowledgeCount}/${state.readyThreshold} — status: ${state.status}`)
   }
@@ -851,13 +851,13 @@ export function startCronWorkers(): void {
   )
   new Worker('queue-monitor', processQueueMonitor, { connection: bullConnection })
 
-  // ---- Sabha AI learning check: every 15 minutes ----
+  // ---- Arivarangam learning check: every 15 minutes ----
   sabhaLearningQueue.add(
     'check',
     {},
     { repeat: { pattern: '*/15 * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
   )
-  new Worker('sabha-learning', processSabhaLearning, { connection: bullConnection })
+  new Worker('sabha-learning', processArivarangamLearning, { connection: bullConnection })
 
   // ---- Scheduled task runner: every minute ----
   scheduledTaskQueue.add(

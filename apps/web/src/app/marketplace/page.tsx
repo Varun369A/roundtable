@@ -107,7 +107,7 @@ export default function MarketplacePage() {
                   <span className="text-white font-semibold line-through">
                     ₹{stats.retailTotalInr.toLocaleString('en-IN')}/month
                   </span>
-                  {' '}— Sabha Pro is{' '}
+                  {' '}— Arivarangam Pro is{' '}
                   <span className="text-brand-400 font-bold text-lg">
                     ₹1,299/month
                   </span>

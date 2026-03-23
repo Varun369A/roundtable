@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 /**
  * Gamma AI connector for presentation generation.

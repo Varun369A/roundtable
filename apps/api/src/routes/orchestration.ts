@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { orchestrateTask, getReadySubtasks } from '../orchestration/orchestrator'
 import { subtaskQueue } from '../jobs/queue'
@@ -89,7 +89,7 @@ export async function orchestrationRoutes(app: FastifyInstance) {
    *
    * Request an AI correction on a specific subtask output.
    * Rate limited: 10 corrections per hour per user-task pair — prevents
-   * infinite retry loops and limits Sabha's API cost exposure on FREE tier.
+   * infinite retry loops and limits Arivarangam's API cost exposure on FREE tier.
    *
    * Body: { prompt: string } — specific correction instruction
    */
@@ -104,7 +104,7 @@ export async function orchestrationRoutes(app: FastifyInstance) {
       const userId = request.user!.id
 
       // ── Per-task-user correction rate limit: 10/hour ──────────────────────
-      const rateLimitKey = `sabha:corrections:${userId}:${taskId}`
+      const rateLimitKey = `arivarangam:corrections:${userId}:${taskId}`
       const results = await redis
         .multi()
         .incr(rateLimitKey)

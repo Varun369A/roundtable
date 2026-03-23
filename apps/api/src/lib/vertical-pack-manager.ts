@@ -6,7 +6,7 @@
  * The orchestrator calls getPackContext() to inject pack-specific prompts.
  */
 
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ const BUILT_IN_PACKS = [
     icon: '⚖️',
     color: 'from-slate-700 to-slate-900',
     description: 'Contract review, legal research, compliance checking, and document drafting with Indian law context.',
-    disclaimer: 'Sabha Legal AI Pack provides informational assistance only. Content is not legal advice. Consult a qualified lawyer for legal decisions.',
+    disclaimer: 'Arivarangam Legal AI Pack provides informational assistance only. Content is not legal advice. Consult a qualified lawyer for legal decisions.',
     isIncludedInTier: ['POWER', 'ENTERPRISE'],
     creditsPerTask: 25,
     contextBlob: {
@@ -81,7 +81,7 @@ const BUILT_IN_PACKS = [
     icon: '🏥',
     color: 'from-blue-600 to-cyan-700',
     description: 'Medical research, clinical documentation, patient education materials, and healthcare compliance.',
-    disclaimer: 'Sabha Medical AI Pack is for informational and educational purposes only. Not a substitute for professional medical advice, diagnosis, or treatment.',
+    disclaimer: 'Arivarangam Medical AI Pack is for informational and educational purposes only. Not a substitute for professional medical advice, diagnosis, or treatment.',
     isIncludedInTier: ['POWER', 'ENTERPRISE'],
     creditsPerTask: 30,
     contextBlob: {
@@ -118,7 +118,7 @@ const BUILT_IN_PACKS = [
     icon: '📊',
     color: 'from-emerald-600 to-teal-700',
     description: 'Financial analysis, investment research, tax planning, and regulatory compliance for Indian markets.',
-    disclaimer: 'Sabha Finance AI Pack provides informational content only. Not investment advice. Consult a SEBI-registered advisor for investment decisions.',
+    disclaimer: 'Arivarangam Finance AI Pack provides informational content only. Not investment advice. Consult a SEBI-registered advisor for investment decisions.',
     isIncludedInTier: ['PRO', 'POWER', 'ENTERPRISE'],
     creditsPerTask: 20,
     contextBlob: {

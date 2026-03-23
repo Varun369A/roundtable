@@ -1,7 +1,7 @@
 /**
  * User Memory Manager — Enterprise Grade
  *
- * Sabha remembers everything meaningful about the user across all tasks.
+ * Arivarangam remembers everything meaningful about the user across all tasks.
  * Memory has two layers:
  *
  *   1. Structured keys (UserMemory) — explicit facts: business type, tone, audience
@@ -13,10 +13,10 @@
  *      - "User frequently asks for Hindi translations → prefers bilingual output"
  *      - "User's tasks are always B2B SaaS focused"
  *
- * Memory is injected into EVERY task prompt, giving Sabha persistent context.
+ * Memory is injected into EVERY task prompt, giving Arivarangam persistent context.
  */
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 

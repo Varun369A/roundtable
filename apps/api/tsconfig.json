@@ -14,9 +14,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "paths": {
-      "@sabha/types": ["../../packages/types/src"],
-      "@sabha/db": ["../../packages/db/src"],
-      "@sabha/config": ["../../packages/config/src"]
+      "@arivarangam/types": ["../../packages/types/src"],
+      "@arivarangam/db": ["../../packages/db/src"],
+      "@arivarangam/config": ["../../packages/config/src"]
     }
   },
   "include": ["src/**/*"],

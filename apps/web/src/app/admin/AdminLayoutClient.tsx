@@ -12,7 +12,7 @@ const NAV = [
   { href: '/admin/analytics',  label: 'Analytics',   icon: '📈' },
   { href: '/admin/connectors', label: 'AI Health',   icon: '🤖' },
   { href: '/admin/costs',      label: 'Costs',       icon: '💰' },
-  { href: '/admin/sabha',      label: 'Sabha AI',    icon: '🧠' },
+  { href: '/admin/sabha',      label: 'Arivarangam',    icon: '🧠' },
 ]
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
@@ -44,7 +44,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       <aside className="w-56 shrink-0 border-r border-zinc-800 flex flex-col">
         <div className="h-14 flex items-center px-5 border-b border-zinc-800">
           <Link href="/dashboard" className="text-lg font-bold tracking-tight">
-            Sabha<span className="text-red-500">.</span>
+            Arivarangam<span className="text-red-500">.</span>
             <span className="text-xs text-red-500 ml-1 font-normal">admin</span>
           </Link>
         </div>
@@ -71,7 +71,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
         <div className="p-4 border-t border-zinc-800">
           <Link href="/dashboard" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-            ← Back to Sabha
+            ← Back to Arivarangam
           </Link>
         </div>
       </aside>

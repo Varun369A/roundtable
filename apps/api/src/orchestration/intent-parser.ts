@@ -1,11 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { ParsedIntent, TaskCategory } from '@sabha/types'
+import type { ParsedIntent, TaskCategory } from '@arivarangam/types'
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-const INTENT_SYSTEM_PROMPT = `You are an intent analysis engine for Sabha, an AI orchestration platform.
+const INTENT_SYSTEM_PROMPT = `You are an intent analysis engine for Arivarangam, an AI orchestration platform.
 
 Given a user's goal, extract structured intent as JSON. Be precise and practical.
 

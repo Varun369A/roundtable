@@ -17,7 +17,7 @@ import rateLimit from '@fastify/rate-limit'
 import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
-import { env } from '@sabha/config'
+import { env } from '@arivarangam/config'
 import { authRoutes } from './routes/auth'
 import { authRecoveryRoutes } from './routes/auth-recovery'
 import { taskRoutes } from './routes/tasks'
@@ -65,7 +65,7 @@ import { startCronWorkers } from './jobs'
 import { registerHttpMetrics } from './middleware/http-metrics'
 import { redis } from './lib/redis'
 import { taskWorker, subtaskWorker } from './jobs'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const app = Fastify({
   logger: {
@@ -209,9 +209,9 @@ const start = async () => {
       const allowedOrigins = [
         process.env.WEB_URL ?? 'http://localhost:3000',
         'http://localhost:3000',
-        'https://sabhaai.com',
-        'https://www.sabhaai.com',
-        'https://app.sabhaai.com',
+        'https://arivarangam.com',
+        'https://www.arivarangam.com',
+        'https://app.arivarangam.com',
       ]
 
       if (origin && !allowedOrigins.some(o => origin.startsWith(o))) {
@@ -318,7 +318,7 @@ const start = async () => {
     // ── Listen ─────────────────────────────────────────────────────────────────
 
     await app.listen({ port: env.PORT, host: '0.0.0.0' })
-    app.log.info(`Sabha API running on port ${env.PORT}`)
+    app.log.info(`Arivarangam API running on port ${env.PORT}`)
 
     taskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Task job failed'))
     subtaskWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'Subtask job failed'))

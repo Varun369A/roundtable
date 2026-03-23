@@ -11,7 +11,7 @@
 import crypto from 'crypto'
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { hashPassword, validatePasswordStrength } from '../lib/password'
 import { revokeAllUserTokens, hashToken } from '../lib/tokens'
 import { requireAuth } from '../middleware/auth'
@@ -214,7 +214,7 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
 
     return reply.send({
       success: true,
-      data: { message: 'Email verified successfully. Welcome to Sabha!' },
+      data: { message: 'Email verified successfully. Welcome to Arivarangam!' },
     })
   })
 

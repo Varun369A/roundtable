@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 interface GeminiResponse {
   candidates: Array<{
@@ -36,7 +36,7 @@ export class GeminiConnector extends BaseConnector {
           },
           systemInstruction: {
             parts: [{
-              text: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
+              text: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
             }],
           },
         }),

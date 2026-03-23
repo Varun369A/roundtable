@@ -173,7 +173,7 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
             <div>
               <h2 id={MODAL_TITLE_ID} className="text-lg font-semibold text-white">Before we begin…</h2>
               <p className="text-sm text-zinc-400 mt-1">
-                Sabha needs a few details to deliver better results
+                Arivarangam needs a few details to deliver better results
               </p>
             </div>
             {/* Progress pill */}

@@ -1,4 +1,4 @@
-# Sabha
+# Arivarangam
 
 AI orchestration platform. One goal. Every AI. Live collaboration.
 

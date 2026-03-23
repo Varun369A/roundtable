@@ -281,7 +281,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Header */}
       <header className="border-b border-white/5 sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between">
-        <span className="text-lg font-bold">Sabha<span className="text-indigo-500">.</span></span>
+        <span className="text-lg font-bold">Arivarangam<span className="text-indigo-500">.</span></span>
         <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-3">
           <WorkspaceBadge
             workspaces={workspaces}
@@ -316,7 +316,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <span className="text-yellow-400 flex-shrink-0">⚠</span>
               <p className="text-sm text-yellow-300">
-                Please verify your email address to unlock all Sabha features.
+                Please verify your email address to unlock all Arivarangam features.
               </p>
             </div>
             <button

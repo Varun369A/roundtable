@@ -1,7 +1,7 @@
 /**
  * Workflow Executor — Enterprise Grade
  *
- * Executes multi-step Sabha workflows where each step is a Task.
+ * Executes multi-step Arivarangam workflows where each step is a Task.
  * Supports sequential and parallel step execution, output interpolation,
  * error recovery, and webhook triggers.
  *
@@ -12,7 +12,7 @@
  *   4. Output mapping extracts named values from task output for {{variable}} injection
  *   5. On completion: WorkflowRun marked COMPLETED, notifications sent
  */
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { enqueueTask } from '../jobs/queue'
 import { createNotification } from './notifications'
 import crypto from 'node:crypto'
@@ -166,7 +166,7 @@ export async function runWorkflow(
 }
 
 /**
- * Execute a single workflow step by creating and enqueuing a Sabha Task.
+ * Execute a single workflow step by creating and enqueuing a Arivarangam Task.
  */
 async function executeWorkflowStep(
   runId:          string,
@@ -184,7 +184,7 @@ async function executeWorkflowStep(
   // Interpolate goal with previous step outputs
   const goal = interpolateGoal(step.goalTemplate, previousOutputs, triggerPayload)
 
-  // Create Sabha task for this step (skip clarification for workflow tasks)
+  // Create Arivarangam task for this step (skip clarification for workflow tasks)
   const task = await prisma.task.create({
     data: {
       userId,

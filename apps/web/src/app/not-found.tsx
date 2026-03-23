@@ -13,7 +13,7 @@ export default function NotFound() {
           href="/"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
         >
-          Back to Sabha
+          Back to Arivarangam
         </Link>
       </div>
     </div>

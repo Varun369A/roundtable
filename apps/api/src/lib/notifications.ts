@@ -1,10 +1,10 @@
 /**
  * Notification delivery system.
  * Creates DB records + publishes to Redis/Valkey pub/sub channel for live delivery.
- * Channel: sabha:user:{userId}
+ * Channel: arivarangam:user:{userId}
  */
 
-import { PrismaClient } from '@sabha/db'
+import { PrismaClient } from '@arivarangam/db'
 import { redis } from '../lib/redis'
 
 const prisma = new PrismaClient()
@@ -55,7 +55,7 @@ export async function createNotification(opts: CreateNotificationOptions): Promi
   })
 
   try {
-    await redis.publish(`sabha:user:${opts.userId}`, payload)
+    await redis.publish(`arivarangam:user:${opts.userId}`, payload)
   } catch (err) {
     console.error('[notifications] Failed to publish to Redis:', err)
   }

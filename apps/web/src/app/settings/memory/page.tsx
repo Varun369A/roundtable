@@ -100,9 +100,9 @@ function OnboardingPanel({ onSaved }: { onSaved: () => void }) {
       <div className="flex items-start gap-3 mb-5">
         <span className="text-2xl">🚀</span>
         <div>
-          <h3 className="text-sm font-semibold text-white">Quick setup — train Sabha in 30 seconds</h3>
+          <h3 className="text-sm font-semibold text-white">Quick setup — train Arivarangam in 30 seconds</h3>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Provide a few details about your business so Sabha can personalise every output from day one.
+            Provide a few details about your business so Arivarangam can personalise every output from day one.
           </p>
         </div>
       </div>
@@ -140,7 +140,7 @@ function OnboardingPanel({ onSaved }: { onSaved: () => void }) {
               Saving…
             </>
           ) : (
-            'Train Sabha →'
+            'Train Arivarangam →'
           )}
         </button>
       </form>
@@ -364,9 +364,9 @@ export default function MemoryPage() {
 
         {/* ── Hero card ──────────────────────────────────────────────────────── */}
         <div className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border border-indigo-500/20 rounded-2xl p-6 mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Sabha's Memory</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Arivarangam's Memory</h1>
           <p className="text-zinc-400 text-sm leading-relaxed max-w-xl">
-            Sabha remembers your business context and preferences across all tasks.
+            Arivarangam remembers your business context and preferences across all tasks.
             The more it knows, the better every output becomes.
           </p>
           <div className="flex items-center gap-4 mt-4 text-sm">
@@ -432,7 +432,7 @@ export default function MemoryPage() {
               <div className="py-12 text-center">
                 <p className="text-zinc-600 text-sm">No {activeTab} memories yet</p>
                 <p className="text-zinc-700 text-xs mt-1">
-                  Sabha will learn from your tasks automatically
+                  Arivarangam will learn from your tasks automatically
                 </p>
               </div>
             ) : (
@@ -450,11 +450,11 @@ export default function MemoryPage() {
           </div>
         </div>
 
-        {/* ── What Sabha Knows preview ────────────────────────────────────────── */}
+        {/* ── What Arivarangam Knows preview ────────────────────────────────────────── */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-8">
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
             <div>
-              <h3 className="text-sm font-semibold text-white">What Sabha Knows About You</h3>
+              <h3 className="text-sm font-semibold text-white">What Arivarangam Knows About You</h3>
               <p className="text-xs text-zinc-500 mt-0.5">
                 This context is injected into every AI prompt
               </p>
@@ -498,7 +498,7 @@ export default function MemoryPage() {
           <div className="px-5 py-4 border-b border-zinc-800">
             <h3 className="text-sm font-semibold text-white">Inferred Facts</h3>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Observations Sabha auto-detected from your tasks
+              Observations Arivarangam auto-detected from your tasks
             </p>
           </div>
           <div className="p-4">
@@ -511,7 +511,7 @@ export default function MemoryPage() {
             ) : facts.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-zinc-600 text-sm">No inferred facts yet</p>
-                <p className="text-zinc-700 text-xs mt-1">Run a few tasks and Sabha will start learning patterns</p>
+                <p className="text-zinc-700 text-xs mt-1">Run a few tasks and Arivarangam will start learning patterns</p>
               </div>
             ) : (
               <div className="space-y-2">

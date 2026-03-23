@@ -394,7 +394,7 @@ export default function WorkflowsPage() {
 
       {/* Header nav */}
       <header className="border-b border-zinc-800/80 bg-zinc-950/95 backdrop-blur-sm sticky top-0 z-10 px-6 py-3 flex items-center justify-between">
-        <span className="text-lg font-bold">Sabha<span className="text-indigo-500">.</span></span>
+        <span className="text-lg font-bold">Arivarangam<span className="text-indigo-500">.</span></span>
         <nav className="flex items-center gap-4">
           <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Dashboard</Link>
           <Link href="/workflows" className="text-xs text-zinc-200 font-medium">Workflows</Link>
@@ -409,7 +409,7 @@ export default function WorkflowsPage() {
           <div>
             <h1 className="text-2xl font-bold text-zinc-100">Workflows</h1>
             <p className="text-sm text-zinc-500 mt-1">
-              Automate multi-step AI tasks. Chain Sabha roundtables into powerful pipelines.
+              Automate multi-step AI tasks. Chain Arivarangam roundtables into powerful pipelines.
             </p>
           </div>
           <button
@@ -441,7 +441,7 @@ export default function WorkflowsPage() {
             </div>
             <h3 className="text-base font-semibold text-zinc-300 mb-2">No workflows yet</h3>
             <p className="text-sm text-zinc-600 mb-6 max-w-xs mx-auto">
-              Chain multiple Sabha roundtables to automate complex research, writing, and analysis pipelines.
+              Chain multiple Arivarangam roundtables to automate complex research, writing, and analysis pipelines.
             </p>
             <button
               onClick={() => setShowCreate(true)}

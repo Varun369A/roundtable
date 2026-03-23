@@ -105,7 +105,7 @@ export default function OnboardingPage() {
           <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
             <div className="text-center mb-8">
               <div className="text-5xl mb-4">👋</div>
-              <h1 className="text-2xl font-bold text-white mb-2">Welcome to Sabha</h1>
+              <h1 className="text-2xl font-bold text-white mb-2">Welcome to Arivarangam</h1>
               <p className="text-zinc-400 text-sm">
                 Your AI roundtable is ready. Multiple AIs collaborate on your tasks in parallel —
                 let's get you to your first result in seconds.
@@ -140,7 +140,7 @@ export default function OnboardingPage() {
           <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
             <div className="text-center mb-6">
               <div className="text-5xl mb-4">🎯</div>
-              <h1 className="text-2xl font-bold text-white mb-2">What will you use Sabha for?</h1>
+              <h1 className="text-2xl font-bold text-white mb-2">What will you use Arivarangam for?</h1>
               <p className="text-zinc-400 text-sm">We'll surface relevant templates. Pick as many as you like.</p>
             </div>
 
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
               <div className="text-5xl mb-4">🚀</div>
               <h1 className="text-2xl font-bold text-white mb-2">Start your first Roundtable</h1>
               <p className="text-zinc-400 text-sm">
-                Describe what you want to accomplish — Sabha will assemble an AI team for it.
+                Describe what you want to accomplish — Arivarangam will assemble an AI team for it.
               </p>
             </div>
 

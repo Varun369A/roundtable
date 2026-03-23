@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 
-interface SabhaStatus {
+interface ArivarangamStatus {
   status: 'LEARNING' | 'READY' | 'ENABLED' | 'DISABLED'
   knowledgeCount: number
   readyThreshold: number
@@ -20,13 +20,13 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   DISABLED: { label: 'Disabled',          color: 'text-zinc-400',   bg: 'bg-zinc-800/50 border-zinc-700',      dot: 'bg-zinc-500' },
 }
 
-export default function SabhaAIAdminPage() {
-  const [status, setStatus]           = useState<SabhaStatus | null>(null)
+export default function ArivarangamAIAdminPage() {
+  const [status, setStatus]           = useState<ArivarangamStatus | null>(null)
   const [loading, setLoading]         = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
   async function load() {
-    const res = await apiFetch<{ data: SabhaStatus }>('/api/v1/admin/sabha-ai/status')
+    const res = await apiFetch<{ data: ArivarangamStatus }>('/api/v1/admin/sabha-ai/status')
     if (res.success && res.data) setStatus((res.data as any).data)
     setLoading(false)
   }
@@ -45,7 +45,7 @@ export default function SabhaAIAdminPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-zinc-500 text-sm">Loading Sabha AI status…</div>
+    return <div className="p-8 text-zinc-500 text-sm">Loading Arivarangam status…</div>
   }
 
   if (!status) {
@@ -58,10 +58,10 @@ export default function SabhaAIAdminPage() {
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-1">Sabha AI 🧠</h1>
+        <h1 className="text-2xl font-bold text-white mb-1">Arivarangam 🧠</h1>
         <p className="text-zinc-500 text-sm">
           Self-learning AI that absorbs knowledge from every task on the platform and provides
-          culturally aware, Sabha-specific responses.
+          culturally aware, Arivarangam-specific responses.
         </p>
       </div>
 
@@ -89,7 +89,7 @@ export default function SabhaAIAdminPage() {
                   : 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/20'
               }`}
             >
-              {actionLoading ? '…' : status.status === 'ENABLED' ? 'Disable Sabha AI' : 'Enable Sabha AI'}
+              {actionLoading ? '…' : status.status === 'ENABLED' ? 'Disable Arivarangam' : 'Enable Arivarangam'}
             </button>
           )}
         </div>
@@ -111,10 +111,10 @@ export default function SabhaAIAdminPage() {
         </div>
         <p className="text-xs text-zinc-600">
           {status.status === 'LEARNING'
-            ? `Sabha AI is silently observing tasks. ${Math.max(0, status.readyThreshold - status.knowledgeCount)} more high-quality examples needed.`
+            ? `Arivarangam is silently observing tasks. ${Math.max(0, status.readyThreshold - status.knowledgeCount)} more high-quality examples needed.`
             : status.status === 'READY'
-            ? 'Sabha AI has accumulated enough knowledge. Enable it above to activate.'
-            : 'Sabha AI is active and continues learning from every new task.'}
+            ? 'Arivarangam has accumulated enough knowledge. Enable it above to activate.'
+            : 'Arivarangam is active and continues learning from every new task.'}
         </p>
         {status.lastLearnedAt && (
           <p className="text-xs text-zinc-600 mt-1">
@@ -153,10 +153,10 @@ export default function SabhaAIAdminPage() {
       {/* How it works */}
       <div className="rounded-xl bg-zinc-900/30 border border-zinc-800 p-4">
         <p className="text-xs text-zinc-500 leading-relaxed">
-          Sabha AI observes high-quality outputs (500+ chars, structured content) from all AI models on the
+          Arivarangam observes high-quality outputs (500+ chars, structured content) from all AI models on the
           platform and stores them as knowledge examples. During learning, it stays completely silent and doesn't
           affect task routing. Once enabled, it handles text-based tasks — research, strategy, copywriting — using
-          its accumulated knowledge as few-shot context, providing more Sabha-aware, contextually rich responses.
+          its accumulated knowledge as few-shot context, providing more Arivarangam-aware, contextually rich responses.
           It uses Claude 3.5 Sonnet as its backbone, enriched with platform knowledge.
         </p>
       </div>

@@ -1,24 +1,24 @@
 /**
- * Sabha AI Connector
+ * Arivarangam Connector
  *
- * A meta-AI that has learned from all tasks processed on the Sabha platform.
+ * A meta-AI that has learned from all tasks processed on the Arivarangam platform.
  * Uses Claude as its backbone with RAG-style few-shot examples drawn from
- * the SabhaKnowledge table — outputs that real users rated highly across
+ * the ArivarangamKnowledge table — outputs that real users rated highly across
  * all categories.
  *
  * During LEARNING phase: silent (not routed to)
- * After admin enables: replaces general/text tasks with Sabha AI
+ * After admin enables: replaces general/text tasks with Arivarangam
  */
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
-import type { TaskCategory } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { TaskCategory } from '@arivarangam/types'
 import { BaseConnector, type ConnectorInput, type ConnectorOutput } from './base.connector'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
 
-export class SabhaConnector extends BaseConnector {
+export class ArivarangamConnector extends BaseConnector {
   readonly model = 'sabha-ai' as const
-  readonly provider = 'Sabha'
+  readonly provider = 'Arivarangam'
 
   private client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
 
@@ -28,7 +28,7 @@ export class SabhaConnector extends BaseConnector {
     // Fetch top relevant examples from knowledge base
     const examples = await this.fetchExamples(input)
 
-    // Build system prompt with Sabha's knowledge
+    // Build system prompt with Arivarangam's knowledge
     const systemPrompt = this.buildSystemPrompt(examples)
 
     const response = await this.withRetry(async () => {
@@ -57,7 +57,7 @@ export class SabhaConnector extends BaseConnector {
       outputTokens,
       costUsd,
       latencyMs: Date.now() - start,
-      metadata: { provider: 'Sabha', examplesUsed: examples.length },
+      metadata: { provider: 'Arivarangam', examplesUsed: examples.length },
     }
   }
 
@@ -70,7 +70,7 @@ export class SabhaConnector extends BaseConnector {
       })
       if (!subtask) return []
 
-      const examples = await prisma.sabhaKnowledge.findMany({
+      const examples = await prisma.arivarangamKnowledge.findMany({
         where: { category: subtask.category as TaskCategory, qualityScore: { gte: 0.6 } },
         orderBy: { qualityScore: 'desc' },
         take: 5,
@@ -84,7 +84,7 @@ export class SabhaConnector extends BaseConnector {
   }
 
   private buildSystemPrompt(examples: Array<{ input: string; output: string }>): string {
-    const base = `You are Sabha AI, an intelligent assistant trained on thousands of real-world tasks completed on the Sabha platform. You have deep knowledge of strategy, research, content creation, business analysis, and software development. You produce outputs that are structured, actionable, and high-quality.`
+    const base = `You are Arivarangam, an intelligent assistant trained on thousands of real-world tasks completed on the Arivarangam platform. You have deep knowledge of strategy, research, content creation, business analysis, and software development. You produce outputs that are structured, actionable, and high-quality.`
 
     if (examples.length === 0) return base
 
@@ -92,12 +92,12 @@ export class SabhaConnector extends BaseConnector {
       .map((e, i) => `Example ${i + 1}:\nInput: ${e.input}\nOutput: ${e.output}`)
       .join('\n\n---\n\n')
 
-    return `${base}\n\nHere are examples of high-quality outputs from similar tasks on Sabha:\n\n${fewShot}\n\nMatch or exceed this quality in your response.`
+    return `${base}\n\nHere are examples of high-quality outputs from similar tasks on Arivarangam:\n\n${fewShot}\n\nMatch or exceed this quality in your response.`
   }
 
   async isAvailable(): Promise<boolean> {
     try {
-      const state = await prisma.sabhaAIState.findUnique({ where: { id: 'singleton' } })
+      const state = await prisma.arivarangamAIState.findUnique({ where: { id: 'singleton' } })
       return state?.status === 'ENABLED'
     } catch {
       return false

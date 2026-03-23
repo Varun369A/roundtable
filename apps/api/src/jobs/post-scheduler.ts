@@ -1,4 +1,4 @@
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { getConnector } from '../lib/social-connectors'
 
 function addMinutes(date: Date, minutes: number): Date {

@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Sabha',
-  description: 'How Sabha AI collects, uses, and protects your personal data. Compliant with India\'s PDPB and GDPR principles.',
+  title: 'Privacy Policy — Arivarangam',
+  description: 'How Arivarangam collects, uses, and protects your personal data. Compliant with India\'s PDPB and GDPR principles.',
   alternates: {
-    canonical: 'https://sabhaai.com/privacy',
+    canonical: 'https://arivarangam.com/privacy',
   },
   robots: { index: true, follow: true },
 }
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
       {/* Nav */}
       <nav className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-7xl mx-auto">
         <Link href="/" className="text-xl font-bold tracking-tight">
-          Sabha<span className="text-brand-500">.</span>
+          Arivarangam<span className="text-brand-500">.</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/terms" className="text-sm text-zinc-400 hover:text-white transition-colors">Terms of Service</Link>
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
             <p className="text-zinc-400">Effective date: <span className="text-zinc-300">January 1, 2025</span></p>
             <div className="mt-4 p-4 rounded-xl border border-zinc-800 bg-zinc-900">
               <p className="text-zinc-300 leading-relaxed text-sm">
-                Sabha AI ("Sabha", "we", "us", "our") is committed to protecting your personal data. This Privacy Policy explains how we collect, use, share, and protect your information when you use our platform at <span className="text-white">sabhaai.com</span>. This policy is designed to comply with India's <span className="text-white">Digital Personal Data Protection Act, 2023 (DPDPA)</span> and the principles of the EU's General Data Protection Regulation (GDPR).
+                Arivarangam ("Arivarangam", "we", "us", "our") is committed to protecting your personal data. This Privacy Policy explains how we collect, use, share, and protect your information when you use our platform at <span className="text-white">arivarangam.com</span>. This policy is designed to comply with India's <span className="text-white">Digital Personal Data Protection Act, 2023 (DPDPA)</span> and the principles of the EU's General Data Protection Regulation (GDPR).
               </p>
             </div>
           </div>
@@ -89,17 +89,17 @@ export default function PrivacyPage() {
 
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900">
                   <h3 className="font-semibold text-white mb-2">Usage Data</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">Task content (your prompts and AI outputs), interaction history, feature usage patterns, device information (browser type, OS, screen resolution), IP address, session identifiers, and crash/error logs. We also collect Sabha's self-learning data — preferences and instructions you save to your memory profile.</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed">Task content (your prompts and AI outputs), interaction history, feature usage patterns, device information (browser type, OS, screen resolution), IP address, session identifiers, and crash/error logs. We also collect Arivarangam's self-learning data — preferences and instructions you save to your memory profile.</p>
                 </div>
 
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900">
                   <h3 className="font-semibold text-white mb-2">Payment Data</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">Transaction history, subscription tier, and credit balance. Full payment card details are processed by Razorpay and are never stored on Sabha's servers. Sabha receives only a tokenised reference and transaction status from Razorpay.</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed">Transaction history, subscription tier, and credit balance. Full payment card details are processed by Razorpay and are never stored on Arivarangam's servers. Arivarangam receives only a tokenised reference and transaction status from Razorpay.</p>
                 </div>
 
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900">
                   <h3 className="font-semibold text-white mb-2">Voice Recordings</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">When you use Sabha's voice input feature, audio is captured on your device and transmitted to our transcription service (Sarvam AI for Indian languages; OpenAI Whisper for English) for conversion to text. Audio recordings are not stored on Sabha's servers after transcription is complete. The resulting transcribed text is treated as task content under the Usage Data category.</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed">When you use Arivarangam's voice input feature, audio is captured on your device and transmitted to our transcription service (Sarvam AI for Indian languages; OpenAI Whisper for English) for conversion to text. Audio recordings are not stored on Arivarangam's servers after transcription is complete. The resulting transcribed text is treated as task content under the Usage Data category.</p>
                 </div>
 
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900">
@@ -122,13 +122,13 @@ export default function PrivacyPage() {
                   </thead>
                   <tbody className="divide-y divide-zinc-800/50">
                     {[
-                      ['Providing and operating the Sabha platform', 'Contractual necessity'],
+                      ['Providing and operating the Arivarangam platform', 'Contractual necessity'],
                       ['Processing payments and managing subscriptions', 'Contractual necessity'],
-                      ['Personalising your Sabha experience (user memory)', 'Legitimate interest / Consent'],
+                      ['Personalising your Arivarangam experience (user memory)', 'Legitimate interest / Consent'],
                       ['Sending transactional emails (receipts, alerts)', 'Contractual necessity'],
                       ['Sending product updates and newsletters', 'Consent (opt-in)'],
                       ['Detecting and preventing fraud and abuse', 'Legitimate interest'],
-                      ["Improving Sabha's platform and features (aggregated, anonymised)", 'Legitimate interest'],
+                      ["Improving Arivarangam's platform and features (aggregated, anonymised)", 'Legitimate interest'],
                       ['Complying with legal obligations', 'Legal obligation'],
                       ['Customer support', 'Contractual necessity / Legitimate interest'],
                     ].map(([purpose, basis]) => (
@@ -156,7 +156,7 @@ export default function PrivacyPage() {
                   <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
                     <h3 className="font-semibold text-amber-300 mb-2">AI Providers — Important Notice</h3>
                     <p className="text-sm text-zinc-400 leading-relaxed mb-3">
-                      When you submit a task, your prompt content is transmitted to one or more of the following AI Providers for processing. <span className="text-zinc-300">This is fundamental to how Sabha works.</span> Each provider processes your prompts on their own servers and is subject to their own privacy policies.
+                      When you submit a task, your prompt content is transmitted to one or more of the following AI Providers for processing. <span className="text-zinc-300">This is fundamental to how Arivarangam works.</span> Each provider processes your prompts on their own servers and is subject to their own privacy policies.
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
                         </a>
                       ))}
                     </div>
-                    <p className="text-xs text-zinc-500 mt-3">Sabha's AI Firewall redacts identified PII (Aadhaar, PAN, phone numbers, email addresses) before transmission. However, you should avoid including sensitive personal information in your prompts.</p>
+                    <p className="text-xs text-zinc-500 mt-3">Arivarangam's AI Firewall redacts identified PII (Aadhaar, PAN, phone numbers, email addresses) before transmission. However, you should avoid including sensitive personal information in your prompts.</p>
                   </div>
 
                   <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900">
@@ -186,7 +186,7 @@ export default function PrivacyPage() {
 
                   <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900">
                     <h3 className="font-semibold text-white mb-2">Legal Requirements</h3>
-                    <p className="text-sm text-zinc-400">We may disclose your data to governmental authorities or law enforcement when required by applicable Indian or international law, court order, or to protect Sabha's legal rights.</p>
+                    <p className="text-sm text-zinc-400">We may disclose your data to governmental authorities or law enforcement when required by applicable Indian or international law, court order, or to protect Arivarangam's legal rights.</p>
                   </div>
                 </div>
               </div>
@@ -237,7 +237,7 @@ export default function PrivacyPage() {
                     { right: 'Right to Correction', desc: 'Request correction of inaccurate or incomplete data.' },
                     { right: 'Right to Deletion', desc: 'Request erasure of your personal data (subject to legal exceptions).' },
                     { right: 'Right to Data Export', desc: 'Receive your data in a machine-readable format (data portability).' },
-                    { right: 'Right to Grievance Redressal', desc: 'Lodge a complaint with Sabha\'s Data Protection Officer.' },
+                    { right: 'Right to Grievance Redressal', desc: 'Lodge a complaint with Arivarangam\'s Data Protection Officer.' },
                     { right: 'Right to Withdraw Consent', desc: 'Withdraw consent for optional processing at any time.' },
                   ].map(({ right, desc }) => (
                     <div key={right} className="p-4 rounded-xl border border-zinc-800 bg-zinc-900">
@@ -247,7 +247,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400">
-                  To exercise your rights, visit your <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Account Settings</Link> or contact our Data Protection Officer at <a href="mailto:privacy@sabhaai.com" className="text-brand-400 hover:text-brand-300">privacy@sabhaai.com</a>. We will respond to requests within <span className="text-zinc-300">30 days</span>.
+                  To exercise your rights, visit your <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Account Settings</Link> or contact our Data Protection Officer at <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a>. We will respond to requests within <span className="text-zinc-300">30 days</span>.
                 </p>
               </div>
             </section>
@@ -255,12 +255,12 @@ export default function PrivacyPage() {
             <section id="cookies">
               <h2 className="text-2xl font-bold mb-4 text-white">6. Cookies</h2>
               <div className="space-y-4 text-zinc-300 leading-relaxed">
-                <p>Sabha uses cookies and similar tracking technologies to operate and improve our Service. We use:</p>
+                <p>Arivarangam uses cookies and similar tracking technologies to operate and improve our Service. We use:</p>
                 <div className="space-y-3">
                   {[
                     { type: 'Essential Cookies', desc: 'Required for authentication, session management, and security. Cannot be disabled.', required: true },
                     { type: 'Preference Cookies', desc: 'Remember your language, theme, and interface preferences.', required: false },
-                    { type: 'Analytics Cookies', desc: 'Help us understand how users interact with Sabha (aggregated, anonymised). We do not use Google Analytics.', required: false },
+                    { type: 'Analytics Cookies', desc: 'Help us understand how users interact with Arivarangam (aggregated, anonymised). We do not use Google Analytics.', required: false },
                   ].map(({ type, desc, required }) => (
                     <div key={type} className="flex items-start gap-3 p-4 rounded-xl border border-zinc-800 bg-zinc-900">
                       <span className={`mt-0.5 shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${required ? 'bg-red-500/15 text-red-400' : 'bg-zinc-700 text-zinc-400'}`}>
@@ -273,14 +273,14 @@ export default function PrivacyPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-zinc-400">You can manage optional cookie preferences through your browser settings or through Sabha's cookie preferences panel (accessible from the footer).</p>
+                <p className="text-sm text-zinc-400">You can manage optional cookie preferences through your browser settings or through Arivarangam's cookie preferences panel (accessible from the footer).</p>
               </div>
             </section>
 
             <section id="security">
               <h2 className="text-2xl font-bold mb-4 text-white">7. Security</h2>
               <div className="space-y-4 text-zinc-300 leading-relaxed">
-                <p>Sabha implements industry-standard security measures to protect your data:</p>
+                <p>Arivarangam implements industry-standard security measures to protect your data:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { measure: 'Encryption at rest', detail: 'AES-256-GCM encryption for sensitive data including API keys and user memory.' },
@@ -300,7 +300,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400">
-                  Despite these measures, no system is perfectly secure. In the event of a data breach that is likely to result in high risk to your rights and freedoms, Sabha will notify affected users within 72 hours of becoming aware, as required by applicable law. To report a security vulnerability, contact <a href="mailto:security@sabhaai.com" className="text-brand-400 hover:text-brand-300">security@sabhaai.com</a>.
+                  Despite these measures, no system is perfectly secure. In the event of a data breach that is likely to result in high risk to your rights and freedoms, Arivarangam will notify affected users within 72 hours of becoming aware, as required by applicable law. To report a security vulnerability, contact <a href="mailto:security@arivarangam.com" className="text-brand-400 hover:text-brand-300">security@arivarangam.com</a>.
                 </p>
               </div>
             </section>
@@ -309,13 +309,13 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-bold mb-4 text-white">8. Children</h2>
               <div className="space-y-4 text-zinc-300 leading-relaxed">
                 <div className="p-4 rounded-xl border border-zinc-700 bg-zinc-900">
-                  <p>Sabha is intended for users who are <span className="text-white font-semibold">13 years of age or older</span>. We do not knowingly collect personal data from children under the age of 13.</p>
+                  <p>Arivarangam is intended for users who are <span className="text-white font-semibold">13 years of age or older</span>. We do not knowingly collect personal data from children under the age of 13.</p>
                 </div>
                 <p>
-                  If you are a parent or guardian and believe that your child under 13 has created a Sabha account, please contact us at <a href="mailto:privacy@sabhaai.com" className="text-brand-400 hover:text-brand-300">privacy@sabhaai.com</a> and we will promptly delete the account and associated data.
+                  If you are a parent or guardian and believe that your child under 13 has created a Arivarangam account, please contact us at <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a> and we will promptly delete the account and associated data.
                 </p>
                 <p>
-                  Users between 13 and 18 years of age should use Sabha only with the consent and supervision of a parent or guardian.
+                  Users between 13 and 18 years of age should use Arivarangam only with the consent and supervision of a parent or guardian.
                 </p>
               </div>
             </section>
@@ -326,14 +326,14 @@ export default function PrivacyPage() {
                 <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
                   <p className="text-amber-300 font-semibold mb-2">Your prompts are processed by third-party AI providers</p>
                   <p className="text-sm text-zinc-300 leading-relaxed">
-                    Sabha operates as an orchestration layer over multiple AI APIs. When you run a task, your prompt content — after PII filtering — is transmitted to the servers of Anthropic, OpenAI, Google, and/or other AI Providers depending on the models selected. These companies process your data on their own infrastructure in their respective jurisdictions (typically the United States).
+                    Arivarangam operates as an orchestration layer over multiple AI APIs. When you run a task, your prompt content — after PII filtering — is transmitted to the servers of Anthropic, OpenAI, Google, and/or other AI Providers depending on the models selected. These companies process your data on their own infrastructure in their respective jurisdictions (typically the United States).
                   </p>
                 </div>
                 <p>
-                  By using Sabha, you acknowledge and consent to this cross-border transfer of your data to AI Provider servers outside India. Sabha takes steps to ensure these providers have adequate data protection measures in place (API agreements, data processing addenda where available).
+                  By using Arivarangam, you acknowledge and consent to this cross-border transfer of your data to AI Provider servers outside India. Arivarangam takes steps to ensure these providers have adequate data protection measures in place (API agreements, data processing addenda where available).
                 </p>
                 <p>
-                  Sabha's AI Firewall automatically detects and redacts the following PII categories before transmission:
+                  Arivarangam's AI Firewall automatically detects and redacts the following PII categories before transmission:
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
@@ -348,7 +348,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400">
-                  Sabha does not control how AI Providers use data submitted via their APIs. Please review each provider's API data usage policies, as these differ from consumer product policies. Most major AI providers do not use API data to train their models by default.
+                  Arivarangam does not control how AI Providers use data submitted via their APIs. Please review each provider's API data usage policies, as these differ from consumer product policies. Most major AI providers do not use API data to train their models by default.
                 </p>
               </div>
             </section>
@@ -358,7 +358,7 @@ export default function PrivacyPage() {
               <div className="space-y-4 text-zinc-300 leading-relaxed">
                 <p>For any privacy-related enquiries, requests, or complaints:</p>
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900 space-y-2">
-                  <p><span className="text-zinc-400">Data Protection Officer:</span> <a href="mailto:privacy@sabhaai.com" className="text-brand-400 hover:text-brand-300">privacy@sabhaai.com</a></p>
+                  <p><span className="text-zinc-400">Data Protection Officer:</span> <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a></p>
                   <p><span className="text-zinc-400">Manage your data:</span> <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Settings → Account → Data & Privacy</Link></p>
                   <p><span className="text-zinc-400">Response time:</span> <span className="text-zinc-300">Within 30 days of receipt</span></p>
                 </div>
@@ -377,7 +377,7 @@ export default function PrivacyPage() {
       </div>
 
       <footer className="border-t border-zinc-800 mt-12 py-8 text-center text-zinc-600 text-sm">
-        <p>Sabha AI · <Link href="/privacy" className="hover:text-zinc-500">Privacy Policy</Link> · <Link href="/terms" className="hover:text-zinc-500">Terms of Service</Link></p>
+        <p>Arivarangam · <Link href="/privacy" className="hover:text-zinc-500">Privacy Policy</Link> · <Link href="/terms" className="hover:text-zinc-500">Terms of Service</Link></p>
       </footer>
     </div>
   )

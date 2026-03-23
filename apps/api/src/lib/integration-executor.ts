@@ -3,7 +3,7 @@
  * Executes approved integration actions: GitHub, Gmail, Notion, Slack, Webhooks.
  * Uses the user's stored (encrypted) integration tokens.
  */
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { Octokit } from '@octokit/rest'
 import { google } from 'googleapis'
 import { decryptByoai } from './encrypt'

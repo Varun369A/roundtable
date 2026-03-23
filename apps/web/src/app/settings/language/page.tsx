@@ -62,11 +62,11 @@ export default function LanguageSettingsPage() {
         {/* Hero */}
         <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6">
           <h1 className="text-xl font-bold mb-2">
-            Sabha speaks your language
+            Arivarangam speaks your language
           </h1>
           <p className="text-zinc-400 text-sm leading-relaxed">
             Type your goals in Hindi, Tamil, Telugu, or any of 10 Indian languages.
-            Sabha's AI team works in English internally and delivers everything back to you
+            Arivarangam's AI team works in English internally and delivers everything back to you
             in your chosen language. Powered by Sarvam AI.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function LanguageSettingsPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h2 className="font-semibold mb-1">Preferred language</h2>
           <p className="text-zinc-500 text-sm mb-4">
-            Sabha will detect your language automatically, or you can set a fixed preference.
+            Arivarangam will detect your language automatically, or you can set a fixed preference.
           </p>
 
           <LanguageSelector
@@ -98,7 +98,7 @@ export default function LanguageSettingsPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h2 className="font-semibold mb-4">See it in action</h2>
           <p className="text-zinc-500 text-sm mb-4">
-            This is how Sabha understands the same goal in different languages:
+            This is how Arivarangam understands the same goal in different languages:
           </p>
 
           <div className="flex flex-wrap gap-2 mb-4">
@@ -125,7 +125,7 @@ export default function LanguageSettingsPage() {
             {previewLang !== 'en' && (
               <>
                 <div className="my-3 border-t border-zinc-700" />
-                <p className="text-sm text-zinc-400 mb-1 font-mono">Sabha understands (en):</p>
+                <p className="text-sm text-zinc-400 mb-1 font-mono">Arivarangam understands (en):</p>
                 <p className="text-zinc-400 leading-relaxed italic">
                   {DEMO_TRANSLATIONS['en']}
                 </p>

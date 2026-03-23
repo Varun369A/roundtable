@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { requireTermsAccepted } from '../middleware/terms'
 import { checkAccountStatus } from '../middleware/account-status'
@@ -12,7 +12,7 @@ function generateSlug(name: string): string {
 }
 
 async function checkRepoAccess(repoId: string, userId: string, required: 'READ' | 'WRITE' | 'ADMIN' = 'READ'): Promise<boolean> {
-  const repo = await db.sabhaRepo.findUnique({ where: { id: repoId } })
+  const repo = await db.arivarangamRepo.findUnique({ where: { id: repoId } })
   if (!repo || repo.isArchived) return false
   if (repo.ownerId === userId) return true
 
@@ -47,16 +47,16 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     if (!name || !VALID_CATEGORIES.includes(category)) return reply.status(400).send({ success: false, message: 'name and valid category required' })
     const vis = ['PRIVATE', 'FRIENDS', 'COLLABORATORS'].includes(visibility) ? visibility : 'PRIVATE'
     let slug = generateSlug(String(name).trim())
-    const existing = await db.sabhaRepo.findFirst({ where: { ownerId: userId, slug } })
+    const existing = await db.arivarangamRepo.findFirst({ where: { ownerId: userId, slug } })
     if (existing) slug = `${slug}-${Date.now().toString(36)}`
-    const repo = await db.sabhaRepo.create({ data: { ownerId: userId, name: String(name).slice(0, 100), slug, description: description ? String(description).slice(0, 500) : null, category, visibility: vis as any } })
+    const repo = await db.arivarangamRepo.create({ data: { ownerId: userId, name: String(name).slice(0, 100), slug, description: description ? String(description).slice(0, 500) : null, category, visibility: vis as any } })
     await db.userSocialProfile.updateMany({ where: { userId }, data: { reposCount: { increment: 1 } } })
     return reply.status(201).send({ success: true, data: repo })
   })
 
   app.get('/repos', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
-    const repos = await db.sabhaRepo.findMany({ where: { ownerId: userId, isArchived: false }, include: { _count: { select: { items: true, commits: true } } }, orderBy: { updatedAt: 'desc' } })
+    const repos = await db.arivarangamRepo.findMany({ where: { ownerId: userId, isArchived: false }, include: { _count: { select: { items: true, commits: true } } }, orderBy: { updatedAt: 'desc' } })
     return reply.send({ success: true, data: repos })
   })
 
@@ -68,7 +68,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     const friendIds = friendships.map(f => f.userAId === userId ? f.userBId : f.userAId)
     const collabRepos = await db.repoCollaborator.findMany({ where: { userId, revokedAt: null }, select: { repoId: true } })
     const collabRepoIds = collabRepos.map(c => c.repoId)
-    const repos = await db.sabhaRepo.findMany({
+    const repos = await db.arivarangamRepo.findMany({
       where: {
         isArchived: false, ownerId: { not: userId },
         OR: [{ id: { in: collabRepoIds } }, { visibility: 'FRIENDS', ownerId: { in: friendIds } }],
@@ -83,7 +83,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Params: { id: string } }>('/repos/:id', { preHandler }, async (req: any, reply) => {
     const { id } = req.params
     if (!await checkRepoAccess(id, req.user.id, 'READ')) return reply.status(404).send({ success: false, message: 'Not found' })
-    const repo = await db.sabhaRepo.findUnique({ where: { id }, include: { _count: { select: { items: true, commits: true } }, collaborators: { where: { revokedAt: null }, select: { userId: true, permission: true, grantedAt: true } } } })
+    const repo = await db.arivarangamRepo.findUnique({ where: { id }, include: { _count: { select: { items: true, commits: true } }, collaborators: { where: { revokedAt: null }, select: { userId: true, permission: true, grantedAt: true } } } })
     return reply.send({ success: true, data: repo })
   })
 
@@ -96,7 +96,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     if (typeof description === 'string') data.description = description.slice(0, 500)
     if (['PRIVATE', 'FRIENDS', 'COLLABORATORS'].includes(visibility)) data.visibility = visibility
     if (typeof isArchived === 'boolean') data.isArchived = isArchived
-    const repo = await db.sabhaRepo.update({ where: { id }, data })
+    const repo = await db.arivarangamRepo.update({ where: { id }, data })
     return reply.send({ success: true, data: repo })
   })
 
@@ -125,7 +125,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     const item = await db.repoItem.create({ data: { repoId: id, authorId: userId, title: String(title).slice(0, 200), category, content: String(content), fileUrl: fileUrl ?? null, metadata: metadata ?? null, sourceTaskId: sourceTaskId ?? null, sourceSubtaskId: sourceSubtaskId ?? null } })
     const snapshot = await db.repoItem.findMany({ where: { repoId: id, isArchived: false } })
     await db.repoCommit.create({ data: { repoId: id, authorId: userId, message: `Added: ${item.title}`, itemsAdded: 1, snapshot: snapshot as any } })
-    await db.sabhaRepo.update({ where: { id }, data: { updatedAt: new Date() } })
+    await db.arivarangamRepo.update({ where: { id }, data: { updatedAt: new Date() } })
     return reply.status(201).send({ success: true, data: item })
   })
 
@@ -156,7 +156,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     const existing = await db.repoCollaborator.findFirst({ where: { repoId: id, userId: targetUserId, revokedAt: null } })
     if (existing) return reply.status(409).send({ success: false, message: 'Already a collaborator' })
     const collab = await db.repoCollaborator.create({ data: { repoId: id, userId: targetUserId, permission, grantedById: userId } })
-    const repo = await db.sabhaRepo.findUnique({ where: { id } })
+    const repo = await db.arivarangamRepo.findUnique({ where: { id } })
     await (db.notification as any).create({ data: { userId: targetUserId, type: 'REPO_ACCESS_GRANTED', title: 'Repository access granted', body: `You have been given ${permission} access to "${repo?.name}"`, link: `/repos/${id}` } })
     return reply.status(201).send({ success: true, data: collab })
   })
@@ -166,7 +166,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     const userId = req.user.id
     if (!await checkRepoAccess(id, userId, 'ADMIN')) return reply.status(403).send({ success: false, message: 'Forbidden' })
     await db.repoCollaborator.updateMany({ where: { repoId: id, userId: uid }, data: { revokedAt: new Date() } })
-    const repo = await db.sabhaRepo.findUnique({ where: { id } })
+    const repo = await db.arivarangamRepo.findUnique({ where: { id } })
     await (db.notification as any).create({ data: { userId: uid, type: 'REPO_ACCESS_REVOKED', title: 'Repository access revoked', body: `Your access to "${repo?.name}" has been revoked`, link: '/repos' } })
     return reply.send({ success: true })
   })
@@ -201,7 +201,7 @@ export async function repositoryRoutes(app: FastifyInstance): Promise<void> {
     const item = await db.repoItem.create({ data: { repoId, authorId: userId, title: title ? String(title).slice(0, 200) : `Roundtable: ${((task as any).originalGoal ?? '').slice(0, 100)}`, category: cat, content, sourceTaskId: taskId, metadata: { taskGoal: (task as any).originalGoal } } })
     const snapshot = await db.repoItem.findMany({ where: { repoId, isArchived: false } })
     await db.repoCommit.create({ data: { repoId, authorId: userId, message: `Saved Roundtable output: ${((task as any).originalGoal ?? '').slice(0, 100)}`, itemsAdded: 1, snapshot: snapshot as any } })
-    await db.sabhaRepo.update({ where: { id: repoId }, data: { updatedAt: new Date() } })
+    await db.arivarangamRepo.update({ where: { id: repoId }, data: { updatedAt: new Date() } })
     return reply.status(201).send({ success: true, data: item })
   })
 }

@@ -8,7 +8,7 @@
  */
 
 import { FastifyInstance } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from '../lib/redis'
 import { requireAuth } from '../middleware/auth'
 import { markNotificationRead, getUnreadCount } from '../lib/notifications'
@@ -61,7 +61,7 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
   // GET /stream — SSE for live notification delivery
   app.get('/stream', async (request, reply) => {
     const userId  = request.user!.id
-    const channel = `sabha:user:${userId}`
+    const channel = `arivarangam:user:${userId}`
 
     // Set SSE headers and hijack the connection from Fastify
     reply.raw.setHeader('Content-Type',      'text/event-stream')

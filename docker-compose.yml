@@ -82,18 +82,18 @@ services:
       retries: 5
 
   # Grafana — metrics dashboard.
-  # Default login: admin / sabha_grafana_dev (change in production).
+  # Default login: admin / arivarangam_grafana_dev (change in production).
   grafana:
     image: grafana/grafana:10.4.2
-    container_name: sabha_grafana
+    container_name: arivarangam_grafana
     ports:
       - "3002:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: sabha_grafana_dev
+      GF_SECURITY_ADMIN_PASSWORD: arivarangam_grafana_dev
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/sabha.json
     volumes:
-      - sabha_grafana_data:/var/lib/grafana
+      - arivarangam_grafana_data:/var/lib/grafana
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
@@ -108,4 +108,4 @@ volumes:
   sabha_postgres_data:
   sabha_valkey_data:
   sabha_prometheus_data:
-  sabha_grafana_data:
+  arivarangam_grafana_data:

@@ -18,7 +18,7 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { runWorkflow, generateWebhookSecret, validateWebhookSignature } from '../lib/workflow-executor'
 

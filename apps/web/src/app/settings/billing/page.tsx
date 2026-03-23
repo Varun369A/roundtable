@@ -96,7 +96,7 @@ export default function BillingPage() {
         {/* Upgrade success banner */}
         {upgraded && (
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-green-400 text-sm font-medium">
-            ✓ Plan upgraded successfully. Welcome to Sabha {status.plan.name}!
+            ✓ Plan upgraded successfully. Welcome to Arivarangam {status.plan.name}!
           </div>
         )}
 
@@ -199,7 +199,7 @@ export default function BillingPage() {
           <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-6 text-center">
             <p className="text-yellow-400 font-semibold mb-1">Early adopter lifetime deal</p>
             <p className="text-zinc-400 text-sm mb-4">
-              First 100 users get Sabha Pro for life — one-time payment of ₹2,999.
+              First 100 users get Arivarangam Pro for life — one-time payment of ₹2,999.
             </p>
             <Link href="/pricing" className="px-5 py-2.5 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium transition-colors">
               Claim lifetime deal →

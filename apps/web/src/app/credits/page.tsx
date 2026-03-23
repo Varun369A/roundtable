@@ -104,7 +104,7 @@ function PurchaseModal({
         order_id: res.data.orderId,
         amount: res.data.amount,
         currency: res.data.currency || 'INR',
-        name: 'Sabha Credits',
+        name: 'Arivarangam Credits',
         description: `${pack.name} — ${pack.credits + pack.bonusCredits} credits`,
         theme: { color: '#6366f1' },
         handler: () => {
@@ -244,13 +244,13 @@ export default function CreditsPage() {
 
   const shareOnTwitter = () => {
     if (!referral) return
-    const text = encodeURIComponent(`I use Sabha to run multiple AIs in one roundtable — it's incredible. Join with my code ${referral.code} and get 50 free credits! https://sabha.ai/signup?ref=${referral.code}`)
+    const text = encodeURIComponent(`I use Arivarangam to run multiple AIs in one roundtable — it's incredible. Join with my code ${referral.code} and get 50 free credits! https://sabha.ai/signup?ref=${referral.code}`)
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
   }
 
   const shareOnWhatsApp = () => {
     if (!referral) return
-    const text = encodeURIComponent(`Hey! I've been using Sabha to run multiple AIs together. Use my referral code *${referral.code}* and get 50 free credits: https://sabha.ai/signup?ref=${referral.code}`)
+    const text = encodeURIComponent(`Hey! I've been using Arivarangam to run multiple AIs together. Use my referral code *${referral.code}* and get 50 free credits: https://sabha.ai/signup?ref=${referral.code}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }
 

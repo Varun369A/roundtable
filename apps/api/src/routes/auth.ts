@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
-import { env } from '@sabha/config'
+import { prisma } from '@arivarangam/db'
+import { env } from '@arivarangam/config'
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../lib/password'
 import {
   generateRefreshToken,
@@ -173,7 +173,7 @@ export async function authRoutes(app: FastifyInstance) {
     // Grant signup bonus credits (non-blocking, fire-and-forget)
     grantSignupBonus(user.id).catch(() => {})
 
-    // Create Sabha Passport for new user (non-blocking)
+    // Create Arivarangam Passport for new user (non-blocking)
     createPassportOnSignup(user.id, user.email, user.name ?? undefined).catch(() => {})
 
     // Create email verification token and send verification email (non-blocking)

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from '../lib/redis'
 import { getQueueStats } from '../jobs/queue'
 import { circuitBreakerRegistry } from '../lib/circuit-breaker'

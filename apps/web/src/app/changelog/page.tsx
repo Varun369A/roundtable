@@ -45,8 +45,8 @@ const RELEASES = [
     tag: 'Major Release',
     tagColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
     changes: [
-      { tag: 'Feature',     text: 'Multiplayer Roundtable: share a live Sabha session with workspace members. Multiple users can observe AI outputs streaming in real time and send steering messages.' },
-      { tag: 'Feature',     text: 'Workflow Builder: chain multiple Sabha tasks into pipelines with variable interpolation, conditional branching, webhook triggers, and scheduled execution.' },
+      { tag: 'Feature',     text: 'Multiplayer Roundtable: share a live Arivarangam session with workspace members. Multiple users can observe AI outputs streaming in real time and send steering messages.' },
+      { tag: 'Feature',     text: 'Workflow Builder: chain multiple Arivarangam tasks into pipelines with variable interpolation, conditional branching, webhook triggers, and scheduled execution.' },
       { tag: 'Feature',     text: 'Workspace role permissions: distinguish observers (can watch) from participants (can steer) in multiplayer sessions.' },
       { tag: 'Feature',     text: '12 pre-built workflow templates for common use cases: content pipeline, competitive research, weekly report, and more.' },
       { tag: 'Improvement', text: 'Multiplayer sessions now show a live participant count and a side chat panel alongside the AI output stream.' },
@@ -61,10 +61,10 @@ const RELEASES = [
     tag: 'Feature Release',
     tagColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
     changes: [
-      { tag: 'Feature',     text: 'Clarification Round: Sabha\'s AI asks 1–3 targeted clarifying questions before starting a task to improve output quality. Always skippable.' },
-      { tag: 'Feature',     text: 'User Memory: Sabha builds a persistent, private memory profile with your industry, role, writing style, and preferences. Applied automatically to every task.' },
-      { tag: 'Feature',     text: 'Mid-Generation Steering: send a message to Sabha while it\'s processing to change direction, add context, or correct errors — without restarting the task.' },
-      { tag: 'Feature',     text: 'Scheduled Tasks: run any Sabha task on a cron schedule (daily, weekly, or custom) with results delivered via email or saved to task history.' },
+      { tag: 'Feature',     text: 'Clarification Round: Arivarangam\'s AI asks 1–3 targeted clarifying questions before starting a task to improve output quality. Always skippable.' },
+      { tag: 'Feature',     text: 'User Memory: Arivarangam builds a persistent, private memory profile with your industry, role, writing style, and preferences. Applied automatically to every task.' },
+      { tag: 'Feature',     text: 'Mid-Generation Steering: send a message to Arivarangam while it\'s processing to change direction, add context, or correct errors — without restarting the task.' },
+      { tag: 'Feature',     text: 'Scheduled Tasks: run any Arivarangam task on a cron schedule (daily, weekly, or custom) with results delivered via email or saved to task history.' },
       { tag: 'Improvement', text: 'Memory editor in Settings → Account: add, edit, and delete individual memory entries with instant effect.' },
       { tag: 'Improvement', text: 'Steering messages are clearly labelled in session transcripts.' },
       { tag: 'Fix',         text: 'Scheduled task cron expressions with specific-minute components (e.g. "every Monday at 9:00 AM") now execute reliably.' },
@@ -81,7 +81,7 @@ const RELEASES = [
       { tag: 'Feature',  text: '15+ AI models: Claude, GPT-4, Gemini, Perplexity, DALL-E 3, Midjourney, Stable Diffusion, ElevenLabs, Sarvam AI, and more.' },
       { tag: 'Feature',  text: 'BYOAI (Bring Your Own AI): connect your own Anthropic, OpenAI, or Google API keys. AES-256-GCM encryption at rest.' },
       { tag: 'Feature',  text: 'AI Firewall: automatic PII redaction (Aadhaar, PAN, phone, email, addresses) and prompt injection protection on every request.' },
-      { tag: 'Feature',  text: 'Sabha self-learning AI: the platform learns your preferences over time and personalises every session.' },
+      { tag: 'Feature',  text: 'Arivarangam self-learning AI: the platform learns your preferences over time and personalises every session.' },
       { tag: 'Feature',  text: 'Workspaces: personal and shared workspaces, task privacy controls (private vs. workspace-visible).' },
       { tag: 'Feature',  text: 'INR-native billing via Razorpay: Free, Starter (₹499), Pro (₹1,299), Power (₹2,499). UPI, cards, net banking, EMI all supported.' },
       { tag: 'Security', text: 'TLS 1.3 in transit, AES-256-GCM at rest, bcrypt password hashing, RBAC for all internal systems.' },
@@ -125,7 +125,7 @@ export default function ChangelogPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-indigo-400">.</span>
+            Arivarangam<span className="text-indigo-400">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-400">
             <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
@@ -149,13 +149,13 @@ export default function ChangelogPage() {
           </div>
           <h1 className="text-4xl font-bold tracking-tight mb-4">Changelog</h1>
           <p className="text-zinc-400 mb-8">
-            Every Sabha release, documented. New features, improvements, and fixes.
+            Every Arivarangam release, documented. New features, improvements, and fixes.
           </p>
 
           {/* Subscribe CTA */}
           <div className="p-5 rounded-2xl border border-zinc-800 bg-zinc-900 text-left max-w-md mx-auto">
             <p className="text-sm font-semibold text-white mb-1">Get release updates by email</p>
-            <p className="text-xs text-zinc-500 mb-4">An email whenever Sabha ships something new.</p>
+            <p className="text-xs text-zinc-500 mb-4">An email whenever Arivarangam ships something new.</p>
             {subscribed ? (
               <div className="flex items-center gap-2 text-sm text-green-400">
                 <span>✓</span>
@@ -263,7 +263,7 @@ export default function ChangelogPage() {
           <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
           <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
         </div>
-        <p>© {new Date().getFullYear()} Sabha AI. Made for India.</p>
+        <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>
     </div>
   )

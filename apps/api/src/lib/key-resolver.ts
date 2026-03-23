@@ -4,7 +4,7 @@
  * resolveApiKey is the single authoritative function for deciding which
  * API key to use for a provider call:
  *   1. User's own key (decrypted via key-vault)
- *   2. Sabha's platform key (FREE users with remaining tasks)
+ *   2. Arivarangam's platform key (FREE users with remaining tasks)
  *   3. Throws NO_KEY_AVAILABLE if neither exists
  *
  * resolveUserApiKey is kept for backward compatibility with connectors that
@@ -12,7 +12,7 @@
  * of throwing when no user key exists.
  */
 
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 import { resolveApiKey as vaultResolve } from './key-vault'
 
 // Maps AIModel → provider key (matches ProviderDef.key in provider-registry)
@@ -40,13 +40,13 @@ const MODEL_TO_PROVIDER: Partial<Record<AIModel, string>> = {
 export async function resolveApiKey(
   userId: string,
   provider: string
-): Promise<{ key: string; billedTo: 'user' | 'sabha' }> {
+): Promise<{ key: string; billedTo: 'user' | 'arivarangam' }> {
   return vaultResolve(userId, provider)
 }
 
 /**
  * Resolve user's own API key for a given model.
- * Returns undefined if no key is found (does not fall back to Sabha's keys).
+ * Returns undefined if no key is found (does not fall back to Arivarangam's keys).
  * Kept for connectors that need to know if the user has their own key.
  */
 export async function resolveUserApiKey(

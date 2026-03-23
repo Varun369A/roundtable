@@ -1,4 +1,4 @@
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { getConnector } from '../lib/social-connectors'
 
 const WEEKLY_SCHEDULE: Record<number, Array<{ platform: string; type: string; time: string }>> = {
@@ -80,7 +80,7 @@ async function buildContext() {
   return {
     stats: `${totalUsersResult} total users, ${weeklyTasksResult} tasks completed this week`,
     taskExamples: recentTasks.map(t => t.originalGoal?.slice(0, 100)).filter(Boolean).join('; '),
-    recentBuilds: 'Working on Sabha social automation and digital passports',
+    recentBuilds: 'Working on Arivarangam social automation and digital passports',
     weeklyStats: `${weeklyTasksResult} tasks completed, ${totalUsersResult} total users`,
     upcoming: 'Digital passport public profiles, user self-marketing automation',
     userResult: recentTasks[0] ? `User completed: "${recentTasks[0].originalGoal}" in ${Math.round(((recentTasks[0].timeToCompleteMs as number) ?? 0) / 60000)} minutes` : 'User completed a multi-AI task'
@@ -88,45 +88,45 @@ async function buildContext() {
 }
 
 function buildPrompt(platform: string, contentType: string, trends: string, ctx: any): string {
-  const SYSTEM_PROMPT = `You are writing marketing content for Sabha, an AI orchestration platform built in Tamil Nadu, India. Sabha lets users run Claude, GPT-4o, Gemini, and Perplexity together in a 3-round Roundtable. Users bring their own API keys. Price: ₹799/month. India-first. Warm, genuine, never salesy. Founder is Varun, solo builder from Coimbatore.`
+  const SYSTEM_PROMPT = `You are writing marketing content for Arivarangam, an AI orchestration platform built in Tamil Nadu, India. Arivarangam lets users run Claude, GPT-4o, Gemini, and Perplexity together in a 3-round Roundtable. Users bring their own API keys. Price: ₹799/month. India-first. Warm, genuine, never salesy. Founder is Varun, solo builder from Coimbatore.`
 
   const PROMPTS: Record<string, Record<string, string>> = {
     LINKEDIN: {
-      PROBLEM_POST: `Write a LinkedIn post about the frustration of switching between Claude, ChatGPT, and Gemini manually. Start with a one-line hook. Tell a real story. Do not mention Sabha until the last 2 lines. Under 250 words. Warm and genuine. Trending context: ${trends}. Sabha stats: ${ctx.stats}`,
-      DEMO_VIDEO: `Write a LinkedIn post announcing a Sabha demo video. Show what happens: task run, AIs collaborated, time taken, output, cost in rupees. Under 200 words. End with [YOUTUBE_URL].`,
-      USER_RESULT: `Write a LinkedIn post showcasing a real user result on Sabha. User data: ${ctx.userResult}. Make it genuine celebration. Under 200 words.`,
-      EDUCATIONAL: `Write a LinkedIn post teaching one specific thing about using multiple AI models together. Pure value. Subtle Sabha mention only at the end. Under 300 words. Context: ${trends}`,
-      REGIONAL_TAMIL: `Write a LinkedIn post in Tamil (Tamil script) about Sabha. Topic: how Tamil Nadu freelancers can use multiple AI tools. Mention Coimbatore, Chennai. Under 200 words.`,
-      BEHIND_SCENES: `Write a personal LinkedIn post from Varun, solo founder of Sabha, about building Sabha this week. One real challenge faced. One thing learned. Genuine. No marketing. Context: ${ctx.recentBuilds}. Under 250 words.`,
-      WEEKLY_RECAP: `Write a LinkedIn post recapping Sabha's week. Stats: ${ctx.weeklyStats}. Task examples: ${ctx.taskExamples}. Coming next: ${ctx.upcoming}. Celebratory but not boastful. Under 300 words.`,
+      PROBLEM_POST: `Write a LinkedIn post about the frustration of switching between Claude, ChatGPT, and Gemini manually. Start with a one-line hook. Tell a real story. Do not mention Arivarangam until the last 2 lines. Under 250 words. Warm and genuine. Trending context: ${trends}. Arivarangam stats: ${ctx.stats}`,
+      DEMO_VIDEO: `Write a LinkedIn post announcing a Arivarangam demo video. Show what happens: task run, AIs collaborated, time taken, output, cost in rupees. Under 200 words. End with [YOUTUBE_URL].`,
+      USER_RESULT: `Write a LinkedIn post showcasing a real user result on Arivarangam. User data: ${ctx.userResult}. Make it genuine celebration. Under 200 words.`,
+      EDUCATIONAL: `Write a LinkedIn post teaching one specific thing about using multiple AI models together. Pure value. Subtle Arivarangam mention only at the end. Under 300 words. Context: ${trends}`,
+      REGIONAL_TAMIL: `Write a LinkedIn post in Tamil (Tamil script) about Arivarangam. Topic: how Tamil Nadu freelancers can use multiple AI tools. Mention Coimbatore, Chennai. Under 200 words.`,
+      BEHIND_SCENES: `Write a personal LinkedIn post from Varun, solo founder of Arivarangam, about building Arivarangam this week. One real challenge faced. One thing learned. Genuine. No marketing. Context: ${ctx.recentBuilds}. Under 250 words.`,
+      WEEKLY_RECAP: `Write a LinkedIn post recapping Arivarangam's week. Stats: ${ctx.weeklyStats}. Task examples: ${ctx.taskExamples}. Coming next: ${ctx.upcoming}. Celebratory but not boastful. Under 300 words.`,
       THREAD: `Write a LinkedIn article-style long post (500 words) about one insight about multi-AI collaboration for Indian professionals.`,
-      CAROUSEL: `Write a LinkedIn carousel (5 slides) about using Sabha for faster work. Each slide: title + 2 sentences. Format: SLIDE 1: [title]\n[content]`,
-      PRODUCT_UPDATE: `Write a LinkedIn product update post about Sabha's latest features. Professional but personal. Under 200 words.`,
+      CAROUSEL: `Write a LinkedIn carousel (5 slides) about using Arivarangam for faster work. Each slide: title + 2 sentences. Format: SLIDE 1: [title]\n[content]`,
+      PRODUCT_UPDATE: `Write a LinkedIn product update post about Arivarangam's latest features. Professional but personal. Under 200 words.`,
     },
     TWITTER: {
       THREAD: `Write a Twitter thread (6-8 tweets) about the hidden power of using multiple AI models together. Each tweet under 280 chars. Start with a bold claim. End with a question. Separate tweets with ---`,
       PROBLEM_POST: `Write a single tweet (under 280 chars) about the pain of switching between AI tools. Relatable. End with a question.`,
-      USER_RESULT: `Write a tweet celebrating a user's result with Sabha. Include: what they built, time saved. Under 280 chars.`,
+      USER_RESULT: `Write a tweet celebrating a user's result with Arivarangam. Include: what they built, time saved. Under 280 chars.`,
       EDUCATIONAL: `Write an educational tweet about one AI productivity tip. Under 280 chars. No sales.`,
-      BEHIND_SCENES: `Write a tweet from Varun about something he built or learned today working on Sabha. Personal. Under 280 chars.`,
-      WEEKLY_RECAP: `Write a tweet recapping Sabha's week. Stats: ${ctx.weeklyStats}. Under 280 chars.`,
+      BEHIND_SCENES: `Write a tweet from Varun about something he built or learned today working on Arivarangam. Personal. Under 280 chars.`,
+      WEEKLY_RECAP: `Write a tweet recapping Arivarangam's week. Stats: ${ctx.weeklyStats}. Under 280 chars.`,
     },
     INSTAGRAM: {
       CAROUSEL: `Write Instagram carousel content (5 slides) for a professional/productivity topic. Format: SLIDE 1: [Hook title]\n[2-line description]. Visual and punchy.`,
-      REEL_SCRIPT: `Write a 30-second Instagram Reel script about using Sabha. Scene descriptions + dialogue. End with a call to action.`,
-      REGIONAL_TAMIL: `Write an Instagram caption in Tamil about Sabha for Tamil Nadu creators. Friendly and local. Include 10 relevant hashtags at the end.`,
+      REEL_SCRIPT: `Write a 30-second Instagram Reel script about using Arivarangam. Scene descriptions + dialogue. End with a call to action.`,
+      REGIONAL_TAMIL: `Write an Instagram caption in Tamil about Arivarangam for Tamil Nadu creators. Friendly and local. Include 10 relevant hashtags at the end.`,
     },
     YOUTUBE: {
-      DEMO_VIDEO: `Write a YouTube video title, description (300 words), and 10 tags for a Sabha demo video showing how to run 3 AI models together on one task. Format:\nTITLE: ...\nDESCRIPTION: ...\nTAGS: ...`,
+      DEMO_VIDEO: `Write a YouTube video title, description (300 words), and 10 tags for a Arivarangam demo video showing how to run 3 AI models together on one task. Format:\nTITLE: ...\nDESCRIPTION: ...\nTAGS: ...`,
     },
     WHATSAPP_BUSINESS: {
-      REGIONAL_TAMIL: `Write a WhatsApp Business message in Tamil about Sabha for small business owners in Tamil Nadu. Conversational, friendly, under 200 words. No emojis.`,
+      REGIONAL_TAMIL: `Write a WhatsApp Business message in Tamil about Arivarangam for small business owners in Tamil Nadu. Conversational, friendly, under 200 words. No emojis.`,
     },
   }
 
   const platformPrompts = PROMPTS[platform]
-  if (!platformPrompts) return `Write a social media post about Sabha AI platform for ${platform}.`
-  return `${SYSTEM_PROMPT}\n\n${platformPrompts[contentType] ?? `Write a ${contentType} post about Sabha for ${platform}.`}`
+  if (!platformPrompts) return `Write a social media post about Arivarangam platform for ${platform}.`
+  return `${SYSTEM_PROMPT}\n\n${platformPrompts[contentType] ?? `Write a ${contentType} post about Arivarangam for ${platform}.`}`
 }
 
 function getScheduledAt(targetDate: Date, timeStr: string): Date {
@@ -137,7 +137,7 @@ function getScheduledAt(targetDate: Date, timeStr: string): Date {
 }
 
 function generateHashtags(platform: string, contentType: string): string[] {
-  const base = ['Sabha', 'AI', 'ArtificialIntelligence', 'India', 'ProductivityTools']
+  const base = ['Arivarangam', 'AI', 'ArtificialIntelligence', 'India', 'ProductivityTools']
   const platformTags: Record<string, string[]> = {
     LINKEDIN: ['LinkedInIndia', 'StartupIndia', 'BuildInIndia', 'AIStartup'],
     TWITTER: ['AITools', 'TechIndia', 'IndieHacker'],

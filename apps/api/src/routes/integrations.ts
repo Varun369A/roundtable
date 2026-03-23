@@ -15,7 +15,7 @@
  *   GET    /tasks/:taskId/actions     — get all actions for a task
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { encryptByoai } from '../lib/encrypt'
 import { approveAction, rejectAction } from '../lib/integration-executor'

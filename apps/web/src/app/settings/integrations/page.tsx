@@ -34,7 +34,7 @@ const PROVIDERS: Record<ProviderKey, ProviderConfig> = {
     icon: '✉️',
     color: 'from-red-500 to-red-700',
     description: 'Send emails and manage drafts',
-    tokenInstructions: 'Use OAuth — click Connect to authorize Sabha with your Google account',
+    tokenInstructions: 'Use OAuth — click Connect to authorize Arivarangam with your Google account',
     tokenLabel: 'OAuth Token (auto-generated)',
     defaultScopes: ['gmail.send', 'gmail.compose'],
     availableScopes: ['gmail.send', 'gmail.compose', 'gmail.readonly'],
@@ -280,7 +280,7 @@ function DisconnectDialog({ integration, onClose, onDisconnected }: DisconnectDi
         </div>
         <p className="text-sm text-zinc-400 leading-relaxed">
           This will remove the <span className="text-zinc-200 font-medium">{integration.displayName}</span> integration.
-          Sabha will no longer be able to execute {config.name} actions.
+          Arivarangam will no longer be able to execute {config.name} actions.
         </p>
         <div className="flex items-center gap-3">
           <button
@@ -352,7 +352,7 @@ export default function IntegrationsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Integrations</h1>
         <p className="text-zinc-400 text-sm leading-relaxed">
-          Connect external tools to let Sabha take real-world actions — push code to GitHub, send emails,
+          Connect external tools to let Arivarangam take real-world actions — push code to GitHub, send emails,
           create Notion pages, and more.
         </p>
       </div>
@@ -468,7 +468,7 @@ export default function IntegrationsPage() {
 
       <div className="mt-8 p-4 rounded-xl bg-zinc-900/30 border border-zinc-800">
         <p className="text-xs text-zinc-600 leading-relaxed">
-          🔒 Tokens are encrypted with AES-256-GCM. Sabha will only execute actions that are explicitly
+          🔒 Tokens are encrypted with AES-256-GCM. Arivarangam will only execute actions that are explicitly
           queued by AI tasks you create. Actions require your approval before execution.
         </p>
       </div>

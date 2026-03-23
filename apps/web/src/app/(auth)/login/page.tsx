@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <p className="mt-3 text-zinc-400">Welcome back</p>
         </div>

@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 /**
  * Cohere connector — Command R+ for RAG-optimised reasoning.
@@ -33,7 +33,7 @@ export class CohereConnector extends BaseConnector {
         body: JSON.stringify({
           model: 'command-r-plus-08-2024',
           message: input.prompt,
-          preamble: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
+          preamble: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
           max_tokens: input.options?.maxTokens || 4096,
           temperature: input.options?.temperature || 0.7,
         }),

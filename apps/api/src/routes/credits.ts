@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { verifyWebhookSignature, createOrder } from '../lib/razorpay'
 import {
@@ -15,7 +15,7 @@ import { createUpiOrder, verifyRazorpaySignature, creditUpiPayment } from '../li
 // ─── Signup bonus ─────────────────────────────────────────────────────────────
 
 export async function grantSignupBonus(userId: string): Promise<void> {
-  await creditWallet(userId, 50, 'SIGNUP_BONUS', 'Welcome bonus — thanks for joining Sabha!')
+  await creditWallet(userId, 50, 'SIGNUP_BONUS', 'Welcome bonus — thanks for joining Arivarangam!')
 }
 
 // ─── Route plugin ─────────────────────────────────────────────────────────────

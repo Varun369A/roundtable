@@ -2,27 +2,27 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'About Sabha — Building the AI Operating System for India',
-  description: 'Sabha coordinates Claude, GPT-4, Gemini, Perplexity and more so Indian knowledge workers get the best of every AI — without the per-app subscriptions.',
-  alternates: { canonical: 'https://sabhaai.com/about' },
+  title: 'About Arivarangam — Building the AI Operating System for India',
+  description: 'Arivarangam coordinates Claude, GPT-4, Gemini, Perplexity and more so Indian knowledge workers get the best of every AI — without the per-app subscriptions.',
+  alternates: { canonical: 'https://arivarangam.com/about' },
 }
 
 const TECH_FEATURES = [
   {
     title: 'Discussion Engine',
-    description: 'Sabha\'s proprietary 3-round peer review system. Each AI model produces an initial response, critiques the others\' work, and a synthesis AI produces a final, battle-tested output. This isn\'t just "ask multiple AIs" — it\'s structured intellectual adversarialism.',
+    description: 'Arivarangam\'s proprietary 3-round peer review system. Each AI model produces an initial response, critiques the others\' work, and a synthesis AI produces a final, battle-tested output. This isn\'t just "ask multiple AIs" — it\'s structured intellectual adversarialism.',
     icon: '⚡',
     color: 'from-indigo-500 to-purple-600',
   },
   {
-    title: 'Sabha Self-Learning AI',
-    description: 'Sabha builds a private memory of your preferences, industry context, writing style, and past outputs. Every session it gets a little smarter about you — without sharing that memory with anyone else.',
+    title: 'Arivarangam Self-Learning AI',
+    description: 'Arivarangam builds a private memory of your preferences, industry context, writing style, and past outputs. Every session it gets a little smarter about you — without sharing that memory with anyone else.',
     icon: '🧠',
     color: 'from-blue-500 to-indigo-600',
   },
   {
     title: 'AI Firewall',
-    description: 'Every prompt passes through Sabha\'s firewall before touching any external AI provider. Aadhaar numbers, PAN cards, phone numbers, bank details, and email addresses are automatically redacted. Prompt injection attacks are blocked.',
+    description: 'Every prompt passes through Arivarangam\'s firewall before touching any external AI provider. Aadhaar numbers, PAN cards, phone numbers, bank details, and email addresses are automatically redacted. Prompt injection attacks are blocked.',
     icon: '🛡️',
     color: 'from-green-500 to-emerald-600',
   },
@@ -47,7 +47,7 @@ const WHY_INDIA = [
   {
     stat: '₹0',
     label: 'Dollar premium',
-    detail: 'The equivalent of ChatGPT + Claude + Gemini costs ₹8,500/month separately. Sabha Pro is ₹1,299.',
+    detail: 'The equivalent of ChatGPT + Claude + Gemini costs ₹8,500/month separately. Arivarangam Pro is ₹1,299.',
   },
 ]
 
@@ -58,7 +58,7 @@ export default function AboutPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/features" className="text-sm text-zinc-400 hover:text-white transition-colors">Features</Link>
@@ -104,7 +104,7 @@ export default function AboutPage() {
                 AI has the potential to be the great equaliser — giving a solo founder the research power of a corporate team, or a small-town lawyer access to the analytical capability of a major firm. But today, that potential is locked behind fragmented tools, dollar-denominated pricing, and systems that weren't designed with India in mind.
               </p>
               <p className="text-zinc-400 leading-relaxed mt-4">
-                Sabha exists to change that.
+                Arivarangam exists to change that.
               </p>
             </div>
             <div className="space-y-4">
@@ -162,9 +162,9 @@ export default function AboutPage() {
 
           {/* Solution */}
           <div className="rounded-2xl border border-brand-500/30 bg-brand-500/5 p-8 text-center">
-            <h3 className="text-2xl font-bold text-white mb-4">Sabha's Solution</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">Arivarangam's Solution</h3>
             <p className="text-zinc-300 leading-relaxed max-w-2xl mx-auto text-lg">
-              Sabha acts as the coordinator. You describe a goal once. Sabha's Discussion Engine assigns the right AI to each sub-task — Perplexity researches, Claude strategises, GPT-4 writes, Midjourney visualises — and synthesises a complete, coherent deliverable.
+              Arivarangam acts as the coordinator. You describe a goal once. Arivarangam's Discussion Engine assigns the right AI to each sub-task — Perplexity researches, Claude strategises, GPT-4 writes, Midjourney visualises — and synthesises a complete, coherent deliverable.
             </p>
             <p className="text-zinc-400 mt-4 leading-relaxed max-w-xl mx-auto">
               One subscription. One prompt. Every AI working together.
@@ -194,7 +194,7 @@ export default function AboutPage() {
           </div>
 
           <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900">
-            <h3 className="font-bold text-white mb-4">What "India-first" actually means at Sabha:</h3>
+            <h3 className="font-bold text-white mb-4">What "India-first" actually means at Arivarangam:</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 'All prices in INR, set at Indian purchasing power parity — not a dollar conversion',
@@ -220,7 +220,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">The Technology</h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              Sabha is not a wrapper. We've built original AI infrastructure.
+              Arivarangam is not a wrapper. We've built original AI infrastructure.
             </p>
           </div>
 
@@ -248,7 +248,7 @@ export default function AboutPage() {
             A small team with a big mission.
           </p>
           <p className="text-zinc-300 leading-relaxed max-w-2xl mx-auto mb-8">
-            Sabha is built by a small, focused team of engineers, designers, and AI researchers who believe India deserves a world-class AI platform that respects its scale, its languages, and its economics. We move fast, we ship constantly, and we believe the best way to build AI tools is to be the most intensive users of AI tools ourselves.
+            Arivarangam is built by a small, focused team of engineers, designers, and AI researchers who believe India deserves a world-class AI platform that respects its scale, its languages, and its economics. We move fast, we ship constantly, and we believe the best way to build AI tools is to be the most intensive users of AI tools ourselves.
           </p>
 
           <div className="p-8 rounded-2xl border border-brand-500/30 bg-brand-500/5 max-w-xl mx-auto">
@@ -257,10 +257,10 @@ export default function AboutPage() {
               We're looking for engineers, AI researchers, and product designers who want to build the AI platform for a billion people. Remote-first. Equity-bearing. Interesting problems every day.
             </p>
             <a
-              href="mailto:careers@sabhaai.com"
+              href="mailto:careers@arivarangam.com"
               className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold transition-colors"
             >
-              careers@sabhaai.com
+              careers@arivarangam.com
             </a>
           </div>
         </div>
@@ -273,9 +273,9 @@ export default function AboutPage() {
           <p className="text-zinc-400 mb-8">We'd love to hear from you — whether you're a user, a potential partner, or just curious about what we're building.</p>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { label: 'General', email: 'hello@sabhaai.com' },
-              { label: 'Enterprise', email: 'enterprise@sabhaai.com' },
-              { label: 'Press', email: 'press@sabhaai.com' },
+              { label: 'General', email: 'hello@arivarangam.com' },
+              { label: 'Enterprise', email: 'enterprise@arivarangam.com' },
+              { label: 'Press', email: 'press@arivarangam.com' },
             ].map(({ label, email }) => (
               <a
                 key={email}
@@ -294,7 +294,7 @@ export default function AboutPage() {
       <footer className="border-t border-zinc-800 py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-500">
             <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>

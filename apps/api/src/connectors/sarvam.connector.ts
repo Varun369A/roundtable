@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 const SARVAM_LANGUAGE_MAP: Record<string, string> = {
   hi: 'hi-IN',

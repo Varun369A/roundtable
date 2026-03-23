@@ -2,7 +2,7 @@ apiVersion: 1
 
 providers:
   - name: sabha-dashboards
-    folder: Sabha
+    folder: Arivarangam
     type: file
     disableDeletion: true
     editable: true

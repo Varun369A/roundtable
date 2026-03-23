@@ -215,5 +215,5 @@ circuitBreakerRegistry.configure('gamma',            { openDurationMs: 30_000, f
 // ── Ultra-fast inference (Groq) — recover very quickly ───────────────────────
 circuitBreakerRegistry.configure('groq', { openDurationMs: 10_000, failureThreshold: 6 })
 
-// ── Sabha's own model ─────────────────────────────────────────────────────────
+// ── Arivarangam's own model ─────────────────────────────────────────────────────────
 circuitBreakerRegistry.configure('sabha-ai', { openDurationMs: 15_000 })

@@ -117,7 +117,7 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
             disabled={!isVisible || sending}
             placeholder={
               isVisible
-                ? "Redirect Sabha's next step… (e.g. 'Focus more on B2B use cases')"
+                ? "Redirect Arivarangam's next step… (e.g. 'Focus more on B2B use cases')"
                 : 'Task must be running to steer'
             }
             className={`w-full px-4 py-2.5 pr-14 rounded-xl text-sm outline-none transition-colors ${

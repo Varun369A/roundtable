@@ -1,10 +1,10 @@
 /**
  * BYOAI — Bring Your Own AI
  * Users connect their own API keys. Keys encrypted with AES-256-GCM.
- * When a user's own key exists, Sabha uses it (free for the user, no credits consumed).
+ * When a user's own key exists, Arivarangam uses it (free for the user, no credits consumed).
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { encryptByoai, decryptByoai } from '../lib/encrypt'
 import { PROVIDER_REGISTRY } from '../lib/provider-registry'

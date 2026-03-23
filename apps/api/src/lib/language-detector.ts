@@ -1,5 +1,5 @@
 /**
- * Language detection for Sabha's India language layer.
+ * Language detection for Arivarangam's India language layer.
  *
  * Strategy:
  * 1. Unicode script detection (zero-cost, instant) — covers all Indian scripts

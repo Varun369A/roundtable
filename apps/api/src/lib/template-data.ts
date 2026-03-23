@@ -1,4 +1,4 @@
-import type { TemplateAgent, TemplateCategory } from '@sabha/types'
+import type { TemplateAgent, TemplateCategory } from '@arivarangam/types'
 
 export interface BuiltInTemplate {
   name: string
@@ -13,7 +13,7 @@ export interface BuiltInTemplate {
 }
 
 /**
- * All built-in Sabha Roundtable templates.
+ * All built-in Arivarangam Roundtable templates.
  * Seeded into the database on first run.
  *
  * Agent `dependsOnPrevious: true` means this agent waits for the one before it.

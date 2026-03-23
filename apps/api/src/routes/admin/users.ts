@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
 import { revokeAllUserTokens } from '../../lib/tokens'

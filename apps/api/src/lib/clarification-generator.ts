@@ -11,7 +11,7 @@
  * - Never blocks paid/urgent tasks (can be disabled per workspace)
  */
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
@@ -42,7 +42,7 @@ export async function generateClarifications(
 ): Promise<ClarificationQuestion[]> {
   const { goal, templateCategory, memoryContext } = input
 
-  const systemPrompt = `You are an intelligent task analyst for Sabha, a multi-AI orchestration platform.
+  const systemPrompt = `You are an intelligent task analyst for Arivarangam, a multi-AI orchestration platform.
 
 Your job: analyse a user's task goal and decide if clarification is needed.
 

@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { connectorRegistry } from '../connectors/registry'
-import { PLANS } from '@sabha/types'
-import type { AIModel, PlanId } from '@sabha/types'
+import { PLANS } from '@arivarangam/types'
+import type { AIModel, PlanId } from '@arivarangam/types'
 import {
   createReviewRequest,
   claimReview,
@@ -97,7 +97,7 @@ const MODEL_METADATA: Record<string, {
     displayName: 'Perplexity Sonar',
     provider: 'Perplexity AI',
     description: 'Real-time web search AI. Always current. Cites sources.',
-    longDescription: 'Perplexity Sonar searches the web in real time and synthesizes current information with citations. The only AI in Sabha that has access to today\'s data — critical for market research, news analysis, and fact-checking.',
+    longDescription: 'Perplexity Sonar searches the web in real time and synthesizes current information with citations. The only AI in Arivarangam that has access to today\'s data — critical for market research, news analysis, and fact-checking.',
     capabilities: ['search', 'real-time', 'citations', 'research'],
     categories: ['research'],
     inputCostPer1M: 1.0,

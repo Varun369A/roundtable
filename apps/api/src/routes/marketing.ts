@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { getConnector } from '../lib/social-connectors'
 import { encryptToken } from '../lib/social-crypto'

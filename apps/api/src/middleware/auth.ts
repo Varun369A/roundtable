@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
-import type { JWTPayload } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { JWTPayload } from '@arivarangam/types'
 import { isAccessTokenBlacklisted } from '../lib/tokens'
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {

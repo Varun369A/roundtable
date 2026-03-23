@@ -11,14 +11,14 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import crypto from 'crypto'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { requireAdmin } from '../middleware/require-admin'
 import { sendBetaInviteEmail } from '../lib/email'
 
 function generateCode(): string {
   const part = () => crypto.randomBytes(2).toString('hex').toUpperCase()
-  return `SABHA-${part()}${part()}`
+  return `ARIVARANGAM-${part()}${part()}`
 }
 
 export async function betaRoutes(app: FastifyInstance) {
@@ -118,7 +118,7 @@ export async function betaRoutes(app: FastifyInstance) {
 
     await sendBetaInviteEmail({
       to: body.data.email,
-      fromName: admin?.name || 'Sabha Team',
+      fromName: admin?.name || 'Arivarangam Team',
       code,
     })
 

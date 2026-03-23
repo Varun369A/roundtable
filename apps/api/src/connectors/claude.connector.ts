@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 const MODEL_MAP: Partial<Record<AIModel, string>> = {
   'claude-3-5-sonnet': 'claude-3-5-sonnet-20241022',
@@ -34,7 +34,7 @@ export class ClaudeConnector extends BaseConnector {
         model: apiModel,
         max_tokens: input.options?.maxTokens || 4096,
         messages: [{ role: 'user', content: input.prompt }],
-        system: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output. Do not add unnecessary preamble.',
+        system: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output. Do not add unnecessary preamble.',
       }, { signal: AbortSignal.timeout(60_000) })
 
       const content = response.content[0]

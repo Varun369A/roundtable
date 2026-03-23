@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
-import type { TemplateCategory, TemplateAgent } from '@sabha/types'
+import type { TemplateCategory, TemplateAgent } from '@arivarangam/types'
 
 const TEMPLATE_CATEGORIES: TemplateCategory[] = [
   'development', 'design', 'learning', 'marketing',

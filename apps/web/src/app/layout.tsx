@@ -8,16 +8,16 @@ import SessionExpiryWarning from '@/components/auth/SessionExpiryWarning'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://sabhaai.com'),
+  metadataBase: new URL('https://arivarangam.com'),
   title: {
-    default: 'Sabha — One Platform. Every AI.',
-    template: '%s | Sabha',
+    default: 'Arivarangam — One Platform. Every AI.',
+    template: '%s | Arivarangam',
   },
-  description: 'Sabha coordinates Claude, GPT-4, Gemini, Midjourney and 10+ AI models to complete your goals together. The AI roundtable for Indian professionals.',
-  keywords: ['AI platform', 'multi AI', 'ChatGPT alternative', 'Claude AI', 'AI automation', 'Sabha AI', 'Indian AI platform'],
-  authors: [{ name: 'Sabha AI' }],
-  creator: 'Sabha AI',
-  publisher: 'Sabha AI',
+  description: 'Arivarangam coordinates Claude, GPT-4, Gemini, Midjourney and 10+ AI models to complete your goals together. The AI roundtable for Indian professionals.',
+  keywords: ['AI platform', 'multi AI', 'ChatGPT alternative', 'Claude AI', 'AI automation', 'Arivarangam', 'Indian AI platform'],
+  authors: [{ name: 'Arivarangam' }],
+  creator: 'Arivarangam',
+  publisher: 'Arivarangam',
   robots: {
     index: true,
     follow: true,
@@ -26,15 +26,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://sabhaai.com',
-    siteName: 'Sabha',
-    title: 'Sabha — One Platform. Every AI.',
+    url: 'https://arivarangam.com',
+    siteName: 'Arivarangam',
+    title: 'Arivarangam — One Platform. Every AI.',
     description: 'Coordinate Claude, GPT-4, Gemini and 10+ AIs on one roundtable. Built for India.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Sabha — One Platform. Every AI.' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Arivarangam — One Platform. Every AI.' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sabha — One Platform. Every AI.',
+    title: 'Arivarangam — One Platform. Every AI.',
     description: 'Coordinate Claude, GPT-4, Gemini and 10+ AIs on one roundtable. Built for India.',
     images: ['/og-image.png'],
     creator: '@sabhaai',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
   },
   alternates: {
-    canonical: 'https://sabhaai.com',
+    canonical: 'https://arivarangam.com',
   },
   icons: {
     icon: [

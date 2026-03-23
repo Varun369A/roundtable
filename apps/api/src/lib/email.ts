@@ -4,8 +4,8 @@
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM = process.env.EMAIL_FROM || 'Sabha <no-reply@sabhaai.com>'
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sabhaai.com'
+const FROM = process.env.EMAIL_FROM || 'Arivarangam <no-reply@arivarangam.com>'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
 
 interface EmailPayload {
   to: string | string[]
@@ -68,11 +68,11 @@ const wrapHtml = (content: string) => `
 <body>
   <div class="container">
     <div class="card">
-      <div class="logo">Sabha<span>AI</span></div>
+      <div class="logo">Arivarangam<span>AI</span></div>
       ${content}
     </div>
     <div class="footer">
-      Sabha AI · <a href="${BASE_URL}/unsubscribe">Unsubscribe</a>
+      Arivarangam · <a href="${BASE_URL}/unsubscribe">Unsubscribe</a>
     </div>
   </div>
 </body>
@@ -88,10 +88,10 @@ export async function sendWelcomeEmail(opts: {
 }): Promise<void> {
   await sendEmail({
     to: opts.to,
-    subject: 'Welcome to Sabha — your AI roundtable is ready',
+    subject: 'Welcome to Arivarangam — your AI roundtable is ready',
     html: wrapHtml(`
       <h1>Welcome aboard, ${opts.name}!</h1>
-      <p>You've been granted early access to Sabha — the AI orchestration platform that coordinates multiple AI models to tackle your biggest goals.</p>
+      <p>You've been granted early access to Arivarangam — the AI orchestration platform that coordinates multiple AI models to tackle your biggest goals.</p>
       <p>Get started by creating your first roundtable task:</p>
       <a href="${BASE_URL}/dashboard" class="btn">Open Dashboard →</a>
       <hr class="divider" />
@@ -111,7 +111,7 @@ export async function sendTaskCompletionEmail(opts: {
 }): Promise<void> {
   await sendEmail({
     to: opts.to,
-    subject: `✅ Your Sabha task is complete — ${opts.taskTitle}`,
+    subject: `✅ Your Arivarangam task is complete — ${opts.taskTitle}`,
     html: wrapHtml(`
       <h1>Task complete!</h1>
       <p>Your AI roundtable finished working on:</p>
@@ -132,7 +132,7 @@ export async function sendWorkspaceInviteEmail(opts: {
 }): Promise<void> {
   await sendEmail({
     to: opts.to,
-    subject: `${opts.inviterName} invited you to join ${opts.workspaceName} on Sabha`,
+    subject: `${opts.inviterName} invited you to join ${opts.workspaceName} on Arivarangam`,
     html: wrapHtml(`
       <h1>You've been invited!</h1>
       <p><strong style="color:#fff">${opts.inviterName}</strong> has invited you to join <strong style="color:#fff">${opts.workspaceName}</strong> as a <strong style="color:#fff">${opts.role}</strong>.</p>
@@ -152,10 +152,10 @@ export async function sendBetaInviteEmail(opts: {
 }): Promise<void> {
   await sendEmail({
     to: opts.to,
-    subject: `${opts.fromName} invited you to try Sabha AI (early access)`,
+    subject: `${opts.fromName} invited you to try Arivarangam (early access)`,
     html: wrapHtml(`
-      <h1>You're invited to Sabha</h1>
-      <p><strong style="color:#fff">${opts.fromName}</strong> has invited you to join Sabha AI's private beta — coordinate multiple AI models to tackle complex goals.</p>
+      <h1>You're invited to Arivarangam</h1>
+      <p><strong style="color:#fff">${opts.fromName}</strong> has invited you to join Arivarangam's private beta — coordinate multiple AI models to tackle complex goals.</p>
       <p>Your exclusive invite code:</p>
       <div class="code">${opts.code}</div>
       <br />
@@ -169,11 +169,11 @@ export async function sendBetaInviteEmail(opts: {
 export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Reset your Sabha password',
+    subject: 'Reset your Arivarangam password',
     html: wrapHtml(`
       <h1>Reset your password</h1>
       <p>Hi ${name},</p>
-      <p>We received a request to reset the password for your Sabha account. Click the button below to set a new password.</p>
+      <p>We received a request to reset the password for your Arivarangam account. Click the button below to set a new password.</p>
       <a href="${resetUrl}" class="btn">Reset Password →</a>
       <hr class="divider" />
       <p style="font-size:12px;color:#52525b">This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email — your password will not change.</p>
@@ -186,14 +186,14 @@ export async function sendPasswordResetEmail(to: string, name: string, resetUrl:
 export async function sendVerificationEmail(to: string, name: string, verifyUrl: string): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Verify your Sabha email address',
+    subject: 'Verify your Arivarangam email address',
     html: wrapHtml(`
       <h1>Verify your email</h1>
       <p>Hi ${name},</p>
-      <p>Thanks for signing up! Please verify your email address to unlock all Sabha features.</p>
+      <p>Thanks for signing up! Please verify your email address to unlock all Arivarangam features.</p>
       <a href="${verifyUrl}" class="btn">Verify Email →</a>
       <hr class="divider" />
-      <p style="font-size:12px;color:#52525b">This link expires in 24 hours. If you didn't create a Sabha account, you can safely ignore this email.</p>
+      <p style="font-size:12px;color:#52525b">This link expires in 24 hours. If you didn't create a Arivarangam account, you can safely ignore this email.</p>
       <p style="font-size:12px;color:#52525b">If the button above doesn't work, copy and paste this link into your browser:</p>
       <p style="font-size:12px;color:#71717a;word-break:break-all">${verifyUrl}</p>
     `),
@@ -203,10 +203,10 @@ export async function sendVerificationEmail(to: string, name: string, verifyUrl:
 export async function sendPostVerificationWelcomeEmail(to: string, name: string): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Welcome to Sabha — your account is verified!',
+    subject: 'Welcome to Arivarangam — your account is verified!',
     html: wrapHtml(`
       <h1>You're all set, ${name}!</h1>
-      <p>Your email address has been verified. You now have full access to Sabha AI — your AI orchestration platform.</p>
+      <p>Your email address has been verified. You now have full access to Arivarangam — your AI orchestration platform.</p>
       <p>Start by creating your first Roundtable task:</p>
       <a href="${BASE_URL}/dashboard" class="btn">Go to Dashboard →</a>
       <hr class="divider" />
@@ -218,7 +218,7 @@ export async function sendPostVerificationWelcomeEmail(to: string, name: string)
 export async function sendPaymentFailedEmail(to: string, name: string | null, planId: string): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Action required: your Sabha payment failed',
+    subject: 'Action required: your Arivarangam payment failed',
     html: wrapHtml(`
       <h1>Payment failed</h1>
       <p>Hi ${name || 'there'},</p>
@@ -235,15 +235,15 @@ export async function sendPaymentFailedEmail(to: string, name: string | null, pl
 export async function sendAccountDeletionEmail(to: string, name: string | null): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Your Sabha account has been deleted',
+    subject: 'Your Arivarangam account has been deleted',
     html: wrapHtml(`
       <h1>Account deleted</h1>
       <p>Hi ${name || 'there'},</p>
-      <p>Your Sabha account has been successfully deleted. All your personal data has been anonymized per our privacy policy.</p>
+      <p>Your Arivarangam account has been successfully deleted. All your personal data has been anonymized per our privacy policy.</p>
       <p>We're sorry to see you go. If you change your mind, you're always welcome to create a new account at:</p>
       <a href="${BASE_URL}/signup" class="btn">Create New Account →</a>
       <hr class="divider" />
-      <p style="font-size:12px;color:#52525b">If you believe this was done in error, please contact us at <a href="mailto:support@sabhaai.com" style="color:#6366f1">support@sabhaai.com</a> within 30 days.</p>
+      <p style="font-size:12px;color:#52525b">If you believe this was done in error, please contact us at <a href="mailto:support@arivarangam.com" style="color:#6366f1">support@arivarangam.com</a> within 30 days.</p>
     `),
   })
 }

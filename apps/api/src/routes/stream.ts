@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { isAccessTokenBlacklisted } from '../lib/tokens'
 import { metrics } from '../lib/metrics'
 import { redis } from '../lib/redis'
@@ -167,7 +167,7 @@ export async function streamRoutes(app: FastifyInstance) {
       // issue subscribe/unsubscribe, not regular commands).
       // duplicate() inherits the same connection config as the shared client.
       const subscriber = redis.duplicate()
-      const channel    = `sabha:task:${taskId}`
+      const channel    = `arivarangam:task:${taskId}`
 
       await subscriber.subscribe(channel)
 

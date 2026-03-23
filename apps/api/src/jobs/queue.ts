@@ -1,7 +1,7 @@
 import { Queue, Worker, Job, QueueEvents } from 'bullmq'
 import { redis } from '../lib/redis'
-import { prisma } from '@sabha/db'
-import type { AIModel } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { AIModel } from '@arivarangam/types'
 import { connectorRegistry } from '../connectors/registry'
 import { getContext, buildPromptWithContext, appendSubtaskResult, clearContextCache } from '../orchestration/context-manager'
 import { getReadySubtasks } from '../orchestration/orchestrator'
@@ -226,7 +226,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
           data:  { appliedToSubtaskId: subtaskId, appliedAt: new Date() },
         }).catch(() => {})
         // Notify via SSE
-        redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+        redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
           event:           'steering_applied',
           taskId,
           subtaskId,
@@ -244,7 +244,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         outputContent: output.content || output.fileUrl || '',
       })
 
-      // ── Sabha AI: collect knowledge from high-quality completions ─────────
+      // ── Arivarangam: collect knowledge from high-quality completions ─────────
       // DPDP Act 2023 gate: only collect if user gave explicit training consent.
       // trainingConsent = false by default — user must opt-in via /api/v1/account/consent.
       if (output.type === 'text' && output.content && output.content.length > 500) {
@@ -263,7 +263,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
 
           // Hard gate — never collect without explicit DPDP consent
           if (taskMeta?.user?.trainingConsent === true) {
-            prisma.sabhaKnowledge.create({
+            prisma.arivarangamKnowledge.create({
               data: {
                 category: subtask.category as any,
                 templateCategory: taskMeta?.template?.category ?? null,
@@ -300,7 +300,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
           autoFixSubtaskId = fixSubtask.id
 
           // Emit auto-fix notification via SSE
-          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+          await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
             event: 'auto_fix_started',
             taskId,
             subtaskId: fixSubtask.id,
@@ -358,7 +358,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       })
 
       // Emit SSE event — user sees output in their language
-      await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+      await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
         event: 'subtask_completed',
         subtaskId,
         title: subtask.title,
@@ -425,7 +425,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         metadata: { taskId, error: err instanceof Error ? err.message : 'Unknown error' },
       }).catch(() => {})
 
-      await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+      await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
         event: 'subtask_failed',
         subtaskId,
         error: err instanceof Error ? err.message : 'Unknown error',
@@ -467,7 +467,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
       if (round1Complete) {
         const reviewIds = await createReviewSubtasks(taskId)
         if (reviewIds.length > 0) {
-          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+          await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
             event: 'discussion_round_started',
             taskId,
             round: 2,
@@ -488,7 +488,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
       if (await checkRound2Complete(taskId)) {
         const synthesisId = await createSynthesisSubtask(taskId)
         if (synthesisId) {
-          await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+          await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
             event: 'synthesis_started',
             taskId,
             subtaskId: synthesisId,
@@ -505,7 +505,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
 
     // If synthesis just completed, emit event
     if (await synthesisExists(taskId) && await checkSynthesisComplete(taskId)) {
-      await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+      await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
         event: 'synthesis_complete',
         taskId,
       }))
@@ -647,7 +647,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
       }
 
       metrics.tasksCompleted.inc()
-      await redis.publish(`sabha:task:${taskId}`, JSON.stringify({
+      await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
         event:           'task_completed',
         taskId,
         hasCodeWorkspace: task?.template?.category === 'development',

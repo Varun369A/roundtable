@@ -26,7 +26,7 @@ export default function NovaPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm **NOVA**, your Sabha admin assistant. I have live access to all platform data — analytics, users, tasks, models, flags, and more.\n\nWhat would you like to know?",
+      content: "Hi! I'm **NOVA**, your Arivarangam admin assistant. I have live access to all platform data — analytics, users, tasks, models, flags, and more.\n\nWhat would you like to know?",
       timestamp: new Date(),
     },
   ])

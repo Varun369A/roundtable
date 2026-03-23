@@ -18,7 +18,7 @@ export default function SignupPage() {
   const [validatingCode, setValidatingCode] = useState(false)
   const [codeStatus, setCodeStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
 
-  // Pre-fill beta code from URL (?code=SABHA-XXXX)
+  // Pre-fill beta code from URL (?code=ARIVARANGAM-XXXX)
   useEffect(() => {
     const code = searchParams.get('code')
     if (code) setForm((f) => ({ ...f, betaCode: code.toUpperCase() }))
@@ -95,7 +95,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold tracking-tight">
-            Sabha<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <p className="mt-3 text-zinc-400">Create your account</p>
         </div>
@@ -159,7 +159,7 @@ export default function SignupPage() {
                       ? 'border-red-500 text-red-300'
                       : 'border-zinc-800 focus:border-brand-500'
                 }`}
-                placeholder="SABHA-XXXXXXXX"
+                placeholder="ARIVARANGAM-XXXXXXXX"
               />
               {validatingCode && (
                 <div className="absolute right-3 top-3.5 w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -191,7 +191,7 @@ export default function SignupPage() {
 
         <p className="mt-4 text-center text-zinc-600 text-xs">
           Don't have an invite code?{' '}
-          <a href="https://sabhaai.com/waitlist" className="text-brand-400 hover:text-brand-300">
+          <a href="https://arivarangam.com/waitlist" className="text-brand-400 hover:text-brand-300">
             Join the waitlist
           </a>
         </p>

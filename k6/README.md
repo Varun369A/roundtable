@@ -1,4 +1,4 @@
-# Sabha Load Tests (k6)
+# Arivarangam Load Tests (k6)
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ winget install k6
 ## Running Tests
 
 ```bash
-# 1. Make sure the Sabha API is running:
+# 1. Make sure the Arivarangam API is running:
 cd sabha && npm run dev
 
 # 2. Smoke test (1 VU, 30s — quick sanity check)

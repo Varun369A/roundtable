@@ -1,5 +1,5 @@
 /**
- * Global type augmentations for Sabha API.
+ * Global type augmentations for Arivarangam API.
  */
 
 declare module 'fastify' {

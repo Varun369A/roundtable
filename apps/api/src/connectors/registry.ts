@@ -1,4 +1,4 @@
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
 import { ClaudeConnector } from './claude.connector'
 import { OpenAIConnector } from './openai.connector'
@@ -14,7 +14,7 @@ import { SarvamConnector } from './sarvam.connector'
 import { GroqConnector } from './groq.connector'
 import { CohereConnector } from './cohere.connector'
 import { WhisperConnector } from './whisper.connector'
-import { SabhaConnector } from './sabha.connector'
+import { ArivarangamConnector } from './sabha.connector'
 import { circuitBreakerRegistry } from '../lib/circuit-breaker'
 import { metrics } from '../lib/metrics'
 import { redis } from '../lib/redis'
@@ -25,7 +25,7 @@ import { redis } from '../lib/redis'
 // Chains are ordered: preferred → acceptable → last resort
 
 const FALLBACK_CHAINS: Partial<Record<AIModel, AIModel[]>> = {
-  // Sabha AI falls back to Claude
+  // Arivarangam falls back to Claude
   'sabha-ai':          ['claude-3-5-sonnet', 'gpt-4o'],
 
   // Text — reasoning tier
@@ -107,7 +107,7 @@ class ConnectorRegistry {
     this.register(new GroqConnector())
     this.register(new CohereConnector())
     this.register(new WhisperConnector())
-    this.register(new SabhaConnector())
+    this.register(new ArivarangamConnector())
   }
 
   private register(connector: BaseConnector) {

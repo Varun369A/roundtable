@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 const BLOG_POSTS: Record<string, { title: string; date: string; category: string; readTime: string; excerpt: string }> = {
   'discussion-engine-how-it-works': {
-    title: "How Sabha's Discussion Engine Makes AI 3x Smarter",
+    title: "How Arivarangam's Discussion Engine Makes AI 3x Smarter",
     date: '2025-03-10',
     category: 'Product',
     readTime: '6 min',
@@ -14,14 +14,14 @@ const BLOG_POSTS: Record<string, { title: string; date: string; category: string
     date: '2025-03-05',
     category: 'Guide',
     readTime: '4 min',
-    excerpt: 'Connect your own Anthropic, OpenAI, or Google API keys to Sabha and use them without spending Sabha credits.',
+    excerpt: 'Connect your own Anthropic, OpenAI, or Google API keys to Arivarangam and use them without spending Arivarangam credits.',
   },
   'sarvam-voice-input': {
     title: 'Speak to Your AI in Hindi, Tamil, Telugu and More',
     date: '2025-02-28',
     category: 'Feature',
     readTime: '3 min',
-    excerpt: 'Sabha now supports 10 Indian languages for voice input, powered by Sarvam AI. Here\'s how to use it.',
+    excerpt: 'Arivarangam now supports 10 Indian languages for voice input, powered by Sarvam AI. Here\'s how to use it.',
   },
   'india-ai-market-2025': {
     title: 'Why India Needs Its Own AI Platform',
@@ -31,7 +31,7 @@ const BLOG_POSTS: Record<string, { title: string; date: string; category: string
     excerpt: 'Dollar-denominated AI pricing, poor Indian language support, and Western-centric defaults have left Indian professionals underserved.',
   },
   'ai-firewall-pii-protection': {
-    title: 'How Sabha Protects Your Data Before It Reaches Any AI',
+    title: 'How Arivarangam Protects Your Data Before It Reaches Any AI',
     date: '2025-02-15',
     category: 'Security',
     readTime: '5 min',
@@ -48,13 +48,13 @@ export async function generateMetadata({
   const post = BLOG_POSTS[slug]
 
   if (!post) {
-    return { title: 'Blog — Sabha AI' }
+    return { title: 'Blog — Arivarangam' }
   }
 
   return {
-    title: `${post.title} — Sabha Blog`,
+    title: `${post.title} — Arivarangam Blog`,
     description: post.excerpt,
-    alternates: { canonical: `https://sabhaai.com/blog/${slug}` },
+    alternates: { canonical: `https://arivarangam.com/blog/${slug}` },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -94,7 +94,7 @@ export default async function BlogPostPage({
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-indigo-400">.</span>
+            Arivarangam<span className="text-indigo-400">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-400">
             <Link href="/blog" className="hover:text-zinc-100 transition-colors">← Blog</Link>
@@ -131,7 +131,7 @@ export default async function BlogPostPage({
               <div className="text-4xl mb-4">✍️</div>
               <h2 className="text-xl font-bold text-white mb-3">Full article coming soon</h2>
               <p className="text-zinc-400 leading-relaxed mb-6">
-                This article is being written. Subscribe to be notified when it publishes — along with all future Sabha blog posts.
+                This article is being written. Subscribe to be notified when it publishes — along with all future Arivarangam blog posts.
               </p>
               <div className="flex gap-2 max-w-sm mx-auto">
                 <input
@@ -186,7 +186,7 @@ export default async function BlogPostPage({
       </main>
 
       <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
-        <p>© {new Date().getFullYear()} Sabha AI. <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link> · <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link> · <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link></p>
+        <p>© {new Date().getFullYear()} Arivarangam. <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link> · <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link> · <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link></p>
       </footer>
     </div>
   )

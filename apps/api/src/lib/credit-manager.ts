@@ -1,4 +1,4 @@
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 /**
- * OpenTelemetry distributed tracing for Sabha.
+ * OpenTelemetry distributed tracing for Arivarangam.
  *
  * Traces multi-hop Roundtable execution across AI providers:
  *   task_created → subtask_started (AI provider span) → subtask_completed
@@ -12,7 +12,7 @@
  *   In server.ts: import './lib/tracing' at the very top.
  *
  * Env vars:
- *   OTEL_SERVICE_NAME          default: "sabha-api"
+ *   OTEL_SERVICE_NAME          default: "arivarangam-api"
  *   OTEL_EXPORTER_OTLP_ENDPOINT e.g. https://api.honeycomb.io
  *   OTEL_EXPORTER_OTLP_HEADERS e.g. x-honeycomb-team=<api-key>
  */
@@ -25,7 +25,7 @@ import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { trace, context, SpanStatusCode, type Span } from '@opentelemetry/api'
 
-const SERVICE_NAME    = process.env.OTEL_SERVICE_NAME    || 'sabha-api'
+const SERVICE_NAME    = process.env.OTEL_SERVICE_NAME    || 'arivarangam-api'
 const SERVICE_VERSION = process.env.npm_package_version  || '1.0.0'
 const OTLP_ENDPOINT   = process.env.OTEL_EXPORTER_OTLP_ENDPOINT
 

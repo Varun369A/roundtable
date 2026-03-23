@@ -6,7 +6,7 @@ import Link from 'next/link'
 const BLOG_POSTS = [
   {
     slug: 'discussion-engine-how-it-works',
-    title: "How Sabha's Discussion Engine Makes AI 3x Smarter",
+    title: "How Arivarangam's Discussion Engine Makes AI 3x Smarter",
     date: '2025-03-10',
     category: 'Product',
     readTime: '6 min',
@@ -18,7 +18,7 @@ const BLOG_POSTS = [
     date: '2025-03-05',
     category: 'Guide',
     readTime: '4 min',
-    excerpt: 'Connect your own Anthropic, OpenAI, or Google API keys to Sabha and use them without spending Sabha credits.',
+    excerpt: 'Connect your own Anthropic, OpenAI, or Google API keys to Arivarangam and use them without spending Arivarangam credits.',
   },
   {
     slug: 'sarvam-voice-input',
@@ -26,7 +26,7 @@ const BLOG_POSTS = [
     date: '2025-02-28',
     category: 'Feature',
     readTime: '3 min',
-    excerpt: 'Sabha now supports 10 Indian languages for voice input, powered by Sarvam AI. Here\'s how to use it.',
+    excerpt: 'Arivarangam now supports 10 Indian languages for voice input, powered by Sarvam AI. Here\'s how to use it.',
   },
   {
     slug: 'india-ai-market-2025',
@@ -38,7 +38,7 @@ const BLOG_POSTS = [
   },
   {
     slug: 'ai-firewall-pii-protection',
-    title: 'How Sabha Protects Your Data Before It Reaches Any AI',
+    title: 'How Arivarangam Protects Your Data Before It Reaches Any AI',
     date: '2025-02-15',
     category: 'Security',
     readTime: '5 min',
@@ -80,7 +80,7 @@ export default function BlogPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-indigo-400">.</span>
+            Arivarangam<span className="text-indigo-400">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-400">
             <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
@@ -102,7 +102,7 @@ export default function BlogPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-medium mb-6">
             Latest writing
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Sabha Blog</h1>
+          <h1 className="text-4xl font-bold tracking-tight mb-4">Arivarangam Blog</h1>
           <p className="text-zinc-400">
             Product updates, engineering deep dives, and guides for India's AI-native professionals.
           </p>
@@ -232,7 +232,7 @@ export default function BlogPage() {
           <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
           <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
         </div>
-        <p>© {new Date().getFullYear()} Sabha AI. Made for India.</p>
+        <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>
     </div>
   )

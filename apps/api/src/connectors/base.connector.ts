@@ -1,4 +1,4 @@
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 export interface ConnectorInput {
   prompt: string

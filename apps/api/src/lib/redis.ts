@@ -5,7 +5,7 @@
  */
 
 import Redis from 'ioredis'
-import { env } from '@sabha/config'
+import { env } from '@arivarangam/config'
 
 const valkeyUrl = process.env.VALKEY_URL || env.REDIS_URL
 
@@ -14,7 +14,7 @@ export const redis = new Redis(valkeyUrl, {
   enableReadyCheck: true,
   lazyConnect: false,
   // Valkey-specific: connection name for server-side monitoring
-  connectionName: 'sabha-api',
+  connectionName: 'arivarangam-api',
 })
 
 redis.on('error', (err) => {

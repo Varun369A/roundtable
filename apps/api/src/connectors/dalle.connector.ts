@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 // DALL-E 3 pricing per image
 const PRICING: Record<string, number> = {

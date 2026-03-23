@@ -8,7 +8,7 @@ export default function GlobalLoading() {
         <div className="relative">
           <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-indigo-500 animate-spin" />
         </div>
-        <p className="text-sm text-zinc-500 animate-pulse">Loading Sabha…</p>
+        <p className="text-sm text-zinc-500 animate-pulse">Loading Arivarangam…</p>
       </div>
     </div>
   )

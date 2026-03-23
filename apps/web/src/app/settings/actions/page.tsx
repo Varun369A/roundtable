@@ -401,7 +401,7 @@ export default function ActionsPage() {
             <p className="text-zinc-400 font-medium">No pending actions</p>
             <p className="text-zinc-600 text-sm mt-1">
               {filter === 'ALL'
-                ? 'When Sabha proposes real-world actions, they will appear here for your review.'
+                ? 'When Arivarangam proposes real-world actions, they will appear here for your review.'
                 : `No ${filter.toLowerCase()} actions.`}
             </p>
           </div>

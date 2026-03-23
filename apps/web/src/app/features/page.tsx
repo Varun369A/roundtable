@@ -4,9 +4,9 @@ import Link from 'next/link'
 export const dynamic = 'force-static'
 
 export const metadata: Metadata = {
-  title: 'Features — Sabha AI Platform',
-  description: 'Every Sabha feature explained: Discussion Engine, BYOAI, voice input in 10 Indian languages, agent execution, AI Firewall, vertical packs, and more.',
-  alternates: { canonical: 'https://sabhaai.com/features' },
+  title: 'Features — Arivarangam Platform',
+  description: 'Every Arivarangam feature explained: Discussion Engine, BYOAI, voice input in 10 Indian languages, agent execution, AI Firewall, vertical packs, and more.',
+  alternates: { canonical: 'https://arivarangam.com/features' },
 }
 
 const FEATURES = [
@@ -16,7 +16,7 @@ const FEATURES = [
     title: 'Discussion Engine',
     tagline: 'Three rounds. Every answer battle-tested.',
     description:
-      'Sabha\'s Discussion Engine is the core of the platform. Multiple AI models don\'t just answer in parallel — they argue. Round 1: Each AI produces its best initial response. Round 2: Every AI critiques the others\' work — what\'s right, wrong, missing. Round 3: A synthesis AI produces a final output incorporating the best contributions and resolving contradictions.',
+      'Arivarangam\'s Discussion Engine is the core of the platform. Multiple AI models don\'t just answer in parallel — they argue. Round 1: Each AI produces its best initial response. Round 2: Every AI critiques the others\' work — what\'s right, wrong, missing. Round 3: A synthesis AI produces a final output incorporating the best contributions and resolving contradictions.',
     highlights: [
       'Configurable model selection per roundtable',
       'Transparent per-model reasoning and critique',
@@ -30,7 +30,7 @@ const FEATURES = [
     title: 'Bring Your Own AI (BYOAI)',
     tagline: 'Use Claude for free with your own Anthropic key.',
     description:
-      'Connect your own API keys from Anthropic, OpenAI, Google, or Perplexity. When Sabha uses your BYOAI key, no Sabha credits are consumed. Keys are encrypted at rest with AES-256-GCM and never stored in plaintext. Revoke access at any time from Settings → AI Connections.',
+      'Connect your own API keys from Anthropic, OpenAI, Google, or Perplexity. When Arivarangam uses your BYOAI key, no Arivarangam credits are consumed. Keys are encrypted at rest with AES-256-GCM and never stored in plaintext. Revoke access at any time from Settings → AI Connections.',
     highlights: [
       'Connect your own OpenAI, Anthropic, Google keys',
       'No credit usage when BYOAI key is active',
@@ -44,7 +44,7 @@ const FEATURES = [
     title: 'Voice Input',
     tagline: '10 Indian languages + English. Just speak your task.',
     description:
-      'Record your task instead of typing. Sabha supports 10 Indian languages via Sarvam AI — India\'s leading speech AI — and English via OpenAI Whisper. Speak naturally in Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, or Odia. The transcription is shown before submission so you can review and edit.',
+      'Record your task instead of typing. Arivarangam supports 10 Indian languages via Sarvam AI — India\'s leading speech AI — and English via OpenAI Whisper. Speak naturally in Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, or Odia. The transcription is shown before submission so you can review and edit.',
     highlights: [
       'Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Odia',
       'English transcription via Whisper',
@@ -58,7 +58,7 @@ const FEATURES = [
     title: 'Mid-Generation Steering',
     tagline: 'Change direction while AI is working.',
     description:
-      'You don\'t have to wait for Sabha to finish before redirecting it. If an AI is going in the wrong direction, send a steering message mid-generation. Sabha injects your instruction into the active generation context and all subsequent AIs in the pipeline receive it. No restart required.',
+      'You don\'t have to wait for Arivarangam to finish before redirecting it. If an AI is going in the wrong direction, send a steering message mid-generation. Arivarangam injects your instruction into the active generation context and all subsequent AIs in the pipeline receive it. No restart required.',
     highlights: [
       'Inject new constraints without restarting the task',
       'Correct factual errors as they appear',
@@ -70,9 +70,9 @@ const FEATURES = [
     id: 'user-memory',
     icon: '🧠',
     title: 'User Memory',
-    tagline: 'Sabha remembers your preferences, style, and context.',
+    tagline: 'Arivarangam remembers your preferences, style, and context.',
     description:
-      'Sabha builds a persistent memory profile for you: your industry, your role, your writing style, formatting preferences, and instructions you\'ve given. Every session is personalised without you having to repeat yourself. Memory is completely private — encrypted and never shared with other users or used to train AI models.',
+      'Arivarangam builds a persistent memory profile for you: your industry, your role, your writing style, formatting preferences, and instructions you\'ve given. Every session is personalised without you having to repeat yourself. Memory is completely private — encrypted and never shared with other users or used to train AI models.',
     highlights: [
       'Remembers writing style, tone, and formatting preferences',
       'Knows your industry context for more relevant outputs',
@@ -100,7 +100,7 @@ const FEATURES = [
     title: 'Workflow Builder',
     tagline: 'Chain multiple tasks with variable interpolation.',
     description:
-      'Sabha\'s Workflow Builder lets you create multi-step AI pipelines where the output of one task becomes the input of the next. Use variable interpolation to pass data between steps. Workflows can be triggered manually, on a schedule, or via webhook.',
+      'Arivarangam\'s Workflow Builder lets you create multi-step AI pipelines where the output of one task becomes the input of the next. Use variable interpolation to pass data between steps. Workflows can be triggered manually, on a schedule, or via webhook.',
     highlights: [
       'Visual drag-and-drop workflow builder',
       'Variable interpolation: {output_step_1} into step 2\'s prompt',
@@ -114,7 +114,7 @@ const FEATURES = [
     title: 'Multiplayer Roundtable',
     tagline: 'Share your session with team members live.',
     description:
-      'Share a live Sabha session with team members. Multiple users can watch AI outputs stream in real time, send steering messages, and discuss outputs together. Multiplayer sessions are scoped to your workspace. All participants must be workspace members. Ideal for collaborative brainstorming, design reviews, or client-facing AI sessions.',
+      'Share a live Arivarangam session with team members. Multiple users can watch AI outputs stream in real time, send steering messages, and discuss outputs together. Multiplayer sessions are scoped to your workspace. All participants must be workspace members. Ideal for collaborative brainstorming, design reviews, or client-facing AI sessions.',
     highlights: [
       'Share a live session link with workspace members',
       'Multiple users can observe and send steering messages',
@@ -128,7 +128,7 @@ const FEATURES = [
     title: 'Output Quality Verification',
     tagline: 'Every output is scored for accuracy and completeness.',
     description:
-      'After each Discussion Engine cycle, Sabha\'s verification model scores the final output on accuracy (are claims supported by evidence?), completeness (does it address the full task?), and consistency (does it contradict itself?). The score is shown alongside the output. High-stakes outputs can be escalated to human expert review.',
+      'After each Discussion Engine cycle, Arivarangam\'s verification model scores the final output on accuracy (are claims supported by evidence?), completeness (does it address the full task?), and consistency (does it contradict itself?). The score is shown alongside the output. High-stakes outputs can be escalated to human expert review.',
     highlights: [
       'Automated quality score on every Discussion Engine output',
       'Flags specific claims that lack sourcing or evidence',
@@ -156,7 +156,7 @@ const FEATURES = [
     title: 'Expert Review',
     tagline: 'Get AI outputs reviewed by certified domain experts.',
     description:
-      'For outputs that matter — a contract, a clinical summary, a financial model — Sabha\'s Expert Marketplace connects you with background-verified, rated domain experts who review and annotate AI outputs within a defined SLA. Payment is per-review and deducted from your credit balance.',
+      'For outputs that matter — a contract, a clinical summary, a financial model — Arivarangam\'s Expert Marketplace connects you with background-verified, rated domain experts who review and annotate AI outputs within a defined SLA. Payment is per-review and deducted from your credit balance.',
     highlights: [
       'Verified experts in Legal, Medical, Finance, and Technology',
       'Defined turnaround SLAs: 4h, 24h, or 48h',
@@ -170,7 +170,7 @@ const FEATURES = [
     title: 'Agent Execution',
     tagline: 'AI can push code to GitHub, send emails, update Notion.',
     description:
-      'Sabha\'s agent execution layer connects AI outputs to real-world actions. AI can push code to a GitHub repository, send emails via your connected Gmail or Outlook, update Notion pages, post to Slack channels, or make HTTP requests to any API. Every agent action requires explicit user approval before execution, and a full audit log is maintained.',
+      'Arivarangam\'s agent execution layer connects AI outputs to real-world actions. AI can push code to a GitHub repository, send emails via your connected Gmail or Outlook, update Notion pages, post to Slack channels, or make HTTP requests to any API. Every agent action requires explicit user approval before execution, and a full audit log is maintained.',
     highlights: [
       'GitHub: push commits, create PRs, open issues',
       'Email: send via Gmail or Outlook (with your approval)',
@@ -184,7 +184,7 @@ const FEATURES = [
     title: 'AI Firewall',
     tagline: 'PII redaction + prompt injection protection on every request.',
     description:
-      'Every prompt passes through Sabha\'s AI Firewall before being sent to any external AI provider. The Firewall automatically detects and redacts PII — Aadhaar, PAN, phone numbers, bank details, email addresses — and blocks prompt injection attacks. A firewall audit log shows you exactly what was redacted from each request.',
+      'Every prompt passes through Arivarangam\'s AI Firewall before being sent to any external AI provider. The Firewall automatically detects and redacts PII — Aadhaar, PAN, phone numbers, bank details, email addresses — and blocks prompt injection attacks. A firewall audit log shows you exactly what was redacted from each request.',
     highlights: [
       'Automatic PII redaction: Aadhaar, PAN, phone, email, bank details',
       'Prompt injection attack detection and blocking',
@@ -198,7 +198,7 @@ const FEATURES = [
     title: 'Credit Economy',
     tagline: 'Fair usage pricing with referral bonuses.',
     description:
-      'Sabha\'s credit system provides transparent, usage-based pricing on top of your subscription. Credit costs reflect actual AI compute — a quick single-model task costs fewer credits than a full Discussion Engine session with 8 models. Earn credits by referring users, completing onboarding, and contributing to the community. Credits never expire.',
+      'Arivarangam\'s credit system provides transparent, usage-based pricing on top of your subscription. Credit costs reflect actual AI compute — a quick single-model task costs fewer credits than a full Discussion Engine session with 8 models. Earn credits by referring users, completing onboarding, and contributing to the community. Credits never expire.',
     highlights: [
       'Transparent credit cost shown before task submission',
       'Credit warning if balance is below 50 before submitting',
@@ -215,7 +215,7 @@ export default function FeaturesPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            Sabha<span className="text-indigo-400">.</span>
+            Arivarangam<span className="text-indigo-400">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-zinc-400">
             <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
@@ -239,11 +239,11 @@ export default function FeaturesPage() {
             14 capabilities. One platform.
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Every feature that makes Sabha{' '}
+            Every feature that makes Arivarangam{' '}
             <span className="text-indigo-400">different</span>
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed">
-            Sabha orchestrates Claude, GPT-4, Gemini, Perplexity, and more so India's knowledge workers
+            Arivarangam orchestrates Claude, GPT-4, Gemini, Perplexity, and more so India's knowledge workers
             get the best of every AI — without managing multiple subscriptions.
           </p>
         </div>
@@ -319,7 +319,7 @@ export default function FeaturesPage() {
       {/* CTA */}
       <section className="py-20 px-6 border-t border-zinc-800">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to try Sabha?</h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to try Arivarangam?</h2>
           <p className="text-zinc-400 mb-8">
             Start free — no credit card required. Run your first AI Roundtable in 60 seconds.
           </p>
@@ -349,7 +349,7 @@ export default function FeaturesPage() {
           <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
           <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
         </div>
-        <p>© {new Date().getFullYear()} Sabha AI. Made for India.</p>
+        <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>
     </div>
   )

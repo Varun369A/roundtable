@@ -1,4 +1,4 @@
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 
 const SKILL_RULES = [
   { triggers: ['code', 'build', 'debug', 'api', 'function', 'component', 'database', 'backend', 'frontend', 'typescript', 'python', 'javascript'], skill: 'Software Development' },

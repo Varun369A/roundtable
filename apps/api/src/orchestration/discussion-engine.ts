@@ -1,5 +1,5 @@
 /**
- * Discussion Engine — Sabha's core differentiator.
+ * Discussion Engine — Arivarangam's core differentiator.
  *
  * 3-round AI collaboration that turns a simple task into a genuine roundtable:
  *
@@ -14,8 +14,8 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk'
-import { prisma } from '@sabha/db'
-import type { AIModel, TaskCategory } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { AIModel, TaskCategory } from '@arivarangam/types'
 
 // ─── Reviewer assignment ──────────────────────────────────────────────────────
 
@@ -294,10 +294,10 @@ export async function createSynthesisSubtask(taskId: string): Promise<string | n
   const reviewOutputs = await deduplicateReviews(rawReviewOutputs)
 
   // Choose synthesis model per spec:
-  // - Sabha AI if self-learning is enabled (feature flag)
+  // - Arivarangam if self-learning is enabled (feature flag)
   // - Claude Opus for Studio/Enterprise — quality justifies the cost
   // - Claude Sonnet for Free/Builder — margin-preserving default
-  const sabhaState = await prisma.sabhaAIState.findUnique({ where: { id: 'singleton' } })
+  const sabhaState = await prisma.arivarangamAIState.findUnique({ where: { id: 'singleton' } })
   const userTier = (task as any)?.user?.tier ?? 'FREE'
   const OPUS_TIERS = new Set(['STUDIO', 'ENTERPRISE'])
   const synthesisModel: AIModel =

@@ -1,4 +1,4 @@
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { detectLanguageWithAI, detectLanguage, type DetectedLanguage } from '../lib/language-detector'
 import { translateToEnglish, translateOutput } from '../services/translation.service'
 import { redis } from '../lib/redis'
@@ -11,7 +11,7 @@ export interface LanguageContext {
   translationCostUsd: number
 }
 
-const LANG_CONTEXT_KEY = (taskId: string) => `sabha:lang:${taskId}`
+const LANG_CONTEXT_KEY = (taskId: string) => `arivarangam:lang:${taskId}`
 const LANG_CONTEXT_TTL = 60 * 60 * 24 // 24 hours
 
 /**

@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { randomBytes } from 'crypto'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
-import { PLANS } from '@sabha/types'
-import type { UserTier, PlanId } from '@sabha/types'
+import { PLANS } from '@arivarangam/types'
+import type { UserTier, PlanId } from '@arivarangam/types'
 import { isEnabled, FLAGS } from '../lib/feature-flags'
 import { sendWorkspaceInviteEmail } from '../lib/email'
 
@@ -284,7 +284,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
       },
     })
 
-    const inviteUrl = `${process.env.WEB_URL || 'https://sabhaai.com'}/workspace/join?token=${token}`
+    const inviteUrl = `${process.env.WEB_URL || 'https://arivarangam.com'}/workspace/join?token=${token}`
 
     // Send invite email if enabled (non-blocking)
     if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {

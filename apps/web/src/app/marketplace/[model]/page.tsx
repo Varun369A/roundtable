@@ -170,7 +170,7 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
                     <span className="font-mono">${model.outputCostPer1M}/1M tokens</span>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-600 mt-3">Sabha absorbs API costs within plan limits.</p>
+                <p className="text-xs text-zinc-600 mt-3">Arivarangam absorbs API costs within plan limits.</p>
               </div>
             )}
 

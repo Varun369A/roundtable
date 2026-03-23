@@ -5,8 +5,8 @@ global:
     monitor: 'sabha-dev'
 
 scrape_configs:
-  # Sabha API — exposes /metrics via prom-client
-  - job_name: 'sabha-api'
+  # Arivarangam API — exposes /metrics via prom-client
+  - job_name: 'arivarangam-api'
     static_configs:
       - targets: ['host.docker.internal:3001']
     metrics_path: '/metrics'

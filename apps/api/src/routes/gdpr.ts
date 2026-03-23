@@ -9,7 +9,7 @@
 
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { verifyPassword } from '../lib/password'
 import { revokeAllUserTokens } from '../lib/tokens'
@@ -331,7 +331,7 @@ export async function gdprRoutes(app: FastifyInstance) {
     })
 
     // Soft-delete: anonymize email and name, set status to DELETED
-    const anonymizedEmail = `deleted_${userId}@sabhaai.com`
+    const anonymizedEmail = `deleted_${userId}@arivarangam.com`
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -356,11 +356,11 @@ export async function gdprRoutes(app: FastifyInstance) {
   })
 
   // ─── POST /account/consent/training ──────────────────────────────────────
-  // DPDP Act 2023 — explicit opt-in for Sabha-AI training data collection.
+  // DPDP Act 2023 — explicit opt-in for Arivarangam-AI training data collection.
   // User must actively consent; default is false; they can withdraw at any time.
   //
   // Body: { consent: boolean }
-  //   true  = opt in  (data from future tasks may be used to train Sabha-AI)
+  //   true  = opt in  (data from future tasks may be used to train Arivarangam-AI)
   //   false = opt out (stop collecting; existing records are NOT deleted retroactively
   //                    unless user submits a data deletion request separately)
   app.post('/account/consent/training', async (request, reply) => {
@@ -388,8 +388,8 @@ export async function gdprRoutes(app: FastifyInstance) {
       data: {
         trainingConsent: consent,
         message: consent
-          ? 'You have opted in to Sabha-AI training data collection (DPDP Act 2023). You can withdraw at any time.'
-          : 'You have opted out. Your data will no longer be used for training Sabha-AI.',
+          ? 'You have opted in to Arivarangam-AI training data collection (DPDP Act 2023). You can withdraw at any time.'
+          : 'You have opted out. Your data will no longer be used for training Arivarangam-AI.',
       },
     })
   })

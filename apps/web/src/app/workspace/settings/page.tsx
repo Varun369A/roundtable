@@ -243,8 +243,8 @@ export default function WorkspaceSettingsPage() {
               <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-4">
                 <p className="text-xs font-semibold text-emerald-400 mb-1">🔒 Your privacy is guaranteed</p>
                 <p className="text-xs text-zinc-500 leading-relaxed">
-                  Tasks marked <strong className="text-zinc-400">private</strong> are only visible to you — no workspace member, admin, or Sabha employee can see them.
-                  Sabha never uses your task content to train AI models.
+                  Tasks marked <strong className="text-zinc-400">private</strong> are only visible to you — no workspace member, admin, or Arivarangam employee can see them.
+                  Arivarangam never uses your task content to train AI models.
                 </p>
               </div>
 

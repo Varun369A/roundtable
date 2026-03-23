@@ -196,7 +196,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
             {initial ? 'Edit Schedule' : 'New Schedule'}
           </h2>
           <p className="text-xs text-zinc-500 mt-1">
-            Sabha will automatically run this task on your schedule
+            Arivarangam will automatically run this task on your schedule
           </p>
         </div>
 
@@ -219,7 +219,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
             {/* Goal */}
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                Goal <span className="text-zinc-600">(what Sabha should do each run)</span>
+                Goal <span className="text-zinc-600">(what Arivarangam should do each run)</span>
               </label>
               <textarea
                 value={goal}
@@ -593,7 +593,7 @@ export default function ScheduledTasksPage() {
             </div>
             <h1 className="text-2xl font-bold text-white">Scheduled Tasks</h1>
             <p className="text-zinc-500 text-sm mt-1">
-              Automate Sabha to run tasks on a recurring schedule — daily reports, weekly audits, and more.
+              Automate Arivarangam to run tasks on a recurring schedule — daily reports, weekly audits, and more.
             </p>
           </div>
           <button
@@ -635,7 +635,7 @@ export default function ScheduledTasksPage() {
             <p className="text-3xl mb-3">⏰</p>
             <p className="text-zinc-400 text-sm font-medium">No schedules yet</p>
             <p className="text-zinc-600 text-xs mt-1 mb-5">
-              Automate any Sabha task to run on a recurring schedule
+              Automate any Arivarangam task to run on a recurring schedule
             </p>
             <button
               onClick={() => { setEditTarget(null); setShowDialog(true) }}

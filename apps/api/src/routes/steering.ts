@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import { redis } from '../lib/redis'
 
@@ -92,7 +92,7 @@ export async function steeringRoutes(app: FastifyInstance) {
 
       // Publish to Redis pub/sub channel so the running subtask worker can pick it up
       await redis.publish(
-        `sabha:task:${taskId}`,
+        `arivarangam:task:${taskId}`,
         JSON.stringify({
           event: 'steering_received',
           taskId,

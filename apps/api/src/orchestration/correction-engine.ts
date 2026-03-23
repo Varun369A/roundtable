@@ -12,8 +12,8 @@
  *   6. On completion, create a new TaskVersion and auto-push to GitHub if enabled
  */
 
-import { prisma } from '@sabha/db'
-import type { UserTier } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { UserTier } from '@arivarangam/types'
 import { enqueueTask } from '../jobs/queue'
 import { initializeContext } from './context-manager'
 import { firewallPrompt } from '../lib/ai-firewall'
@@ -218,7 +218,7 @@ export async function onCorrectionComplete(
           githubConn.login,
           repoName,
           files,
-          `Sabha correction: ${correction.description.slice(0, 72)}`,
+          `Arivarangam correction: ${correction.description.slice(0, 72)}`,
         )
         commitUrl = `https://github.com/${githubConn.login}/${repoName}/commit/${commitSha}`
 

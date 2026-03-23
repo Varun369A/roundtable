@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { prisma } from '@sabha/db'
-import { env } from '@sabha/config'
+import { prisma } from '@arivarangam/db'
+import { env } from '@arivarangam/config'
 import { redis } from './redis'
 
 const REFRESH_TOKEN_BYTES = 64

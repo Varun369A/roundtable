@@ -13,8 +13,8 @@
 import OpenAI, { toFile } from 'openai'
 import FormData from 'form-data'
 import fetch from 'node-fetch'  // Node 18 has native fetch; fallback is fine either way
-import { prisma } from '@sabha/db'
-import type { VoiceTranscription } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
+import type { VoiceTranscription } from '@arivarangam/db'
 
 // ─── Provider maps ────────────────────────────────────────────────────────────
 

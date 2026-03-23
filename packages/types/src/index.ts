@@ -294,12 +294,12 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'free',
     name: 'Free',
     priceInr: 0,
-    tasksPerMonth: 3,  // 3 free tasks/month using Sabha's own API keys
+    tasksPerMonth: 3,  // 3 free tasks/month using Arivarangam's own API keys
     roundtableTasksPerMonth: 3,
     concurrentTasks: 1,
     teamMembers: 1,
     aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'perplexity-sonar'],
-    features: ['3 tasks/month', 'Sabha covers API costs', 'All 9 specialist AIs', 'Upgrade to connect own keys']
+    features: ['3 tasks/month', 'Arivarangam covers API costs', 'All 9 specialist AIs', 'Upgrade to connect own keys']
   },
   builder: {
     id: 'builder',

@@ -152,7 +152,7 @@ async function main() {
   console.log(`Seeded ${connectors.length} AI connectors.`)
 
   // ─── Default admin user ────────────────────────────────────────────────────
-  const adminEmail    = process.env.ADMIN_EMAIL    || 'admin@sabhaai.com'
+  const adminEmail    = process.env.ADMIN_EMAIL    || 'admin@arivarangam.com'
   const adminPassword = process.env.ADMIN_PASSWORD || 'change-this-strong-password'
 
   // Simple SHA-256 hash for seed only — real auth uses bcrypt at runtime
@@ -163,7 +163,7 @@ async function main() {
     update: { isAdmin: true },
     create: {
       email: adminEmail,
-      name: 'Sabha Admin',
+      name: 'Arivarangam Admin',
       passwordHash,
       tier: 'ENTERPRISE',
       status: 'ACTIVE',

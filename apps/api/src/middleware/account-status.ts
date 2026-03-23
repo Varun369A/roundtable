@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { prisma as db } from '@sabha/db'
+import { prisma as db } from '@arivarangam/db'
 
 export async function checkAccountStatus(
   request: FastifyRequest,
@@ -17,7 +17,7 @@ export async function checkAccountStatus(
     await reply.status(403).send({
       success: false,
       code: 'ACCOUNT_SUSPENDED',
-      message: 'Your account has been suspended for violating Sabha Terms of Service.',
+      message: 'Your account has been suspended for violating Arivarangam Terms of Service.',
       suspendedAt: user.suspendedAt,
       reason: user.suspendedReason
     })

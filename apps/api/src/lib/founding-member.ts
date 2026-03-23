@@ -14,7 +14,7 @@
  *   4. User's Razorpay subscription is updated to the founding price plan
  */
 
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const FOUNDING_MEMBER_CAP = 200
 

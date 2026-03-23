@@ -1,9 +1,9 @@
 import { redis } from '../lib/redis'
-import { prisma } from '@sabha/db'
-import type { ContextObject, CompletedSubtaskSummary, AIModel } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { ContextObject, CompletedSubtaskSummary, AIModel } from '@arivarangam/types'
 
 const CONTEXT_TTL = 60 * 60 * 24 // 24 hours in seconds
-const CONTEXT_KEY = (taskId: string) => `sabha:context:${taskId}`
+const CONTEXT_KEY = (taskId: string) => `arivarangam:context:${taskId}`
 
 /**
  * Initialize context object when a task starts.

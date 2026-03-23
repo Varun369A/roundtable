@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { redis } from '../lib/redis'
-import { PLANS } from '@sabha/types'
-import type { PlanId, UserTier } from '@sabha/types'
+import { PLANS } from '@arivarangam/types'
+import type { PlanId, UserTier } from '@arivarangam/types'
 
 // Map UserTier → PlanId (spec plan names)
 const TIER_TO_PLAN: Record<UserTier, PlanId> = {
@@ -34,7 +34,7 @@ export async function enforcePlanLimits(
   if (plan.tasksPerMonth === -1) return
 
   // Get current month usage from Redis (fast path)
-  const monthKey = `sabha:${user.id}:usage:${getMonthKey()}`
+  const monthKey = `arivarangam:${user.id}:usage:${getMonthKey()}`
   const usageStr = await redis.get(monthKey)
   const usage = usageStr ? parseInt(usageStr, 10) : 0
 
@@ -85,7 +85,7 @@ export async function enforcePlanLimits(
  * Decrement usage counter when a task is cancelled.
  */
 export async function decrementUsage(userId: string): Promise<void> {
-  const monthKey = `sabha:${userId}:usage:${getMonthKey()}`
+  const monthKey = `arivarangam:${userId}:usage:${getMonthKey()}`
   const current = await redis.get(monthKey)
   if (current && parseInt(current, 10) > 0) {
     await redis.decr(monthKey)

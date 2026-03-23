@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 import { uploadToStorage } from '../lib/storage'
 
 export class StabilityConnector extends BaseConnector {

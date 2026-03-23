@@ -14,7 +14,7 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../middleware/auth'
 import {
   createSession,

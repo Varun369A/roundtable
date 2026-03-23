@@ -1,5 +1,5 @@
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
-import type { AIModel } from '@sabha/types'
+import type { AIModel } from '@arivarangam/types'
 
 /**
  * Groq connector — Llama 3.1 70B via Groq's inference API.
@@ -38,7 +38,7 @@ export class GroqConnector extends BaseConnector {
           messages: [
             {
               role: 'system',
-              content: 'You are an expert AI assistant working as part of Sabha, a multi-AI orchestration platform. Produce high-quality, complete, actionable output quickly.',
+              content: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output quickly.',
             },
             { role: 'user', content: input.prompt },
           ],

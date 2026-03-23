@@ -40,7 +40,7 @@ const ALL_MODELS = [
   { value: 'sarvam-1',          label: 'Sarvam-1',          icon: '🇮🇳' },
   { value: 'groq',              label: 'Groq',              icon: '⚡' },
   { value: 'cohere',            label: 'Cohere',            icon: '🌊' },
-  { value: 'sabha-ai',          label: 'Sabha AI',          icon: '🧠' },
+  { value: 'sabha-ai',          label: 'Arivarangam',          icon: '🧠' },
 ]
 
 export default function RoundtableCustomizePage() {
@@ -132,7 +132,7 @@ export default function RoundtableCustomizePage() {
       {/* Legend */}
       <div className="flex gap-4 mb-4 text-xs text-zinc-600">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500" /> Custom AI</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-zinc-600" /> Sabha default</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-zinc-600" /> Arivarangam default</span>
         <span className="flex items-center gap-1">⠿ Drag to reorder</span>
       </div>
 
@@ -197,7 +197,7 @@ export default function RoundtableCustomizePage() {
         <p className="text-xs text-zinc-600 leading-relaxed">
           Changes apply to all future tasks. Connect your own AI keys in{' '}
           <a href="/settings/ai-connections" className="text-indigo-400 hover:underline">AI Connections</a>{' '}
-          to use them for free on your own quota. Sabha defaults are always available as fallback.
+          to use them for free on your own quota. Arivarangam defaults are always available as fallback.
         </p>
       </div>
     </div>

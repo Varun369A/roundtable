@@ -1,5 +1,5 @@
-import { prisma } from '@sabha/db'
-import type { AIModel, TemplateAgent, TaskCategory } from '@sabha/types'
+import { prisma } from '@arivarangam/db'
+import type { AIModel, TemplateAgent, TaskCategory } from '@arivarangam/types'
 import { parseIntent } from './intent-parser'
 import { decomposeTask, type SubtaskDefinition } from './task-decomposer'
 import { initializeContext, appendSubtaskResult, buildPromptWithContext, clearContextCache, getContext } from './context-manager'

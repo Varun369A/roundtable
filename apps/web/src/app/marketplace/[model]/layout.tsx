@@ -21,10 +21,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const modelName = MODEL_NAMES[params.model] ?? params.model.replace(/-/g, ' ')
   return {
-    title: `${modelName} — Sabha AI Marketplace`,
-    description: `Use ${modelName} in your Sabha AI roundtable. Compare capabilities, pricing, and integrate with 100+ language support.`,
+    title: `${modelName} — Arivarangam Marketplace`,
+    description: `Use ${modelName} in your Arivarangam roundtable. Compare capabilities, pricing, and integrate with 100+ language support.`,
     openGraph: {
-      title: `${modelName} on Sabha`,
+      title: `${modelName} on Arivarangam`,
       description: `Leverage ${modelName} in collaborative AI workflows for Indian businesses.`,
     },
   }

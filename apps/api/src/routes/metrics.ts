@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { metrics } from '../lib/metrics'
 import { circuitBreakerRegistry } from '../lib/circuit-breaker'
 import { getQueueStats } from '../jobs/queue'
-import { env } from '@sabha/config'
+import { env } from '@arivarangam/config'
 
 /**
  * GET /metrics — Prometheus-compatible scrape endpoint.

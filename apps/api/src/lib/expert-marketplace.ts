@@ -8,7 +8,7 @@
  * Stale (expired) reviews are refunded via the expireStaleReviews cron handler.
  */
 
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 import { debitWallet, creditWallet, InsufficientCreditsError } from './credit-manager'
 import { createNotification } from './notifications'
 

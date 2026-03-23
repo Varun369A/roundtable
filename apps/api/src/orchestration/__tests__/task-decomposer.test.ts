@@ -1,5 +1,5 @@
 import { decomposeTask } from '../task-decomposer'
-import type { ParsedIntent } from '@sabha/types'
+import type { ParsedIntent } from '@arivarangam/types'
 
 const baseIntent: ParsedIntent = {
   goal: 'Create a marketing campaign for my chai brand',

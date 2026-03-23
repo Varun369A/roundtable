@@ -18,7 +18,7 @@
  */
 
 import crypto from 'node:crypto'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 const ALGORITHM = 'aes-256-gcm' as const
 
@@ -153,17 +153,17 @@ export async function decryptApiKey(
 /**
  * Spec's resolveApiKey — single authoritative function for API key selection:
  *   1. User's own stored key (decrypted from vault)
- *   2. Sabha's platform key ONLY if plan === 'FREE' AND freeTasksRemaining > 0
+ *   2. Arivarangam's platform key ONLY if plan === 'FREE' AND freeTasksRemaining > 0
  *   3. Throw NO_KEY_AVAILABLE — never silently succeed for paid plans
  *
- * CRITICAL: Sabha pays API costs ONLY for FREE users.
+ * CRITICAL: Arivarangam pays API costs ONLY for FREE users.
  * Builder / Studio / Enterprise with no connected key → hard throw.
- * No paid user ever runs on Sabha's dime.
+ * No paid user ever runs on Arivarangam's dime.
  */
 export async function resolveApiKey(
   userId:   string,
   provider: string
-): Promise<{ key: string; billedTo: 'user' | 'sabha' }> {
+): Promise<{ key: string; billedTo: 'user' | 'arivarangam' }> {
   // 1. Try user's own key
   const conn = await prisma.userAIConnection.findUnique({
     where:  { userId_provider: { userId, provider } },
@@ -200,8 +200,8 @@ export async function resolveApiKey(
     return { key, billedTo: 'user' }
   }
 
-  // 2. FREE plan with remaining budget → Sabha's platform key.
-  // GUARD: Sabha fallback is STRICTLY gated to FREE plan only.
+  // 2. FREE plan with remaining budget → Arivarangam's platform key.
+  // GUARD: Arivarangam fallback is STRICTLY gated to FREE plan only.
   // Any paid tier (BUILDER / STUDIO / ENTERPRISE) with no key → throw.
   //
   // RACE CONDITION FIX: Use atomic `updateMany` with a WHERE guard instead of
@@ -215,7 +215,7 @@ export async function resolveApiKey(
 
   if (result.count > 0) {
     const platformKey = process.env[`${provider.toUpperCase()}_API_KEY`]
-    if (platformKey) return { key: platformKey, billedTo: 'sabha' }
+    if (platformKey) return { key: platformKey, billedTo: 'arivarangam' }
     // Platform key missing from env — restore the budget we just decremented
     await prisma.user.update({
       where: { id: userId },

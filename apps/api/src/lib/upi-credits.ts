@@ -1,7 +1,7 @@
 /**
  * UPI Prepaid Credit Service.
  *
- * Bridges Indian users without international credit cards to Sabha's credit system.
+ * Bridges Indian users without international credit cards to Arivarangam's credit system.
  * Flow:
  *   1. User selects a CreditPack → POST /api/v1/credits/upi/order
  *   2. We create a Razorpay order → return { orderId, amount, key }
@@ -14,7 +14,7 @@
  */
 
 import crypto from 'node:crypto'
-import { prisma } from '@sabha/db'
+import { prisma } from '@arivarangam/db'
 
 // ─── Razorpay order creation ──────────────────────────────────────────────────
 

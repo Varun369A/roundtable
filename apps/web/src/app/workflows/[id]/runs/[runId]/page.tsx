@@ -112,7 +112,7 @@ function StepTimelineItem({ stepRun, isLast }: { stepRun: StepRun; isLast: boole
                   className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  View Sabha →
+                  View Arivarangam →
                 </Link>
               )}
               {stepRun.status !== 'PENDING' && (
