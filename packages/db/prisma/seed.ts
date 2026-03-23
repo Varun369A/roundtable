@@ -1,5 +1,5 @@
-import { PrismaClient } from '../generated/client'
-import { createHash } from 'crypto'
+import { PrismaClient, AIModel } from '../generated/client'
+import bcrypt from 'bcryptjs'
 // Templates are loaded at runtime via dynamic require to avoid circular deps at seed time
 // We inline the template data here for seed independence.
 
@@ -10,7 +10,7 @@ async function main() {
 
   const connectors = [
     {
-      model: 'claude-3-5-sonnet' as const,
+      model: AIModel.claude_3_5_sonnet,
       displayName: 'Claude 3.5 Sonnet',
       provider: 'anthropic',
       description: 'Best for complex reasoning, writing, and code. Fast and highly capable.',
@@ -20,7 +20,7 @@ async function main() {
       outputCostPer1M: 15.0,
     },
     {
-      model: 'claude-3-opus' as const,
+      model: AIModel.claude_3_opus,
       displayName: 'Claude 3 Opus',
       provider: 'anthropic',
       description: 'Most powerful Claude model. Best for nuanced, expert-level tasks.',
@@ -30,7 +30,7 @@ async function main() {
       outputCostPer1M: 75.0,
     },
     {
-      model: 'gpt-4o' as const,
+      model: AIModel.gpt_4o,
       displayName: 'GPT-4o',
       provider: 'openai',
       description: 'OpenAI flagship model. Excellent at structured tasks and vision.',
@@ -40,7 +40,7 @@ async function main() {
       outputCostPer1M: 15.0,
     },
     {
-      model: 'gpt-4-turbo' as const,
+      model: AIModel.gpt_4_turbo,
       displayName: 'GPT-4 Turbo',
       provider: 'openai',
       description: 'GPT-4 Turbo — high capability, great for long-context tasks.',
@@ -50,7 +50,7 @@ async function main() {
       outputCostPer1M: 30.0,
     },
     {
-      model: 'gemini-pro' as const,
+      model: AIModel.gemini_pro,
       displayName: 'Gemini 1.5 Pro',
       provider: 'google',
       description: 'Google\'s Gemini — excellent for long documents and multimodal tasks.',
@@ -60,7 +60,7 @@ async function main() {
       outputCostPer1M: 10.5,
     },
     {
-      model: 'perplexity-sonar' as const,
+      model: AIModel.perplexity_sonar,
       displayName: 'Perplexity Sonar',
       provider: 'perplexity',
       description: 'Real-time web search and research. Always up-to-date information.',
@@ -70,7 +70,7 @@ async function main() {
       outputCostPer1M: 1.0,
     },
     {
-      model: 'midjourney-v6' as const,
+      model: AIModel.midjourney_v6,
       displayName: 'Midjourney v6',
       provider: 'midjourney',
       description: 'State-of-the-art image generation. Best for artistic and photorealistic visuals.',
@@ -80,7 +80,7 @@ async function main() {
       outputCostPer1M: 0,
     },
     {
-      model: 'dalle-3' as const,
+      model: AIModel.dalle_3,
       displayName: 'DALL-E 3',
       provider: 'openai',
       description: 'High quality image generation from text descriptions.',
@@ -90,7 +90,7 @@ async function main() {
       outputCostPer1M: 0,
     },
     {
-      model: 'stability-xl' as const,
+      model: AIModel.stability_xl,
       displayName: 'Stable Diffusion XL',
       provider: 'stability',
       description: 'Open-source image generation. Great for product and style variations.',
@@ -100,7 +100,7 @@ async function main() {
       outputCostPer1M: 0,
     },
     {
-      model: 'elevenlabs' as const,
+      model: AIModel.elevenlabs,
       displayName: 'ElevenLabs',
       provider: 'elevenlabs',
       description: 'Ultra-realistic AI voice generation and cloning.',
@@ -110,7 +110,7 @@ async function main() {
       outputCostPer1M: 0,
     },
     {
-      model: 'runway-gen3' as const,
+      model: AIModel.runway_gen3,
       displayName: 'Runway Gen-3',
       provider: 'runway',
       description: 'Next-generation AI video creation and editing.',
@@ -120,7 +120,7 @@ async function main() {
       outputCostPer1M: 0,
     },
     {
-      model: 'sarvam-1' as const,
+      model: AIModel.sarvam_1,
       displayName: 'Sarvam AI',
       provider: 'sarvam',
       description: 'Indian language AI. Supports Hindi, Tamil, Telugu, Kannada, and more.',
@@ -130,7 +130,7 @@ async function main() {
       outputCostPer1M: 0.5,
     },
     {
-      model: 'gamma' as const,
+      model: AIModel.gamma,
       displayName: 'Gamma',
       provider: 'gamma',
       description: 'AI-powered presentation and document creation.',
@@ -155,8 +155,7 @@ async function main() {
   const adminEmail    = process.env.ADMIN_EMAIL    || 'admin@arivarangam.com'
   const adminPassword = process.env.ADMIN_PASSWORD || 'change-this-strong-password'
 
-  // Simple SHA-256 hash for seed only — real auth uses bcrypt at runtime
-  const passwordHash = createHash('sha256').update(adminPassword).digest('hex')
+  const passwordHash = await bcrypt.hash(adminPassword, 12)
 
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
