@@ -1,0 +1,86 @@
+services:
+  - type: web
+    name: arivarangam-api
+    runtime: node
+    region: singapore
+    plan: starter
+    rootDir: .
+    buildCommand: npm install && npx prisma generate --schema=packages/db/prisma/schema.prisma && cd apps/api && npx tsc || true
+    startCommand: node apps/api/dist/server.js
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: COOKIE_SECRET
+        sync: false
+      - key: VAULT_MASTER_KEY
+        sync: false
+      - key: SOCIAL_CREDENTIALS_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+      - key: PERPLEXITY_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: STABILITY_API_KEY
+        sync: false
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: Arivarangam <admin@arivarangam.com>
+      - key: SUPPORT_EMAIL
+        value: support@arivarangam.com
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: RAZORPAY_PLAN_BUILDER
+        sync: false
+      - key: RAZORPAY_PLAN_STUDIO
+        sync: false
+      - key: RAZORPAY_PLAN_ENTERPRISE
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: STORAGE_PROVIDER
+        value: r2
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        value: arivarangam
+      - key: R2_PUBLIC_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://www.arivarangam.com
+      - key: ALLOWED_ORIGINS
+        value: https://arivarangam.com,https://www.arivarangam.com
+      - key: EXCHANGE_RATE_INR_USD
+        value: 84
