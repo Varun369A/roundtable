@@ -137,9 +137,9 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div
-        className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
+        className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60"
         role="dialog"
         aria-modal="true"
         aria-label={`Connect ${config.name}`}
@@ -164,31 +164,31 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
 
         <div className="p-5 space-y-4">
           {/* Instructions */}
-          <div className="px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 leading-relaxed">
+          <div className="px-3 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-700 leading-relaxed">
             {config.tokenInstructions}
           </div>
 
           {/* Display name */}
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Display name</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Display name</label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               placeholder={config.name}
             />
           </div>
 
           {/* Token */}
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">{config.tokenLabel}</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">{config.tokenLabel}</label>
             <input
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 font-mono focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
               placeholder="Paste token here…"
               autoFocus
             />
@@ -196,7 +196,7 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
 
           {/* Scopes */}
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Permissions</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1.5">Permissions</label>
             <div className="flex flex-wrap gap-1.5">
               {config.availableScopes.map((scope) => (
                 <button
@@ -205,8 +205,8 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
                   onClick={() => toggleScope(scope)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors border ${
                     scopes.includes(scope)
-                      ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-300'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600 hover:text-zinc-400'
+                      ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                      : 'bg-slate-100 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
                   }`}
                 >
                   {scopes.includes(scope) ? '✓ ' : ''}{scope}
@@ -216,7 +216,7 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -238,13 +238,13 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-sm transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-colors"
             >
               Cancel
             </button>
           </div>
 
-          <p className="text-[10px] text-zinc-600 text-center">
+          <p className="text-[10px] text-slate-400 text-center">
             🔒 Token is encrypted with AES-256-GCM and never displayed again.
           </p>
         </div>
@@ -272,14 +272,14 @@ function DisconnectDialog({ integration, onClose, onDisconnected }: DisconnectDi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60 p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60 p-6 space-y-4">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{config.icon}</span>
-          <h2 className="text-base font-bold text-white">Disconnect {config.name}?</h2>
+          <h2 className="text-base font-bold text-slate-900">Disconnect {config.name}?</h2>
         </div>
-        <p className="text-sm text-zinc-400 leading-relaxed">
-          This will remove the <span className="text-zinc-200 font-medium">{integration.displayName}</span> integration.
+        <p className="text-sm text-slate-500 leading-relaxed">
+          This will remove the <span className="text-slate-800 font-medium">{integration.displayName}</span> integration.
           Arivarangam will no longer be able to execute {config.name} actions.
         </p>
         <div className="flex items-center gap-3">
@@ -292,7 +292,7 @@ function DisconnectDialog({ integration, onClose, onDisconnected }: DisconnectDi
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-sm transition-colors"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-colors"
           >
             Cancel
           </button>
@@ -340,8 +340,8 @@ export default function IntegrationsPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center gap-3 text-zinc-500 text-sm">
-        <span className="w-4 h-4 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="p-8 flex items-center gap-3 text-slate-500 text-sm">
+        <span className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
         Loading integrations…
       </div>
     )
@@ -350,15 +350,15 @@ export default function IntegrationsPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-2">Integrations</h1>
-        <p className="text-zinc-400 text-sm leading-relaxed">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Integrations</h1>
+        <p className="text-slate-500 text-sm leading-relaxed">
           Connect external tools to let Arivarangam take real-world actions — push code to GitHub, send emails,
           create Notion pages, and more.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+        <div className="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
         </div>
       )}
@@ -376,8 +376,8 @@ export default function IntegrationsPage() {
               key={providerKey}
               className={`rounded-2xl border overflow-hidden transition-colors ${
                 isConnected
-                  ? 'border-zinc-700 bg-zinc-900/70'
-                  : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                  ? 'border-slate-300 bg-white'
+                  : 'border-slate-200 bg-slate-50 hover:border-slate-300'
               }`}
             >
               {/* Gradient header strip */}
@@ -389,8 +389,8 @@ export default function IntegrationsPage() {
                   <div className="flex items-center gap-2.5">
                     <span className="text-2xl leading-none">{config.icon}</span>
                     <div>
-                      <p className="text-sm font-semibold text-white">{config.name}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5 leading-snug">{config.description}</p>
+                      <p className="text-sm font-semibold text-slate-900">{config.name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-snug">{config.description}</p>
                     </div>
                   </div>
                   {/* Active toggle (only when connected) */}
@@ -400,7 +400,7 @@ export default function IntegrationsPage() {
                       disabled={isToggling}
                       title={isActive ? 'Disable integration' : 'Enable integration'}
                       className={`relative shrink-0 w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
-                        isActive ? 'bg-indigo-600' : 'bg-zinc-700'
+                        isActive ? 'bg-indigo-600' : 'bg-slate-300'
                       }`}
                     >
                       <span
@@ -419,23 +419,23 @@ export default function IntegrationsPage() {
                       <span
                         className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                           isActive
-                            ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                            : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+                            ? 'bg-green-50 border-green-200 text-green-600'
+                            : 'bg-slate-100 border-slate-200 text-slate-500'
                         }`}
                       >
                         {isActive ? '✓ Active' : '— Inactive'}
                       </span>
-                      <span className="text-[10px] text-zinc-500 font-mono">{integration!.displayName}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">{integration!.displayName}</span>
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {integration!.scopes.map((s) => (
-                        <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-700/50">
+                        <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
                           {s}
                         </span>
                       ))}
                     </div>
                     {integration!.lastUsedAt && (
-                      <p className="text-[10px] text-zinc-600">
+                      <p className="text-[10px] text-slate-400">
                         Last used {new Date(integration!.lastUsedAt).toLocaleDateString()}
                       </p>
                     )}
@@ -447,7 +447,7 @@ export default function IntegrationsPage() {
                   {isConnected ? (
                     <button
                       onClick={() => setDisconnectTarget(integration!)}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-red-500/20 hover:text-red-400 text-zinc-400 transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 transition-colors"
                     >
                       Disconnect
                     </button>
@@ -466,8 +466,8 @@ export default function IntegrationsPage() {
         })}
       </div>
 
-      <div className="mt-8 p-4 rounded-xl bg-zinc-900/30 border border-zinc-800">
-        <p className="text-xs text-zinc-600 leading-relaxed">
+      <div className="mt-8 p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <p className="text-xs text-slate-500 leading-relaxed">
           🔒 Tokens are encrypted with AES-256-GCM. Arivarangam will only execute actions that are explicitly
           queued by AI tasks you create. Actions require your approval before execution.
         </p>

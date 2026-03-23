@@ -99,10 +99,10 @@ function durationLabel(ms?: number): string {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    completed: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    failed:    'text-red-400 bg-red-500/10 border-red-500/20',
-    running:   'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    never:     'text-zinc-500 bg-zinc-800 border-zinc-700',
+    completed: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    failed:    'text-red-600 bg-red-50 border-red-200',
+    running:   'text-indigo-600 bg-indigo-50 border-indigo-200',
+    never:     'text-slate-500 bg-slate-100 border-slate-200',
   }
   const cls = map[status] || map.never
   return (
@@ -189,13 +189,13 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-6 py-5 border-b border-zinc-800 shrink-0">
-          <h2 className="text-base font-semibold text-white">
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-6 py-5 border-b border-slate-200 shrink-0">
+          <h2 className="text-base font-semibold text-slate-900">
             {initial ? 'Edit Schedule' : 'New Schedule'}
           </h2>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Arivarangam will automatically run this task on your schedule
           </p>
         </div>
@@ -205,21 +205,21 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
 
             {/* Name */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Schedule Name</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Schedule Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Weekly market report"
                 required
-                className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-sm outline-none transition-colors"
               />
             </div>
 
             {/* Goal */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                Goal <span className="text-zinc-600">(what Arivarangam should do each run)</span>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Goal <span className="text-slate-400">(what Arivarangam should do each run)</span>
               </label>
               <textarea
                 value={goal}
@@ -227,13 +227,13 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                 placeholder="e.g. Research and summarise top 5 industry news stories from the past week…"
                 required
                 rows={3}
-                className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-colors resize-none"
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-sm outline-none transition-colors resize-none"
               />
             </div>
 
             {/* Schedule picker */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-2">Schedule</label>
+              <label className="block text-xs font-medium text-slate-600 mb-2">Schedule</label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {PRESETS.map((p) => (
                   <button
@@ -243,7 +243,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       selectedPreset === p.label
                         ? 'bg-indigo-600 text-white'
-                        : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                        : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     {p.label}
@@ -258,14 +258,14 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                     value={customCron}
                     onChange={(e) => setCustomCron(e.target.value)}
                     placeholder="Cron expression, e.g. 0 9 * * 1"
-                    className={`w-full px-3 py-2.5 bg-zinc-950 border rounded-xl text-sm font-mono text-white placeholder-zinc-600 outline-none transition-colors ${
+                    className={`w-full px-3 py-2.5 bg-white border rounded-xl text-sm font-mono text-slate-900 placeholder:text-slate-400 outline-none transition-colors ${
                       customCron && !isValidCron(customCron)
-                        ? 'border-red-500/50 focus:border-red-500'
-                        : 'border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30'
+                        ? 'border-red-400 focus:border-red-500'
+                        : 'border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
                     }`}
                   />
                   {customCron && !isValidCron(customCron) && (
-                    <p className="text-xs text-red-400 mt-1">
+                    <p className="text-xs text-red-500 mt-1">
                       Invalid cron — use 5-part format: minute hour day month weekday
                     </p>
                   )}
@@ -273,7 +273,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
               )}
 
               {preview && (
-                <p className="text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-2 rounded-lg">
+                <p className="text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-lg">
                   {preview}
                 </p>
               )}
@@ -281,11 +281,11 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
 
             {/* Timezone */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Timezone</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Timezone</label>
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 rounded-xl text-sm text-white outline-none transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl text-sm outline-none transition-colors"
               >
                 {TIMEZONES.map((tz) => (
                   <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -295,13 +295,13 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
 
             {/* Max runs */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-2">Run limit</label>
+              <label className="block text-xs font-medium text-slate-600 mb-2">Run limit</label>
               <div className="flex items-center gap-3 mb-2">
                 <button
                   type="button"
                   onClick={() => setLimitRuns(false)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    !limitRuns ? 'bg-zinc-700 text-white' : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                    !limitRuns ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   Unlimited
@@ -310,7 +310,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                   type="button"
                   onClick={() => setLimitRuns(true)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    limitRuns ? 'bg-zinc-700 text-white' : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                    limitRuns ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   Limit to N
@@ -323,14 +323,14 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                   onChange={(e) => setMaxRuns(e.target.value)}
                   min={1}
                   placeholder="e.g. 10"
-                  className="w-32 px-3 py-2 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 rounded-lg text-sm text-white outline-none"
+                  className="w-32 px-3 py-2 bg-white border border-slate-200 text-slate-900 focus:border-indigo-500 rounded-lg text-sm outline-none"
                 />
               )}
             </div>
 
             {/* Notifications */}
             <div className="space-y-3">
-              <label className="block text-xs font-medium text-zinc-400">Notifications</label>
+              <label className="block text-xs font-medium text-slate-600">Notifications</label>
               {[
                 { id: 'fail',     label: 'Notify on fail',     checked: notifyOnFail,     set: setNotifyOnFail },
                 { id: 'complete', label: 'Notify on complete', checked: notifyOnComplete, set: setNotifyOnComplete },
@@ -339,7 +339,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                   <div
                     onClick={() => item.set(!item.checked)}
                     className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                      item.checked ? 'bg-indigo-600' : 'bg-zinc-700'
+                      item.checked ? 'bg-indigo-600' : 'bg-slate-300'
                     }`}
                   >
                     <span
@@ -348,7 +348,7 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
                       }`}
                     />
                   </div>
-                  <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">
+                  <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
                     {item.label}
                   </span>
                 </label>
@@ -356,18 +356,18 @@ function ScheduleDialog({ initial, onClose, onSaved }: DialogProps) {
             </div>
 
             {error && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-end gap-3 shrink-0">
+          <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-xl text-zinc-300 transition-colors"
+              className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -413,17 +413,17 @@ function RunHistoryPanel({ schedule, onClose }: { schedule: ScheduledTask; onClo
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-zinc-900 border-l border-zinc-800 flex flex-col shadow-2xl">
+      <div className="absolute inset-0 bg-slate-900/20" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-white border-l border-slate-200 flex flex-col shadow-xl">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-sm font-semibold text-white">{schedule.name}</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Run history (last 50)</p>
+            <h3 className="text-sm font-semibold text-slate-900">{schedule.name}</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Run history (last 50)</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             ×
           </button>
@@ -434,37 +434,37 @@ function RunHistoryPanel({ schedule, onClose }: { schedule: ScheduledTask; onClo
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-14 bg-zinc-800 rounded-xl animate-pulse" />
+                <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : error ? (
-            <p className="text-xs text-red-400 text-center py-8">{error}</p>
+            <p className="text-xs text-red-500 text-center py-8">{error}</p>
           ) : runs.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-zinc-600 text-sm">No runs yet</p>
+              <p className="text-slate-400 text-sm">No runs yet</p>
             </div>
           ) : (
             <div className="space-y-2">
               {runs.map((run) => (
                 <div
                   key={run.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-800/50 border border-zinc-800"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200"
                 >
                   <StatusBadge status={run.status} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-zinc-300">
+                    <p className="text-xs text-slate-700">
                       {new Date(run.startedAt).toLocaleString('en-IN', {
                         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
                       })}
                     </p>
-                    <p className="text-[10px] text-zinc-600 mt-0.5">
+                    <p className="text-[10px] text-slate-400 mt-0.5">
                       Duration: {durationLabel(run.durationMs)}
                     </p>
                   </div>
                   {run.taskId && (
                     <Link
                       href={`/roundtable/${run.taskId}`}
-                      className="shrink-0 text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                      className="shrink-0 text-[10px] text-indigo-600 hover:text-indigo-500 transition-colors"
                     >
                       View →
                     </Link>
@@ -580,19 +580,19 @@ export default function ScheduledTasksPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="max-w-4xl mx-auto px-6 py-10">
 
         {/* ── Header ──────────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Link href="/dashboard" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+              <Link href="/dashboard" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
                 ← Dashboard
               </Link>
             </div>
-            <h1 className="text-2xl font-bold text-white">Scheduled Tasks</h1>
-            <p className="text-zinc-500 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-slate-900">Scheduled Tasks</h1>
+            <p className="text-slate-500 text-sm mt-1">
               Automate Arivarangam to run tasks on a recurring schedule — daily reports, weekly audits, and more.
             </p>
           </div>
@@ -607,9 +607,9 @@ export default function ScheduledTasksPage() {
         {/* ── Stats row ───────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {statCards.map((s) => (
-            <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-4">
-              <p className="text-xs text-zinc-500 mb-1">{s.label}</p>
-              <p className={`text-2xl font-bold ${s.warn ? 'text-red-400' : 'text-white'}`}>
+            <div key={s.label} className="bg-white border border-slate-200 rounded-xl px-5 py-4 shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+              <p className={`text-2xl font-bold ${s.warn ? 'text-red-500' : 'text-slate-900'}`}>
                 {s.value}
               </p>
             </div>
@@ -618,7 +618,7 @@ export default function ScheduledTasksPage() {
 
         {/* ── Error ───────────────────────────────────────────────────────────── */}
         {error && (
-          <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
+          <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {error}
           </div>
         )}
@@ -627,14 +627,14 @@ export default function ScheduledTasksPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-zinc-900 rounded-2xl animate-pulse" />
+              <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-slate-200" />
             ))}
           </div>
         ) : schedules.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl py-20 text-center">
+          <div className="bg-white border border-slate-200 rounded-2xl py-20 text-center shadow-sm">
             <p className="text-3xl mb-3">⏰</p>
-            <p className="text-zinc-400 text-sm font-medium">No schedules yet</p>
-            <p className="text-zinc-600 text-xs mt-1 mb-5">
+            <p className="text-slate-500 text-sm font-medium">No schedules yet</p>
+            <p className="text-slate-400 text-xs mt-1 mb-5">
               Automate any Arivarangam task to run on a recurring schedule
             </p>
             <button
@@ -649,7 +649,7 @@ export default function ScheduledTasksPage() {
             {schedules.map((s) => (
               <div
                 key={s.id}
-                className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl px-5 py-4 transition-colors"
+                className="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl px-5 py-4 transition-colors shadow-sm"
               >
                 <div className="flex items-start gap-4">
                   {/* Toggle */}
@@ -657,7 +657,7 @@ export default function ScheduledTasksPage() {
                     onClick={() => handleToggle(s)}
                     disabled={togglingId === s.id}
                     className={`mt-0.5 w-10 h-5 rounded-full transition-colors relative shrink-0 ${
-                      s.isActive ? 'bg-indigo-600' : 'bg-zinc-700'
+                      s.isActive ? 'bg-indigo-600' : 'bg-slate-300'
                     } ${togglingId === s.id ? 'opacity-50' : ''}`}
                     aria-label={s.isActive ? 'Disable' : 'Enable'}
                   >
@@ -671,34 +671,34 @@ export default function ScheduledTasksPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-semibold text-white">{s.name}</h3>
+                      <h3 className="text-sm font-semibold text-slate-900">{s.name}</h3>
                       {!s.isActive && (
-                        <span className="text-[10px] text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                           paused
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-500 mt-0.5 truncate max-w-lg">{s.goal}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate max-w-lg">{s.goal}</p>
 
                     <div className="flex items-center gap-4 mt-2 flex-wrap">
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-slate-600">
                         {s.scheduleDescription || s.cronExpression}
                       </span>
-                      <span className="text-zinc-700 text-xs">·</span>
-                      <span className="text-xs text-zinc-500">
-                        Next: <span className="text-zinc-300">{relativeTime(s.nextRunAt)}</span>
+                      <span className="text-slate-300 text-xs">·</span>
+                      <span className="text-xs text-slate-500">
+                        Next: <span className="text-slate-700">{relativeTime(s.nextRunAt)}</span>
                       </span>
-                      <span className="text-zinc-700 text-xs">·</span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-slate-300 text-xs">·</span>
+                      <span className="text-xs text-slate-500">
                         Last:{' '}
                         {s.lastRunStatus ? (
                           <StatusBadge status={s.lastRunStatus} />
                         ) : (
-                          <span className="text-zinc-600">never</span>
+                          <span className="text-slate-400">never</span>
                         )}
                       </span>
-                      <span className="text-zinc-700 text-xs">·</span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-slate-300 text-xs">·</span>
+                      <span className="text-xs text-slate-500">
                         {s.runCount} run{s.runCount !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -708,27 +708,27 @@ export default function ScheduledTasksPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => setHistoryTarget(s)}
-                      className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors"
+                      className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
                     >
                       History
                     </button>
                     <button
                       onClick={() => handleRunNow(s)}
                       disabled={runningId === s.id}
-                      className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded-lg text-zinc-300 transition-colors"
+                      className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded-lg text-slate-600 transition-colors"
                     >
                       {runningId === s.id ? 'Running…' : 'Run now'}
                     </button>
                     <button
                       onClick={() => { setEditTarget(s); setShowDialog(true) }}
-                      className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors"
+                      className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(s)}
                       disabled={deletingId === s.id}
-                      className="px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 disabled:opacity-50 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50 rounded-lg transition-colors"
                     >
                       {deletingId === s.id ? '…' : 'Delete'}
                     </button>

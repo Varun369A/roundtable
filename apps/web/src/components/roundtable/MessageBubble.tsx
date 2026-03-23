@@ -28,7 +28,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   if (message.type === 'system') {
     return (
       <div className="flex justify-center">
-        <span className="text-xs text-zinc-600 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800">
+        <span className="text-xs text-slate-500 px-3 py-1 rounded-full bg-slate-100 border border-slate-200">
           {message.title}
         </span>
       </div>
@@ -50,11 +50,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             {config.label}
           </span>
           {message.title && (
-            <span className="text-xs text-zinc-600 truncate">{message.title}</span>
+            <span className="text-xs text-slate-500 truncate">{message.title}</span>
           )}
           <time
             dateTime={message.timestamp.toISOString()}
-            className="text-xs text-zinc-700 ml-auto shrink-0"
+            className="text-xs text-slate-400 ml-auto shrink-0"
           >
             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </time>
@@ -63,7 +63,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {message.isError ? (
           <div
             role="alert"
-            className="text-xs text-red-400 px-3 py-2 rounded-xl bg-red-400/5 border border-red-400/20"
+            className="text-xs text-red-600 px-3 py-2 rounded-xl bg-red-50 border border-red-200"
           >
             Failed to complete this step. Continuing with remaining tasks.
           </div>

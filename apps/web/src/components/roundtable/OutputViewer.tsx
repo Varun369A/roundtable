@@ -18,7 +18,7 @@ export function OutputViewer({ type, content, fileUrl }: OutputViewerProps) {
         <img
           src={fileUrl}
           alt="AI generated image"
-          className="rounded-xl max-w-sm w-full border border-zinc-800"
+          className="rounded-xl max-w-sm w-full border border-slate-200"
           loading="lazy"
         />
       </div>
@@ -44,7 +44,7 @@ export function OutputViewer({ type, content, fileUrl }: OutputViewerProps) {
         <video
           controls
           src={fileUrl}
-          className="rounded-xl max-w-md w-full border border-zinc-800"
+          className="rounded-xl max-w-md w-full border border-slate-200"
         />
       </div>
     )
@@ -59,7 +59,7 @@ export function OutputViewer({ type, content, fileUrl }: OutputViewerProps) {
     }
 
     return (
-      <div className="mt-2 p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-300 overflow-x-auto max-h-64 overflow-y-auto">
+      <div className="mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 overflow-x-auto max-h-64 overflow-y-auto">
         <pre>{JSON.stringify(parsed, null, 2)}</pre>
       </div>
     )
@@ -70,13 +70,13 @@ export function OutputViewer({ type, content, fileUrl }: OutputViewerProps) {
 
     return (
       <div className="mt-2">
-        <div className="p-3 rounded-xl rounded-tl-sm bg-zinc-900/80 border border-zinc-800 text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
+        <div className="p-3 rounded-xl rounded-tl-sm bg-white border border-slate-200 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
           {display}
         </div>
         {isLong && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="mt-1 text-xs text-slate-400 hover:text-slate-700 transition-colors"
           >
             {expanded ? '↑ Show less' : `↓ Show more (${content.length - 600} more chars)`}
           </button>

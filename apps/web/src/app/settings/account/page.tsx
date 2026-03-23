@@ -120,15 +120,15 @@ export default function AccountSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
-      <header className="border-b border-white/5 px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm">
+          <Link href="/dashboard" className="text-slate-500 hover:text-slate-700 transition-colors text-sm">
             ← Dashboard
           </Link>
-          <span className="text-zinc-700">/</span>
-          <h1 className="text-sm font-medium text-zinc-300">Account Settings</h1>
+          <span className="text-slate-300">/</span>
+          <h1 className="text-sm font-medium text-slate-700">Account Settings</h1>
         </div>
       </header>
 
@@ -137,39 +137,39 @@ export default function AccountSettingsPage() {
         {/* ── Data Export ────────────────────────────────────────────────────── */}
         <section>
           <div className="mb-5">
-            <h2 className="text-base font-semibold text-white mb-1">Download My Data</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Download My Data</h2>
+            <p className="text-sm text-slate-500">
               Request a copy of all data Arivarangam holds about your account. The export includes your profile,
               tasks and their AI outputs, memories, credits history, billing events, and referral data.
               The download link is valid for 7 days.
             </p>
           </div>
 
-          <div className="bg-white/5 border border-white/8 rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
             {exportInitialLoading ? (
-              <div className="h-8 bg-white/5 rounded-lg animate-pulse w-32" />
+              <div className="h-8 bg-slate-100 rounded-lg animate-pulse w-32" />
             ) : exportData && (exportData.status === 'pending' || exportData.status === 'processing') ? (
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                 <div>
-                  <p className="text-sm text-white font-medium">Preparing your export…</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">This usually takes 1–2 minutes. You can leave this page.</p>
+                  <p className="text-sm text-slate-900 font-medium">Preparing your export…</p>
+                  <p className="text-xs text-slate-500 mt-0.5">This usually takes 1–2 minutes. You can leave this page.</p>
                 </div>
-                <button onClick={fetchExportStatus} className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                <button onClick={fetchExportStatus} className="ml-auto text-xs text-slate-500 hover:text-slate-700 transition-colors">
                   Refresh
                 </button>
               </div>
             ) : exportData?.status === 'completed' && exportData.downloadUrl && !exportData.linkExpired ? (
               <div>
-                <p className="text-sm text-emerald-400 font-medium mb-2">Your export is ready</p>
-                <p className="text-xs text-zinc-500 mb-3">
+                <p className="text-sm text-emerald-600 font-medium mb-2">Your export is ready</p>
+                <p className="text-xs text-slate-500 mb-3">
                   Requested {exportData.requestedAt ? new Date(exportData.requestedAt).toLocaleDateString() : ''} ·
                   Expires {exportData.expiresAt ? new Date(exportData.expiresAt).toLocaleDateString() : ''}
                 </p>
                 <a
                   href={exportData.downloadUrl}
                   download="sabha-data-export.json"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -179,22 +179,22 @@ export default function AccountSettingsPage() {
               </div>
             ) : exportData?.status === 'completed' && exportData.linkExpired ? (
               <div>
-                <p className="text-sm text-zinc-400 mb-2">Your previous export has expired.</p>
+                <p className="text-sm text-slate-500 mb-2">Your previous export has expired.</p>
                 <button
                   onClick={handleRequestExport}
                   disabled={exportLoading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                   {exportLoading ? 'Requesting…' : 'Request new export'}
                 </button>
               </div>
             ) : exportData?.status === 'failed' ? (
               <div>
-                <p className="text-sm text-red-400 mb-2">Export failed. Please try again.</p>
+                <p className="text-sm text-red-500 mb-2">Export failed. Please try again.</p>
                 <button
                   onClick={handleRequestExport}
                   disabled={exportLoading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                   Retry export
                 </button>
@@ -204,11 +204,11 @@ export default function AccountSettingsPage() {
                 <button
                   onClick={handleRequestExport}
                   disabled={exportLoading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-medium text-white transition-colors"
                 >
                   {exportLoading ? 'Requesting…' : 'Request data export'}
                 </button>
-                {exportError && <p className="text-red-400 text-xs mt-2">{exportError}</p>}
+                {exportError && <p className="text-red-500 text-xs mt-2">{exportError}</p>}
               </div>
             )}
           </div>
@@ -217,17 +217,17 @@ export default function AccountSettingsPage() {
         {/* ── Danger Zone ────────────────────────────────────────────────────── */}
         <section>
           <div className="mb-5">
-            <h2 className="text-base font-semibold text-white mb-1">Danger Zone</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Danger Zone</h2>
+            <p className="text-sm text-slate-500">
               These actions are irreversible. Please read carefully before proceeding.
             </p>
           </div>
 
-          <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-sm font-semibold text-red-400 mb-1">Delete account</h3>
-                <p className="text-xs text-zinc-500 leading-relaxed max-w-md">
+                <h3 className="text-sm font-semibold text-red-600 mb-1">Delete account</h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-md">
                   Permanently deletes your account and anonymizes your personal data. Your tasks and
                   AI outputs will be retained in anonymized form for platform improvement. Active subscriptions
                   will be cancelled. This action cannot be undone.
@@ -236,7 +236,7 @@ export default function AccountSettingsPage() {
               {!showDeleteForm && (
                 <button
                   onClick={() => setShowDeleteForm(true)}
-                  className="flex-shrink-0 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 hover:text-red-300 rounded-xl text-sm font-medium transition-colors"
+                  className="flex-shrink-0 px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-300 text-red-600 hover:text-red-700 rounded-xl text-sm font-medium transition-colors"
                 >
                   Delete account
                 </button>
@@ -245,44 +245,44 @@ export default function AccountSettingsPage() {
 
             {showDeleteForm && (
               <form onSubmit={handleDeleteAccount} className="mt-6 space-y-4">
-                <div className="border-t border-red-500/15 pt-5">
-                  <p className="text-xs text-zinc-400 mb-4">
-                    To confirm, enter your password and type <span className="font-mono text-red-300 bg-red-500/10 px-1.5 py-0.5 rounded">{REQUIRED_CONFIRMATION}</span> exactly.
+                <div className="border-t border-red-200 pt-5">
+                  <p className="text-xs text-slate-600 mb-4">
+                    To confirm, enter your password and type <span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">{REQUIRED_CONFIRMATION}</span> exactly.
                   </p>
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-zinc-400 mb-1.5">Your password</label>
+                      <label className="block text-xs text-slate-600 mb-1.5">Your password</label>
                       <input
                         type="password"
                         required
                         value={deletePassword}
                         onChange={(e) => setDeletePassword(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-red-500/50 focus:outline-none transition-colors text-sm"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors text-sm"
                         placeholder="Enter your current password"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs text-zinc-400 mb-1.5">Confirmation phrase</label>
+                      <label className="block text-xs text-slate-600 mb-1.5">Confirmation phrase</label>
                       <input
                         type="text"
                         required
                         value={deleteConfirmation}
                         onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        className={`w-full px-3 py-2.5 rounded-xl bg-zinc-900 border focus:outline-none transition-colors text-sm font-mono ${
+                        className={`w-full px-3 py-2.5 rounded-xl bg-white border focus:outline-none transition-colors text-sm font-mono text-slate-900 placeholder:text-slate-400 ${
                           deleteConfirmation && !confirmationMatch
-                            ? 'border-red-500/50 focus:border-red-500'
+                            ? 'border-red-400 focus:border-red-500'
                             : confirmationMatch
-                            ? 'border-red-500/30 focus:border-red-500/50'
-                            : 'border-zinc-800 focus:border-zinc-600'
+                            ? 'border-red-300 focus:border-red-400'
+                            : 'border-slate-200 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500'
                         }`}
                         placeholder={REQUIRED_CONFIRMATION}
                         autoComplete="off"
                         spellCheck={false}
                       />
                       {deleteConfirmation && !confirmationMatch && (
-                        <p className="text-red-400 text-xs mt-1">
+                        <p className="text-red-500 text-xs mt-1">
                           Type &quot;{REQUIRED_CONFIRMATION}&quot; exactly (case-sensitive)
                         </p>
                       )}
@@ -290,8 +290,8 @@ export default function AccountSettingsPage() {
                   </div>
 
                   {deleteError && (
-                    <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                      <p className="text-red-400 text-xs">{deleteError}</p>
+                    <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200">
+                      <p className="text-red-600 text-xs">{deleteError}</p>
                     </div>
                   )}
 
@@ -299,7 +299,7 @@ export default function AccountSettingsPage() {
                     <button
                       type="submit"
                       disabled={deleteLoading || !confirmationMatch || !deletePassword}
-                      className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-40 rounded-xl text-sm font-semibold transition-colors"
+                      className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-40 rounded-xl text-sm font-semibold text-white transition-colors"
                     >
                       {deleteLoading ? 'Deleting account…' : 'Permanently delete my account'}
                     </button>
@@ -311,7 +311,7 @@ export default function AccountSettingsPage() {
                         setDeleteConfirmation('')
                         setDeleteError('')
                       }}
-                      className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-sm text-zinc-400 transition-colors"
+                      className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-sm text-slate-600 transition-colors"
                     >
                       Cancel
                     </button>

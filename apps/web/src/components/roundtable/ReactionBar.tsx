@@ -51,16 +51,16 @@ export function ReactionBar({ taskId, subtaskId, reactions: initialReactions = [
           <button
             key={emoji}
             onClick={() => handleReaction(emoji)}
-            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs transition-all duration-150 hover:bg-zinc-800 active:bg-zinc-700 ${
+            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-xs transition-all duration-150 hover:bg-slate-100 active:bg-slate-200 ${
               count > 0
-                ? 'bg-zinc-800/80 border border-zinc-700/50'
-                : 'border border-transparent hover:border-zinc-700/50'
+                ? 'bg-slate-100 border border-slate-200'
+                : 'border border-transparent hover:border-slate-200'
             } ${isAnimating ? 'scale-125' : 'scale-100'}`}
             title={emoji}
           >
             <span className="text-sm leading-none">{emoji}</span>
             {count > 0 && (
-              <span className="text-[10px] font-medium text-zinc-400 leading-none">{count}</span>
+              <span className="text-[10px] font-medium text-slate-500 leading-none">{count}</span>
             )}
           </button>
         )

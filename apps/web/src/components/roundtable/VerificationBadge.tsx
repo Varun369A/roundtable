@@ -21,10 +21,10 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-400">{label}</span>
-        <span className="text-xs font-semibold text-zinc-200">{Math.round(value)}%</span>
+        <span className="text-xs text-slate-500">{label}</span>
+        <span className="text-xs font-semibold text-slate-800">{Math.round(value)}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
           style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
@@ -35,9 +35,9 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 }
 
 const SEVERITY_CONFIG = {
-  high:   { label: 'High',   color: 'text-red-400',   bg: 'bg-red-500/10 border-red-500/20' },
-  medium: { label: 'Medium', color: 'text-amber-400',  bg: 'bg-amber-500/10 border-amber-500/20' },
-  low:    { label: 'Low',    color: 'text-zinc-400',   bg: 'bg-zinc-500/10 border-zinc-500/20' },
+  high:   { label: 'High',   color: 'text-red-600',   bg: 'bg-red-50 border-red-200' },
+  medium: { label: 'Medium', color: 'text-amber-600',  bg: 'bg-amber-50 border-amber-200' },
+  low:    { label: 'Low',    color: 'text-slate-500',  bg: 'bg-slate-50 border-slate-200' },
 }
 
 export function VerificationBadge({ verification, subtaskId }: VerificationBadgeProps) {
@@ -61,7 +61,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
 
   if (!verification) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-zinc-500 border border-zinc-700/50">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-400 border border-slate-200">
         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
@@ -78,7 +78,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
 
   switch (status) {
     case 'PASSED':
-      badgeClass = 'bg-green-500/15 border-green-500/30 text-green-400 hover:bg-green-500/25'
+      badgeClass = 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
       badgeContent = (
         <>
           <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -89,7 +89,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
       )
       break
     case 'PARTIAL':
-      badgeClass = 'bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/25'
+      badgeClass = 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
       badgeContent = (
         <>
           <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -100,7 +100,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
       )
       break
     case 'FAILED':
-      badgeClass = 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25'
+      badgeClass = 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
       badgeContent = (
         <>
           <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -111,7 +111,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
       )
       break
     case 'RUNNING':
-      badgeClass = 'bg-blue-500/15 border-blue-500/30 text-blue-400'
+      badgeClass = 'bg-blue-50 border-blue-200 text-blue-600'
       badgeContent = (
         <>
           <span className="w-2.5 h-2.5 border border-blue-400 border-t-transparent rounded-full animate-spin" />
@@ -120,7 +120,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
       )
       break
     default: // PENDING
-      badgeClass = 'bg-zinc-800 border-zinc-700/50 text-zinc-500'
+      badgeClass = 'bg-slate-100 border-slate-200 text-slate-400'
       badgeContent = (
         <>
           <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -148,16 +148,16 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
       {open && isInteractive && (
         <div
           ref={popoverRef}
-          className="absolute top-full mt-1.5 right-0 z-50 w-72 rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60 p-4 space-y-4 text-sm"
+          className="absolute top-full mt-1.5 right-0 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 p-4 space-y-4 text-sm"
           role="dialog"
           aria-label="Verification details"
         >
           {/* Header */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">Quality Verification</span>
+            <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Quality Verification</span>
             <button
               onClick={() => setOpen(false)}
-              className="text-zinc-600 hover:text-zinc-400 transition-colors"
+              className="text-slate-400 hover:text-slate-600 transition-colors"
               aria-label="Close"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -188,7 +188,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
           {/* Issues */}
           {issues.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                 Issues ({issues.length})
               </p>
               <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
@@ -198,11 +198,11 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
                     <div key={idx} className={`px-2.5 py-2 rounded-lg border text-xs ${sev.bg}`}>
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className={`text-[10px] font-semibold uppercase ${sev.color}`}>{sev.label}</span>
-                        <span className="text-zinc-500 truncate">{issue.type}</span>
+                        <span className="text-slate-400 truncate">{issue.type}</span>
                       </div>
-                      <p className="text-zinc-300 leading-snug">{issue.description}</p>
+                      <p className="text-slate-700 leading-snug">{issue.description}</p>
                       {issue.suggestion && (
-                        <p className="text-zinc-500 mt-0.5 leading-snug italic">{issue.suggestion}</p>
+                        <p className="text-slate-400 mt-0.5 leading-snug italic">{issue.suggestion}</p>
                       )}
                     </div>
                   )
@@ -214,15 +214,15 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
           {/* Citations */}
           {citations.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                 Citations ({citationsFound})
               </p>
               <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
                 {citations.map((cite, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-[11px] text-zinc-300 leading-snug line-clamp-2 flex-1">{cite.text}</p>
-                      <span className="text-[10px] text-zinc-500 font-semibold shrink-0 tabular-nums">
+                      <p className="text-[11px] text-slate-700 leading-snug line-clamp-2 flex-1">{cite.text}</p>
+                      <span className="text-[10px] text-slate-400 font-semibold shrink-0 tabular-nums">
                         {Math.round(cite.confidence * 100)}%
                       </span>
                     </div>
@@ -232,14 +232,14 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
                           href={cite.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10px] text-indigo-400 hover:text-indigo-300 truncate transition-colors"
+                          className="text-[10px] text-indigo-600 hover:text-indigo-500 truncate transition-colors"
                         >
                           {cite.source} ↗
                         </a>
                       ) : (
-                        <span className="text-[10px] text-zinc-500 truncate">{cite.source}</span>
+                        <span className="text-[10px] text-slate-400 truncate">{cite.source}</span>
                       )}
-                      <div className="flex-1 h-1 rounded-full bg-zinc-700 overflow-hidden">
+                      <div className="flex-1 h-1 rounded-full bg-slate-100 overflow-hidden">
                         <div
                           className="h-full bg-indigo-500 rounded-full"
                           style={{ width: `${Math.round(cite.confidence * 100)}%` }}
@@ -253,7 +253,7 @@ export function VerificationBadge({ verification, subtaskId }: VerificationBadge
           )}
 
           {/* Footer */}
-          <p className="text-[10px] text-zinc-600">
+          <p className="text-[10px] text-slate-300">
             Subtask ID: <span className="font-mono">{subtaskId.slice(0, 8)}…</span>
           </p>
         </div>

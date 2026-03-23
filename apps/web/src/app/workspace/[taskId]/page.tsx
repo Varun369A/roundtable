@@ -111,7 +111,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex gap-2">
           {[0, 150, 300].map((d) => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
@@ -124,11 +124,11 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
   // No project yet
   if (!project) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">💻</p>
         <div>
-          <h1 className="text-xl font-semibold text-white mb-2">No workspace yet</h1>
-          <p className="text-zinc-500 text-sm max-w-sm">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">No workspace yet</h1>
+          <p className="text-slate-500 text-sm max-w-sm">
             The code workspace is assembled automatically when a development task completes. You can also trigger it manually.
           </p>
         </div>
@@ -140,7 +140,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
           >
             {assembling ? 'Assembling…' : 'Assemble Workspace'}
           </button>
-          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-zinc-700 hover:border-zinc-500 text-zinc-400 text-sm transition-colors">
+          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-slate-300 hover:border-slate-400 text-slate-500 text-sm transition-colors">
             Back to task
           </Link>
         </div>
@@ -151,14 +151,14 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
   // Assembling
   if (project.status === 'ASSEMBLING') {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 text-center">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 text-center">
         <div className="flex gap-2">
           {[0, 150, 300].map((d) => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
           ))}
         </div>
-        <p className="text-zinc-400 text-sm">Assembling your code workspace…</p>
-        <p className="text-zinc-600 text-xs">AI output is being parsed into a file structure</p>
+        <p className="text-slate-500 text-sm">Assembling your code workspace…</p>
+        <p className="text-slate-400 text-xs">AI output is being parsed into a file structure</p>
       </div>
     )
   }
@@ -166,11 +166,11 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
   // Failed
   if (project.status === 'FAILED') {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">⚠️</p>
         <div>
-          <h1 className="text-xl font-semibold text-white mb-2">Assembly failed</h1>
-          <p className="text-zinc-500 text-sm max-w-sm">
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">Assembly failed</h1>
+          <p className="text-slate-500 text-sm max-w-sm">
             The workspace couldn't be assembled from the task output. This usually means the AI didn't output structured file content.
           </p>
         </div>
@@ -187,19 +187,19 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
 
   // READY — show the workspace
   return (
-    <div className="h-screen flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
 
       {/* ── Toolbar ───────────────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-4 h-12 border-b border-zinc-800 shrink-0 bg-zinc-900/80 backdrop-blur-sm">
+      <header className="flex items-center justify-between px-4 h-12 border-b border-slate-200 shrink-0 bg-white backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <Link href={`/roundtable/${taskId}`} className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
+          <Link href={`/roundtable/${taskId}`} className="text-slate-500 hover:text-slate-700 text-sm transition-colors">
             ← Task
           </Link>
-          <div className="h-4 w-px bg-zinc-800" />
-          <span className="text-sm font-medium text-zinc-200 truncate max-w-xs">
+          <div className="h-4 w-px bg-slate-200" />
+          <span className="text-sm font-medium text-slate-800 truncate max-w-xs">
             💻 {project.name}
           </span>
-          <span className="text-[10px] text-zinc-600">
+          <span className="text-[10px] text-slate-400">
             {project.files.length} file{project.files.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -208,7 +208,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
           {/* Download ZIP */}
           <button
             onClick={downloadZip}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
           >
             ⬇ Download ZIP
           </button>
@@ -219,21 +219,21 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
               href={project.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700/30 hover:bg-emerald-700/50 text-emerald-400 text-xs font-medium transition-colors border border-emerald-700/40"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-medium transition-colors border border-emerald-200"
             >
               ✓ View on GitHub
             </a>
           ) : ghConn ? (
             <button
               onClick={() => setShowPush(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
             >
               Push to GitHub
             </button>
           ) : (
             <a
               href={`/api/v1/github/auth/start`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
             >
               Connect GitHub
             </a>
@@ -242,15 +242,15 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
       </header>
 
       {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="flex border-b border-zinc-800 shrink-0 bg-zinc-900/30">
+      <div className="flex border-b border-slate-200 shrink-0 bg-white">
         {(['code', 'env'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 ${
               activeTab === tab
-                ? 'text-white border-indigo-500'
-                : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                ? 'text-slate-900 border-indigo-500'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
             {tab === 'code' ? '💻 Files' : '🔑 Env Variables'}
@@ -262,7 +262,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
       {activeTab === 'code' ? (
         <div className="flex flex-1 min-h-0">
           {/* File tree sidebar */}
-          <aside className="w-56 border-r border-zinc-800 bg-zinc-900/40 shrink-0 overflow-hidden">
+          <aside className="w-56 border-r border-slate-200 bg-slate-100 shrink-0 overflow-hidden">
             <FileTree
               files={project.files}
               selected={selected?.path ?? null}
@@ -271,7 +271,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
           </aside>
 
           {/* Code viewer */}
-          <main className="flex-1 min-w-0 bg-zinc-950">
+          <main className="flex-1 min-w-0 bg-slate-50">
             <CodeViewer file={selected} />
           </main>
         </div>
@@ -283,24 +283,24 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
 
       {/* ── Push to GitHub modal ──────────────────────────────────────────── */}
       {showPush && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-1">Push to GitHub</h2>
-            <p className="text-sm text-zinc-500 mb-5">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">Push to GitHub</h2>
+            <p className="text-sm text-slate-500 mb-5">
               Creates a new public repository and pushes all {project.files.length} files.
-              {ghConn && <span className="text-zinc-400"> Pushing as <strong>{ghConn.login}</strong>.</span>}
+              {ghConn && <span className="text-slate-700"> Pushing as <strong>{ghConn.login}</strong>.</span>}
             </p>
 
-            <label className="block text-xs text-zinc-500 mb-1.5">Repository name</label>
+            <label className="block text-xs text-slate-500 mb-1.5">Repository name</label>
             <input
               value={repoInput}
               onChange={(e) => setRepoInput(e.target.value)}
               placeholder={project.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 40)}
-              className="w-full px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700 focus:border-indigo-500 focus:outline-none text-sm text-white placeholder-zinc-600 mb-4 transition-colors"
+              className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400 mb-4 transition-colors"
             />
 
             {pushError && (
-              <p className="text-red-400 text-xs mb-3">{pushError}</p>
+              <p className="text-red-600 text-xs mb-3">{pushError}</p>
             )}
 
             <div className="flex gap-3">
@@ -313,7 +313,7 @@ export default function WorkspacePage({ params }: { params: { taskId: string } }
               </button>
               <button
                 onClick={() => { setShowPush(false); setPushError('') }}
-                className="px-4 py-2 rounded-xl border border-zinc-700 hover:border-zinc-500 text-zinc-400 text-sm transition-colors"
+                className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-500 text-sm transition-colors"
               >
                 Cancel
               </button>

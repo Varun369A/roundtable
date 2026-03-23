@@ -30,19 +30,19 @@ interface ExecutionAction {
 // ── Constants ───────────────────────────────────────────────────────────────
 
 const PROVIDER_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  GITHUB:  { bg: 'bg-gray-700/40',    text: 'text-gray-300',   border: 'border-gray-600/40' },
-  GMAIL:   { bg: 'bg-red-500/10',     text: 'text-red-400',    border: 'border-red-500/20'  },
-  NOTION:  { bg: 'bg-zinc-600/30',    text: 'text-zinc-300',   border: 'border-zinc-500/30' },
-  SLACK:   { bg: 'bg-purple-500/15',  text: 'text-purple-400', border: 'border-purple-500/20' },
-  LINEAR:  { bg: 'bg-indigo-500/15',  text: 'text-indigo-400', border: 'border-indigo-500/20' },
-  JIRA:    { bg: 'bg-blue-500/15',    text: 'text-blue-400',   border: 'border-blue-500/20'  },
+  GITHUB:  { bg: 'bg-slate-100',       text: 'text-slate-700',   border: 'border-slate-200'   },
+  GMAIL:   { bg: 'bg-red-50',          text: 'text-red-600',     border: 'border-red-200'     },
+  NOTION:  { bg: 'bg-slate-100',       text: 'text-slate-600',   border: 'border-slate-200'   },
+  SLACK:   { bg: 'bg-purple-50',       text: 'text-purple-600',  border: 'border-purple-200'  },
+  LINEAR:  { bg: 'bg-indigo-50',       text: 'text-indigo-600',  border: 'border-indigo-200'  },
+  JIRA:    { bg: 'bg-blue-50',         text: 'text-blue-600',    border: 'border-blue-200'    },
 }
 
 const STATUS_STYLES: Record<ActionStatus, { label: string; color: string }> = {
-  PENDING:  { label: 'Pending',  color: 'text-amber-400'  },
-  APPROVED: { label: 'Approved', color: 'text-green-400'  },
-  REJECTED: { label: 'Rejected', color: 'text-red-400'    },
-  EXECUTED: { label: 'Executed', color: 'text-indigo-400' },
+  PENDING:  { label: 'Pending',  color: 'text-amber-600'  },
+  APPROVED: { label: 'Approved', color: 'text-green-600'  },
+  REJECTED: { label: 'Rejected', color: 'text-red-600'    },
+  EXECUTED: { label: 'Executed', color: 'text-indigo-600' },
 }
 
 const FILTER_TABS: Array<{ key: FilterTab; label: string }> = [
@@ -76,7 +76,7 @@ function Countdown({ expiresAt }: { expiresAt: string }) {
   const isUrgent = new Date(expiresAt).getTime() - Date.now() < 3600_000
 
   return (
-    <span className={`tabular-nums ${isUrgent ? 'text-red-400 font-semibold' : 'text-zinc-500'}`}>
+    <span className={`tabular-nums ${isUrgent ? 'text-red-500 font-semibold' : 'text-slate-400'}`}>
       {remaining}
     </span>
   )
@@ -104,10 +104,10 @@ function RejectModal({ action, onClose, onRejected }: RejectModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60 p-6 space-y-4">
-        <h2 className="text-base font-bold text-white">Reject Action</h2>
-        <p className="text-sm text-zinc-400 leading-relaxed">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60 p-6 space-y-4">
+        <h2 className="text-base font-bold text-slate-900">Reject Action</h2>
+        <p className="text-sm text-slate-500 leading-relaxed">
           Optionally explain why you are rejecting this action. The AI will receive this feedback.
         </p>
         <textarea
@@ -115,7 +115,7 @@ function RejectModal({ action, onClose, onRejected }: RejectModalProps) {
           onChange={(e) => setReason(e.target.value)}
           placeholder="e.g. Wrong branch, please target main instead of develop"
           rows={3}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 resize-none focus:outline-none focus:border-indigo-500 transition-colors"
+          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
           autoFocus
         />
         <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ function RejectModal({ action, onClose, onRejected }: RejectModalProps) {
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-sm transition-colors"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm transition-colors"
           >
             Cancel
           </button>
@@ -155,7 +155,7 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
   const isApproving   = approvingId === action.id
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
       <div className="p-4">
         <div className="flex items-start gap-3">
           {/* Provider badge */}
@@ -170,28 +170,28 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/roundtable/${action.taskId}`}
-                className="text-xs font-semibold text-zinc-300 hover:text-white transition-colors truncate"
+                className="text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors truncate"
               >
                 {action.taskTitle}
               </Link>
               {action.subtaskTitle && (
                 <>
-                  <span className="text-zinc-700">›</span>
-                  <span className="text-xs text-zinc-500 truncate">{action.subtaskTitle}</span>
+                  <span className="text-slate-300">›</span>
+                  <span className="text-xs text-slate-500 truncate">{action.subtaskTitle}</span>
                 </>
               )}
             </div>
-            <p className="text-sm text-zinc-200 leading-snug">{action.summary}</p>
+            <p className="text-sm text-slate-800 leading-snug">{action.summary}</p>
             <div className="flex items-center gap-3 flex-wrap text-[10px]">
               <span className={`font-semibold ${statusCfg.color}`}>{statusCfg.label}</span>
-              <span className="text-zinc-600">{new Date(action.createdAt).toLocaleString()}</span>
+              <span className="text-slate-400">{new Date(action.createdAt).toLocaleString()}</span>
               {action.expiresAt && action.status === 'PENDING' && (
-                <span className="flex items-center gap-1 text-zinc-500">
+                <span className="flex items-center gap-1 text-slate-400">
                   Expires in <Countdown expiresAt={action.expiresAt} />
                 </span>
               )}
               {action.rejectionReason && (
-                <span className="text-red-400/80">Reason: {action.rejectionReason}</span>
+                <span className="text-red-500">Reason: {action.rejectionReason}</span>
               )}
             </div>
           </div>
@@ -202,10 +202,10 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
               <button
                 onClick={() => onApprove(action.id)}
                 disabled={!!approvingId}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-green-600/20 hover:bg-green-600/40 text-green-400 border border-green-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isApproving ? (
-                  <span className="w-3 h-3 border border-green-400/40 border-t-green-400 rounded-full animate-spin" />
+                  <span className="w-3 h-3 border border-green-500/40 border-t-green-600 rounded-full animate-spin" />
                 ) : (
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -216,7 +216,7 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
               <button
                 onClick={() => onReject(action)}
                 disabled={!!approvingId}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-600/15 hover:bg-red-600/30 text-red-400 border border-red-500/20 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors disabled:opacity-50"
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -230,7 +230,7 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
         {/* Expand toggle */}
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="flex items-center gap-1 mt-2.5 text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors"
+          className="flex items-center gap-1 mt-2.5 text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
         >
           <svg
             className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`}
@@ -247,8 +247,8 @@ function ActionRow({ action, onApprove, onReject, approvingId }: ActionRowProps)
 
       {/* Payload viewer */}
       {expanded && (
-        <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3">
-          <pre className="text-[11px] font-mono text-zinc-300 overflow-x-auto leading-relaxed whitespace-pre-wrap break-words max-h-64">
+        <div className="border-t border-slate-100 bg-slate-50 px-4 pb-4 pt-3">
+          <pre className="text-[11px] font-mono text-slate-700 overflow-x-auto leading-relaxed whitespace-pre-wrap break-words max-h-64">
             {JSON.stringify(action.payload, null, 2)}
           </pre>
         </div>
@@ -327,8 +327,8 @@ export default function ActionsPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center gap-3 text-zinc-500 text-sm">
-        <span className="w-4 h-4 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="p-8 flex items-center gap-3 text-slate-500 text-sm">
+        <span className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
         Loading actions…
       </div>
     )
@@ -338,29 +338,29 @@ export default function ActionsPage() {
     <div className="p-8 max-w-4xl">
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-white">Action Approvals</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Action Approvals</h1>
           {pendingCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
               {pendingCount} pending
             </span>
           )}
         </div>
-        <p className="text-zinc-400 text-sm leading-relaxed">
+        <p className="text-slate-500 text-sm leading-relaxed">
           Review and approve AI-proposed real-world actions before they are executed.
         </p>
       </div>
 
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+        <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
           {error}
-          <button onClick={() => setError(null)} className="ml-3 underline text-red-400/70 hover:text-red-400">
+          <button onClick={() => setError(null)} className="ml-3 underline text-red-500 hover:text-red-600">
             Dismiss
           </button>
         </div>
       )}
 
       {/* Filter tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-zinc-800 pb-0">
+      <div className="flex items-center gap-1 mb-6 border-b border-slate-200 pb-0">
         {FILTER_TABS.map((tab) => {
           const count =
             tab.key === 'ALL'
@@ -372,15 +372,15 @@ export default function ActionsPage() {
               onClick={() => setFilter(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-2 text-sm transition-colors border-b-2 -mb-px ${
                 filter === tab.key
-                  ? 'border-indigo-500 text-white font-medium'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  ? 'border-indigo-500 text-slate-900 font-medium'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               {tab.label}
               {count > 0 && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                    filter === tab.key ? 'bg-indigo-500/20 text-indigo-300' : 'bg-zinc-800 text-zinc-500'
+                    filter === tab.key ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
                   }`}
                 >
                   {count}
@@ -394,12 +394,12 @@ export default function ActionsPage() {
       {/* Content */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-          <svg className="w-12 h-12 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <svg className="w-12 h-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
           </svg>
           <div>
-            <p className="text-zinc-400 font-medium">No pending actions</p>
-            <p className="text-zinc-600 text-sm mt-1">
+            <p className="text-slate-600 font-medium">No pending actions</p>
+            <p className="text-slate-400 text-sm mt-1">
               {filter === 'ALL'
                 ? 'When Arivarangam proposes real-world actions, they will appear here for your review.'
                 : `No ${filter.toLowerCase()} actions.`}
@@ -414,11 +414,11 @@ export default function ActionsPage() {
               <div className="flex items-center gap-2 mb-2">
                 <Link
                   href={`/roundtable/${taskId}`}
-                  className="text-xs font-semibold text-zinc-400 hover:text-white transition-colors truncate"
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors truncate"
                 >
                   {taskActions[0]?.taskTitle || taskId}
                 </Link>
-                <span className="text-[10px] text-zinc-600">{taskActions.length} action{taskActions.length !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] text-slate-400">{taskActions.length} action{taskActions.length !== 1 ? 's' : ''}</span>
               </div>
               <div className="space-y-2.5">
                 {taskActions.map((action) => (

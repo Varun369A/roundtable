@@ -49,11 +49,11 @@ const BLOG_POSTS = [
 const CATEGORIES = ['All', 'Product', 'Guide', 'Feature', 'Insight', 'Security']
 
 const CATEGORY_STYLES: Record<string, string> = {
-  Product:  'bg-indigo-500/15 text-indigo-300 border-indigo-500/20',
-  Guide:    'bg-amber-500/15 text-amber-300 border-amber-500/20',
-  Feature:  'bg-blue-500/15 text-blue-300 border-blue-500/20',
-  Insight:  'bg-purple-500/15 text-purple-300 border-purple-500/20',
-  Security: 'bg-green-500/15 text-green-300 border-green-500/20',
+  Product:  'bg-indigo-50 text-indigo-700 border-indigo-200',
+  Guide:    'bg-amber-50 text-amber-700 border-amber-200',
+  Feature:  'bg-blue-50 text-blue-700 border-blue-200',
+  Insight:  'bg-purple-50 text-purple-700 border-purple-200',
+  Security: 'bg-green-50 text-green-700 border-green-200',
 }
 
 function formatDate(dateStr: string) {
@@ -75,17 +75,17 @@ export default function BlogPage() {
   const rest = filtered.slice(1)
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Arivarangam<span className="text-indigo-400">.</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
-            <Link href="/changelog" className="hover:text-zinc-100 transition-colors">Changelog</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/features" className="hover:text-slate-900 transition-colors">Features</Link>
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
+            <Link href="/changelog" className="hover:text-slate-900 transition-colors">Changelog</Link>
             <Link
               href="/signup"
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
@@ -99,11 +99,11 @@ export default function BlogPage() {
       {/* Header */}
       <section className="pt-32 pb-10 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-indigo-600 text-xs font-medium mb-6">
             Latest writing
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Arivarangam Blog</h1>
-          <p className="text-zinc-400">
+          <h1 className="text-4xl font-bold tracking-tight mb-4 text-slate-900">Arivarangam Blog</h1>
+          <p className="text-slate-500">
             Product updates, engineering deep dives, and guides for India's AI-native professionals.
           </p>
         </div>
@@ -119,7 +119,7 @@ export default function BlogPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeCategory === cat
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {cat}
@@ -132,28 +132,28 @@ export default function BlogPage() {
       <section className="pb-24 px-6">
         <div className="max-w-5xl mx-auto">
           {filtered.length === 0 ? (
-            <p className="text-center text-zinc-500 py-12">No posts in this category yet.</p>
+            <p className="text-center text-slate-400 py-12">No posts in this category yet.</p>
           ) : (
             <>
               {/* Featured post */}
               {featured && (
                 <Link
                   href={`/blog/${featured.slug}`}
-                  className="block mb-8 rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors overflow-hidden group"
+                  className="block mb-8 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-colors overflow-hidden group shadow-sm"
                 >
                   <div className="p-8">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[featured.category] || 'bg-zinc-700 text-zinc-300'}`}>
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[featured.category] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                         {featured.category}
                       </span>
-                      <time className="text-xs text-zinc-500">{formatDate(featured.date)}</time>
-                      <span className="text-xs text-zinc-600">{featured.readTime} read</span>
+                      <time className="text-xs text-slate-400">{formatDate(featured.date)}</time>
+                      <span className="text-xs text-slate-400">{featured.readTime} read</span>
                     </div>
-                    <h2 className="text-2xl font-bold text-zinc-100 mb-3 leading-tight group-hover:text-indigo-300 transition-colors">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
                       {featured.title}
                     </h2>
-                    <p className="text-zinc-400 leading-relaxed max-w-2xl">{featured.excerpt}</p>
-                    <span className="inline-flex items-center gap-1.5 text-sm text-indigo-400 font-medium mt-4">
+                    <p className="text-slate-500 leading-relaxed max-w-2xl">{featured.excerpt}</p>
+                    <span className="inline-flex items-center gap-1.5 text-sm text-indigo-600 font-medium mt-4">
                       Read article →
                     </span>
                   </div>
@@ -167,23 +167,23 @@ export default function BlogPage() {
                     <Link
                       key={post.slug}
                       href={`/blog/${post.slug}`}
-                      className="block rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors p-6 flex flex-col gap-4 group"
+                      className="block rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-colors p-6 flex flex-col gap-4 group shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[post.category] || 'bg-zinc-700 text-zinc-300'}`}>
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[post.category] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                           {post.category}
                         </span>
-                        <time className="text-xs text-zinc-500">{formatDate(post.date)}</time>
+                        <time className="text-xs text-slate-400">{formatDate(post.date)}</time>
                       </div>
                       <div className="flex-1">
-                        <h2 className="text-base font-semibold text-zinc-100 mb-2 leading-snug group-hover:text-indigo-300 transition-colors">
+                        <h2 className="text-base font-semibold text-slate-900 mb-2 leading-snug group-hover:text-indigo-600 transition-colors">
                           {post.title}
                         </h2>
-                        <p className="text-sm text-zinc-400 leading-relaxed">{post.excerpt}</p>
+                        <p className="text-sm text-slate-500 leading-relaxed">{post.excerpt}</p>
                       </div>
                       <div className="flex items-center justify-between mt-auto">
-                        <span className="text-xs text-zinc-600">{post.readTime} read</span>
-                        <span className="text-sm text-indigo-400 font-medium">Read →</span>
+                        <span className="text-xs text-slate-400">{post.readTime} read</span>
+                        <span className="text-sm text-indigo-600 font-medium">Read →</span>
                       </div>
                     </Link>
                   ))}
@@ -194,7 +194,7 @@ export default function BlogPage() {
               <div className="mt-10 text-center">
                 <button
                   disabled
-                  className="px-6 py-2.5 border border-zinc-800 text-zinc-600 rounded-xl text-sm cursor-not-allowed"
+                  className="px-6 py-2.5 border border-slate-200 text-slate-400 rounded-xl text-sm cursor-not-allowed bg-white"
                 >
                   More articles coming soon
                 </button>
@@ -205,17 +205,17 @@ export default function BlogPage() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-20 px-6 border-t border-zinc-800 text-center">
+      <section className="py-20 px-6 border-t border-slate-200 bg-white text-center">
         <div className="max-w-lg mx-auto">
-          <h2 className="text-2xl font-bold mb-2">Stay in the loop</h2>
-          <p className="text-zinc-400 text-sm mb-6">
+          <h2 className="text-2xl font-bold mb-2 text-slate-900">Stay in the loop</h2>
+          <p className="text-slate-500 text-sm mb-6">
             New posts every week. Product updates, guides, and AI news from an Indian perspective.
           </p>
           <div className="flex gap-3">
             <input
               type="email"
               placeholder="you@company.com"
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
             />
             <button className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors shrink-0">
               Subscribe
@@ -225,12 +225,12 @@ export default function BlogPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
+      <footer className="py-10 px-6 border-t border-slate-200 bg-white text-center text-sm text-slate-500">
         <div className="flex flex-wrap items-center justify-center gap-6 mb-3">
-          <Link href="/features" className="hover:text-zinc-300 transition-colors">Features</Link>
-          <Link href="/changelog" className="hover:text-zinc-300 transition-colors">Changelog</Link>
-          <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
-          <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
+          <Link href="/features" className="hover:text-slate-700 transition-colors">Features</Link>
+          <Link href="/changelog" className="hover:text-slate-700 transition-colors">Changelog</Link>
+          <Link href="/terms" className="hover:text-slate-700 transition-colors">Terms</Link>
+          <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privacy</Link>
         </div>
         <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>

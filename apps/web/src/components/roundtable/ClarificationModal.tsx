@@ -153,7 +153,7 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/50"
         aria-hidden="true"
         onClick={() => { returnFocusToTrigger(); onComplete() }}
       />
@@ -164,26 +164,26 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
         role="dialog"
         aria-modal="true"
         aria-labelledby={MODAL_TITLE_ID}
-        className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
       >
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-zinc-800">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-200">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 id={MODAL_TITLE_ID} className="text-lg font-semibold text-white">Before we begin…</h2>
-              <p className="text-sm text-zinc-400 mt-1">
+              <h2 id={MODAL_TITLE_ID} className="text-lg font-semibold text-slate-900">Before we begin…</h2>
+              <p className="text-sm text-slate-500 mt-1">
                 Arivarangam needs a few details to deliver better results
               </p>
             </div>
             {/* Progress pill */}
-            <span className="shrink-0 text-xs font-medium text-zinc-400 bg-zinc-800 px-3 py-1.5 rounded-full whitespace-nowrap">
+            <span className="shrink-0 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full whitespace-nowrap">
               Question {currentIndex + 1} of {total}
             </span>
           </div>
 
           {/* Progress bar */}
-          <div className="mt-4 h-1 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="mt-4 h-1 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-indigo-600 rounded-full transition-all duration-300"
               style={{ width: `${((currentIndex + 1) / total) * 100}%` }}
@@ -195,7 +195,7 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
         <div className="px-6 py-5">
           {/* Animate via key */}
           <div key={current.id} className="animate-in fade-in duration-200">
-            <label className="block text-sm font-medium text-zinc-200 mb-3 leading-relaxed">
+            <label className="block text-sm font-medium text-slate-800 mb-3 leading-relaxed">
               {current.question}
             </label>
             <textarea
@@ -205,12 +205,12 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
               onKeyDown={handleKeyDown}
               rows={3}
               placeholder="Type your answer… (Enter to continue, Shift+Enter for new line)"
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 rounded-xl text-sm text-white placeholder-zinc-600 resize-none outline-none transition-colors"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 rounded-xl text-sm text-slate-900 placeholder-slate-400 resize-none outline-none transition-colors"
             />
           </div>
 
           {error && (
-            <p className="mt-3 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <p className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -224,7 +224,7 @@ export function ClarificationModal({ taskId, questions, onComplete, triggerRef }
             onClick={handleSkipAll}
             disabled={submitting || skipping}
             aria-label="Skip all questions and start the roundtable immediately"
-            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-sm text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {skipping ? 'Skipping…' : 'Skip all & start →'}
           </button>

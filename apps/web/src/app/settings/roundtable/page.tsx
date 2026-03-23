@@ -95,7 +95,7 @@ export default function RoundtableCustomizePage() {
     setSaved(false)
   }
 
-  if (loading) return <div className="p-8 text-zinc-500 text-sm">Loading roundtable settings…</div>
+  if (loading) return <div className="p-8 text-slate-500 text-sm">Loading roundtable settings…</div>
 
   const hasCustomizations = rows.some((r) => r.userModel !== null)
 
@@ -103,8 +103,8 @@ export default function RoundtableCustomizePage() {
     <div className="p-8 max-w-2xl">
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">My Roundtable</h1>
-          <p className="text-zinc-400 text-sm">
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">My Roundtable</h1>
+          <p className="text-slate-500 text-sm">
             Customize which AI handles each category. Drag rows to reorder priority.
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function RoundtableCustomizePage() {
           {hasCustomizations && (
             <button
               onClick={resetAll}
-              className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 transition-colors"
+              className="px-3 py-1.5 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
             >
               Reset all
             </button>
@@ -130,9 +130,9 @@ export default function RoundtableCustomizePage() {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 mb-4 text-xs text-zinc-600">
+      <div className="flex gap-4 mb-4 text-xs text-slate-400">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500" /> Custom AI</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-zinc-600" /> Arivarangam default</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" /> Arivarangam default</span>
         <span className="flex items-center gap-1">⠿ Drag to reorder</span>
       </div>
 
@@ -154,32 +154,32 @@ export default function RoundtableCustomizePage() {
               onDragEnd={() => { setDragIdx(null); setDragOver(null) }}
               className={`flex items-center gap-4 px-4 py-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
                 isDragTarget
-                  ? 'border-indigo-500/50 bg-indigo-500/5 scale-[1.01]'
+                  ? 'border-indigo-400 bg-indigo-50 scale-[1.01]'
                   : isDragging
-                  ? 'border-zinc-600 bg-zinc-900/30 opacity-50'
+                  ? 'border-slate-300 bg-slate-100 opacity-50'
                   : isCustomized
-                  ? 'border-indigo-500/20 bg-indigo-500/5'
-                  : 'border-zinc-800 bg-zinc-900/40'
+                  ? 'border-indigo-200 bg-indigo-50'
+                  : 'border-slate-200 bg-white'
               }`}
             >
               {/* Drag handle */}
-              <span className="text-zinc-700 select-none text-sm">⠿</span>
+              <span className="text-slate-300 select-none text-sm">⠿</span>
 
               {/* Category info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span>{meta.icon}</span>
-                  <span className="text-sm font-medium text-zinc-200">{meta.label}</span>
-                  {isCustomized && <span className="text-xs text-indigo-400">customized</span>}
+                  <span className="text-sm font-medium text-slate-800">{meta.label}</span>
+                  {isCustomized && <span className="text-xs text-indigo-500">customized</span>}
                 </div>
-                <p className="text-xs text-zinc-600 mt-0.5 ml-6">{meta.description}</p>
+                <p className="text-xs text-slate-400 mt-0.5 ml-6">{meta.description}</p>
               </div>
 
               {/* Model selector */}
               <select
                 value={row.userModel || '__default__'}
                 onChange={(e) => updateModel(idx, e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors min-w-[160px]"
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors min-w-[160px]"
               >
                 <option value="__default__">⚡ Default ({row.defaultModel})</option>
                 <optgroup label="── Choose AI ──">
@@ -193,10 +193,10 @@ export default function RoundtableCustomizePage() {
         })}
       </div>
 
-      <div className="mt-6 p-4 rounded-xl bg-zinc-900/30 border border-zinc-800">
-        <p className="text-xs text-zinc-600 leading-relaxed">
+      <div className="mt-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <p className="text-xs text-slate-500 leading-relaxed">
           Changes apply to all future tasks. Connect your own AI keys in{' '}
-          <a href="/settings/ai-connections" className="text-indigo-400 hover:underline">AI Connections</a>{' '}
+          <a href="/settings/ai-connections" className="text-indigo-600 hover:underline">AI Connections</a>{' '}
           to use them for free on your own quota. Arivarangam defaults are always available as fallback.
         </p>
       </div>

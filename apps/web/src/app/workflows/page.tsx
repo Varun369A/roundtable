@@ -31,22 +31,22 @@ interface WorkflowStats {
 // ─── Badge helpers ─────────────────────────────────────────────────────────────
 
 const TRIGGER_BADGE: Record<string, string> = {
-  MANUAL:    'bg-zinc-700/60 text-zinc-400 border border-zinc-600/50',
-  SCHEDULED: 'bg-blue-500/15 text-blue-400 border border-blue-500/30',
-  WEBHOOK:   'bg-purple-500/15 text-purple-400 border border-purple-500/30',
+  MANUAL:    'bg-slate-100 text-slate-500 border border-slate-200',
+  SCHEDULED: 'bg-blue-50 text-blue-600 border border-blue-200',
+  WEBHOOK:   'bg-purple-50 text-purple-600 border border-purple-200',
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  DRAFT:    'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
-  ACTIVE:   'bg-green-500/15 text-green-400 border border-green-500/30',
-  PAUSED:   'bg-orange-500/15 text-orange-400 border border-orange-500/30',
-  ARCHIVED: 'bg-red-500/15 text-red-400 border border-red-500/30',
+  DRAFT:    'bg-yellow-50 text-yellow-600 border border-yellow-200',
+  ACTIVE:   'bg-green-50 text-green-600 border border-green-200',
+  PAUSED:   'bg-orange-50 text-orange-600 border border-orange-200',
+  ARCHIVED: 'bg-red-50 text-red-600 border border-red-200',
 }
 
 const RUN_DOT: Record<string, string> = {
   RUNNING:   'bg-blue-400 animate-pulse',
-  COMPLETED: 'bg-green-400',
-  FAILED:    'bg-red-400',
+  COMPLETED: 'bg-green-500',
+  FAILED:    'bg-red-500',
 }
 
 function relativeTime(iso: string): string {
@@ -89,35 +89,35 @@ function CreateDialog({ onClose, onCreate }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-200">New Workflow</h2>
-          <button onClick={onClose} className="text-zinc-600 hover:text-zinc-400 transition-colors text-lg leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-800">New Workflow</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">×</button>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Name</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Research → Draft → Review"
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 focus:border-zinc-500 rounded-xl text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-colors"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-colors"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDesc(e.target.value)}
               placeholder="What does this workflow accomplish?"
               rows={2}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 focus:border-zinc-500 rounded-xl text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-colors resize-none"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-colors resize-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">Trigger</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Trigger</label>
             <div className="flex gap-2">
               {(['MANUAL', 'SCHEDULED', 'WEBHOOK'] as const).map((t) => (
                 <button
@@ -127,7 +127,7 @@ function CreateDialog({ onClose, onCreate }: {
                   className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                     triggerType === t
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700'
+                      : 'bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200'
                   }`}
                 >
                   {t === 'MANUAL' ? '▶ Manual' : t === 'SCHEDULED' ? '⏰ Scheduled' : '🔗 Webhook'}
@@ -135,12 +135,12 @@ function CreateDialog({ onClose, onCreate }: {
               ))}
             </div>
           </div>
-          {error && <p className="text-red-400 text-xs">{error}</p>}
+          {error && <p className="text-red-600 text-xs">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-300 bg-zinc-800 border border-zinc-700 transition-colors"
+              className="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-100 border border-slate-200 transition-colors"
             >
               Cancel
             </button>
@@ -198,34 +198,34 @@ function RunDialog({ workflow, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-200">Run Workflow</h2>
-          <button onClick={onClose} className="text-zinc-600 hover:text-zinc-400 transition-colors text-lg leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-800">Run Workflow</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">×</button>
         </div>
         <form onSubmit={handleRun} className="px-6 py-5 space-y-4">
-          <p className="text-sm text-zinc-400">
-            Start workflow <span className="text-zinc-200 font-medium">"{workflow.name}"</span>?
+          <p className="text-sm text-slate-500">
+            Start workflow <span className="text-slate-800 font-medium">"{workflow.name}"</span>?
           </p>
           <div>
-            <label className="block text-xs font-medium text-zinc-500 mb-1.5">
-              Trigger payload <span className="text-zinc-700">(optional JSON)</span>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">
+              Trigger payload <span className="text-slate-400">(optional JSON)</span>
             </label>
             <textarea
               value={payload}
               onChange={(e) => setPayload(e.target.value)}
               placeholder={'{\n  "key": "value"\n}'}
               rows={4}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 focus:border-zinc-500 rounded-xl text-xs text-zinc-300 placeholder-zinc-700 outline-none transition-colors resize-none font-mono"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-xs text-slate-700 placeholder-slate-400 outline-none transition-colors resize-none font-mono"
             />
           </div>
-          {error && <p className="text-red-400 text-xs">{error}</p>}
+          {error && <p className="text-red-600 text-xs">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-300 bg-zinc-800 border border-zinc-700 transition-colors"
+              className="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-100 border border-slate-200 transition-colors"
             >
               Cancel
             </button>
@@ -253,32 +253,32 @@ function WorkflowCard({ workflow, onRun, onEdit, onToggle, onDelete }: {
   onDelete: (wf: Workflow) => void
 }) {
   return (
-    <div className="group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl px-5 py-4 transition-all duration-200">
+    <div className="group bg-white border border-slate-200 hover:border-slate-300 rounded-2xl px-5 py-4 transition-all duration-200">
       <div className="flex items-start justify-between gap-3">
         {/* Left: info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <p className="font-semibold text-sm text-zinc-200 truncate">{workflow.name}</p>
+            <p className="font-semibold text-sm text-slate-800 truncate">{workflow.name}</p>
             <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${TRIGGER_BADGE[workflow.triggerType]}`}>
               {workflow.triggerType}
             </span>
             <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[workflow.status]}`}>
               {workflow.status}
             </span>
-            <span className="shrink-0 text-[10px] text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">
+            <span className="shrink-0 text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
               {workflow.stepCount} {workflow.stepCount === 1 ? 'step' : 'steps'}
             </span>
           </div>
           {workflow.description && (
-            <p className="text-xs text-zinc-500 line-clamp-1 mt-0.5">{workflow.description}</p>
+            <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{workflow.description}</p>
           )}
           {workflow.lastRun && (
             <div className="flex items-center gap-1.5 mt-2">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${RUN_DOT[workflow.lastRun.status] || 'bg-zinc-500'}`} />
-              <span className="text-[11px] text-zinc-600">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${RUN_DOT[workflow.lastRun.status] || 'bg-slate-400'}`} />
+              <span className="text-[11px] text-slate-400">
                 Last run {relativeTime(workflow.lastRun.startedAt)}
                 {' · '}
-                <span className={workflow.lastRun.status === 'FAILED' ? 'text-red-400' : 'text-zinc-500'}>
+                <span className={workflow.lastRun.status === 'FAILED' ? 'text-red-600' : 'text-slate-400'}>
                   {workflow.lastRun.status.toLowerCase()}
                 </span>
               </span>
@@ -291,28 +291,28 @@ function WorkflowCard({ workflow, onRun, onEdit, onToggle, onDelete }: {
           <button
             onClick={() => onRun(workflow)}
             title="Run now"
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-indigo-600 text-zinc-400 hover:text-white text-sm transition-all duration-150"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-indigo-600 text-slate-500 hover:text-white text-sm transition-all duration-150"
           >
             ▶
           </button>
           <button
             onClick={() => onEdit(workflow)}
             title="Edit"
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm transition-all duration-150"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 text-sm transition-all duration-150"
           >
             ✏
           </button>
           <button
             onClick={() => onToggle(workflow)}
             title={workflow.status === 'ACTIVE' ? 'Pause' : 'Activate'}
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-sm transition-all duration-150"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 text-sm transition-all duration-150"
           >
             {workflow.status === 'ACTIVE' ? '⏸' : '▶'}
           </button>
           <button
             onClick={() => onDelete(workflow)}
             title="Delete"
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-red-900/60 text-zinc-500 hover:text-red-400 text-sm transition-all duration-150"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 text-sm transition-all duration-150"
           >
             🗑
           </button>
@@ -326,16 +326,16 @@ function WorkflowCard({ workflow, onRun, onEdit, onToggle, onDelete }: {
 
 function StatCard({ label, value, loading }: { label: string; value: string | number; loading: boolean }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-4">
+    <div className="bg-white border border-slate-200 rounded-2xl px-5 py-4">
       {loading ? (
         <div className="space-y-2">
-          <div className="h-7 w-16 bg-zinc-800 rounded-lg animate-pulse" />
-          <div className="h-3 w-24 bg-zinc-800 rounded animate-pulse" />
+          <div className="h-7 w-16 bg-slate-100 rounded-lg animate-pulse" />
+          <div className="h-3 w-24 bg-slate-100 rounded animate-pulse" />
         </div>
       ) : (
         <>
-          <p className="text-2xl font-bold text-zinc-100">{value}</p>
-          <p className="text-xs text-zinc-500 mt-1">{label}</p>
+          <p className="text-2xl font-bold text-slate-900">{value}</p>
+          <p className="text-xs text-slate-500 mt-1">{label}</p>
         </>
       )}
     </div>
@@ -390,15 +390,15 @@ export default function WorkflowsPage() {
   const successRate    = stats?.successRate != null ? `${Math.round(stats.successRate)}%` : '—'
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
 
       {/* Header nav */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/95 backdrop-blur-sm sticky top-0 z-10 px-6 py-3 flex items-center justify-between">
-        <span className="text-lg font-bold">Arivarangam<span className="text-indigo-500">.</span></span>
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-10 px-6 py-3 flex items-center justify-between">
+        <span className="text-lg font-bold text-slate-900">Arivarangam<span className="text-indigo-600">.</span></span>
         <nav className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Dashboard</Link>
-          <Link href="/workflows" className="text-xs text-zinc-200 font-medium">Workflows</Link>
-          <Link href="/dashboard/scheduled" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Scheduled</Link>
+          <Link href="/dashboard" className="text-xs text-slate-500 hover:text-slate-700 transition-colors">Dashboard</Link>
+          <Link href="/workflows" className="text-xs text-slate-800 font-medium">Workflows</Link>
+          <Link href="/dashboard/scheduled" className="text-xs text-slate-500 hover:text-slate-700 transition-colors">Scheduled</Link>
         </nav>
       </header>
 
@@ -407,8 +407,8 @@ export default function WorkflowsPage() {
         {/* Page header */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Workflows</h1>
-            <p className="text-sm text-zinc-500 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900">Workflows</h1>
+            <p className="text-sm text-slate-500 mt-1">
               Automate multi-step AI tasks. Chain Arivarangam roundtables into powerful pipelines.
             </p>
           </div>
@@ -431,16 +431,16 @@ export default function WorkflowsPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-2xl bg-zinc-900 border border-zinc-800 animate-pulse" />
+              <div key={i} className="h-24 rounded-2xl bg-white border border-slate-200 animate-pulse" />
             ))}
           </div>
         ) : workflows.length === 0 ? (
           <div className="text-center py-24">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-3xl">
               ⚡
             </div>
-            <h3 className="text-base font-semibold text-zinc-300 mb-2">No workflows yet</h3>
-            <p className="text-sm text-zinc-600 mb-6 max-w-xs mx-auto">
+            <h3 className="text-base font-semibold text-slate-700 mb-2">No workflows yet</h3>
+            <p className="text-sm text-slate-400 mb-6 max-w-xs mx-auto">
               Chain multiple Arivarangam roundtables to automate complex research, writing, and analysis pipelines.
             </p>
             <button
@@ -484,16 +484,16 @@ export default function WorkflowsPage() {
 
       {/* Delete confirm */}
       {confirmDelete && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-sm px-6 py-5">
-            <h2 className="text-sm font-semibold text-zinc-200 mb-2">Delete Workflow?</h2>
-            <p className="text-xs text-zinc-500 mb-5">
-              "<span className="text-zinc-300">{deleteTarget.name}</span>" and all its run history will be permanently deleted.
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-sm px-6 py-5">
+            <h2 className="text-sm font-semibold text-slate-800 mb-2">Delete Workflow?</h2>
+            <p className="text-xs text-slate-500 mb-5">
+              "<span className="text-slate-700">{deleteTarget.name}</span>" and all its run history will be permanently deleted.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => { setConfirmDelete(false); setDeleteTarget(null) }}
-                className="flex-1 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-300 bg-zinc-800 border border-zinc-700 transition-colors"
+                className="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-100 border border-slate-200 transition-colors"
               >
                 Cancel
               </button>

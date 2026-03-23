@@ -31,9 +31,9 @@ function toTitleCase(key: string) {
 
 function sourceBadge(source: MemoryEntry['source']) {
   const map: Record<string, { label: string; classes: string }> = {
-    USER:        { label: 'User set',   classes: 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20' },
-    INFERRED:    { label: 'Inferred',   classes: 'text-amber-400 bg-amber-500/10 border border-amber-500/20'   },
-    ONBOARDING:  { label: 'Onboarding', classes: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' },
+    USER:        { label: 'User set',   classes: 'text-indigo-600 bg-indigo-50 border border-indigo-200' },
+    INFERRED:    { label: 'Inferred',   classes: 'text-amber-600 bg-amber-50 border border-amber-200'   },
+    ONBOARDING:  { label: 'Onboarding', classes: 'text-emerald-600 bg-emerald-50 border border-emerald-200' },
   }
   const cfg = map[source] || map.USER
   return (
@@ -96,12 +96,12 @@ function OnboardingPanel({ onSaved }: { onSaved: () => void }) {
   ]
 
   return (
-    <div className="bg-zinc-900 border border-indigo-500/20 rounded-2xl p-6 mb-8">
+    <div className="bg-white border border-indigo-200 rounded-2xl p-6 mb-8">
       <div className="flex items-start gap-3 mb-5">
         <span className="text-2xl">🚀</span>
         <div>
-          <h3 className="text-sm font-semibold text-white">Quick setup — train Arivarangam in 30 seconds</h3>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h3 className="text-sm font-semibold text-slate-900">Quick setup — train Arivarangam in 30 seconds</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
             Provide a few details about your business so Arivarangam can personalise every output from day one.
           </p>
         </div>
@@ -111,20 +111,20 @@ function OnboardingPanel({ onSaved }: { onSaved: () => void }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {fields.map((f) => (
             <div key={f.key}>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">{f.label}</label>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">{f.label}</label>
               <input
                 type="text"
                 value={form[f.key]}
                 onChange={(e) => update(f.key, e.target.value)}
                 placeholder={f.placeholder}
-                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 rounded-lg text-sm text-white placeholder-zinc-600 outline-none transition-colors"
+                className="w-full px-3 py-2 bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg text-sm outline-none transition-colors"
               />
             </div>
           ))}
         </div>
 
         {error && (
-          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
@@ -188,10 +188,10 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
   }
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group">
+    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors group">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1.5">
-          <span className="text-xs font-medium text-zinc-300">{toTitleCase(entry.key)}</span>
+          <span className="text-xs font-medium text-slate-700">{toTitleCase(entry.key)}</span>
           {sourceBadge(entry.source)}
         </div>
 
@@ -206,7 +206,7 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
                 if (e.key === 'Enter') handleSave()
                 if (e.key === 'Escape') { setEditing(false); setEditValue(entry.value) }
               }}
-              className="flex-1 px-3 py-1.5 bg-zinc-950 border border-indigo-500/50 rounded-lg text-sm text-white outline-none focus:ring-1 focus:ring-indigo-500/40"
+              className="flex-1 px-3 py-1.5 bg-white border border-indigo-400 rounded-lg text-sm text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <button
               onClick={handleSave}
@@ -217,7 +217,7 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
             </button>
             <button
               onClick={() => { setEditing(false); setEditValue(entry.value) }}
-              className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors"
+              className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -225,7 +225,7 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
         ) : (
           <p
             onClick={() => setEditing(true)}
-            className="text-sm text-zinc-400 cursor-pointer hover:text-zinc-200 transition-colors leading-relaxed"
+            className="text-sm text-slate-500 cursor-pointer hover:text-slate-800 transition-colors leading-relaxed"
             title="Click to edit"
           >
             {entry.value}
@@ -235,13 +235,13 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
         {/* Confidence bar for inferred */}
         {entry.source === 'INFERRED' && typeof entry.confidence === 'number' && (
           <div className="flex items-center gap-2 mt-2">
-            <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden max-w-24">
+            <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden max-w-24">
               <div
                 className={`h-full rounded-full transition-all ${confidenceColor(entry.confidence)}`}
                 style={{ width: `${Math.round(entry.confidence * 100)}%` }}
               />
             </div>
-            <span className="text-[10px] text-zinc-600 tabular-nums">
+            <span className="text-[10px] text-slate-400 tabular-nums">
               {Math.round(entry.confidence * 100)}% confidence
             </span>
           </div>
@@ -252,7 +252,7 @@ function MemoryEntryRow({ entry, onDelete, onUpdate }: {
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-zinc-700 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
         aria-label="Delete memory"
       >
         {deleting ? (
@@ -359,29 +359,29 @@ export default function MemoryPage() {
   const showOnboarding = memories.length < 3
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="max-w-3xl mx-auto px-6 py-10">
 
         {/* ── Hero card ──────────────────────────────────────────────────────── */}
-        <div className="bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border border-indigo-500/20 rounded-2xl p-6 mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Arivarangam's Memory</h1>
-          <p className="text-zinc-400 text-sm leading-relaxed max-w-xl">
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-6 mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Arivarangam's Memory</h1>
+          <p className="text-slate-500 text-sm leading-relaxed max-w-xl">
             Arivarangam remembers your business context and preferences across all tasks.
             The more it knows, the better every output becomes.
           </p>
           <div className="flex items-center gap-4 mt-4 text-sm">
-            <span className="text-zinc-500">
-              <span className="text-white font-semibold">{memories.length}</span> memories stored
+            <span className="text-slate-500">
+              <span className="text-slate-900 font-semibold">{memories.length}</span> memories stored
             </span>
-            <span className="text-zinc-700">·</span>
-            <span className="text-zinc-500">
-              <span className="text-white font-semibold">{facts.length}</span> inferred facts
+            <span className="text-slate-300">·</span>
+            <span className="text-slate-500">
+              <span className="text-slate-900 font-semibold">{facts.length}</span> inferred facts
             </span>
           </div>
         </div>
 
         {globalError && (
-          <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
+          <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
             {globalError}
           </div>
         )}
@@ -392,9 +392,9 @@ export default function MemoryPage() {
         )}
 
         {/* ── Memory by category ─────────────────────────────────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-8">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-8">
           {/* Tab nav */}
-          <div className="flex overflow-x-auto border-b border-zinc-800 scrollbar-none">
+          <div className="flex overflow-x-auto border-b border-slate-200 scrollbar-none">
             {CATEGORIES.map((cat) => {
               const count = memories.filter(
                 (m) => m.category?.toLowerCase() === cat.toLowerCase(),
@@ -405,13 +405,13 @@ export default function MemoryPage() {
                   onClick={() => setActiveTab(cat)}
                   className={`shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors ${
                     activeTab === cat
-                      ? 'text-white border-b-2 border-indigo-500 bg-zinc-800/50'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'text-slate-900 border-b-2 border-indigo-500 bg-slate-50'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   {cat}
                   {count > 0 && (
-                    <span className="text-[10px] bg-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-full tabular-nums">
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full tabular-nums">
                       {count}
                     </span>
                   )}
@@ -425,13 +425,13 @@ export default function MemoryPage() {
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-zinc-800 rounded-xl animate-pulse" />
+                  <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : tabMemories.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-zinc-600 text-sm">No {activeTab} memories yet</p>
-                <p className="text-zinc-700 text-xs mt-1">
+                <p className="text-slate-400 text-sm">No {activeTab} memories yet</p>
+                <p className="text-slate-300 text-xs mt-1">
                   Arivarangam will learn from your tasks automatically
                 </p>
               </div>
@@ -451,21 +451,21 @@ export default function MemoryPage() {
         </div>
 
         {/* ── What Arivarangam Knows preview ────────────────────────────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-8">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-8">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
             <div>
-              <h3 className="text-sm font-semibold text-white">What Arivarangam Knows About You</h3>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <h3 className="text-sm font-semibold text-slate-900">What Arivarangam Knows About You</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
                 This context is injected into every AI prompt
               </p>
             </div>
             <button
               onClick={fetchContext}
               disabled={loadingContext}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 rounded-lg text-zinc-300 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded-lg text-slate-600 transition-colors"
             >
               {loadingContext ? (
-                <span className="w-3 h-3 border border-zinc-500 border-t-zinc-300 rounded-full animate-spin" />
+                <span className="w-3 h-3 border border-slate-400 border-t-slate-600 rounded-full animate-spin" />
               ) : (
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -478,15 +478,15 @@ export default function MemoryPage() {
             {loadingContext ? (
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-4 bg-zinc-800 rounded animate-pulse" style={{ width: `${60 + (i * 13) % 35}%` }} />
+                  <div key={i} className="h-4 bg-slate-100 rounded animate-pulse" style={{ width: `${60 + (i * 13) % 35}%` }} />
                 ))}
               </div>
             ) : context ? (
-              <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed bg-zinc-950 border border-zinc-800 rounded-xl p-4 overflow-x-auto">
+              <pre className="font-mono text-xs text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-4 overflow-x-auto">
                 {context}
               </pre>
             ) : (
-              <p className="text-zinc-600 text-sm text-center py-6">
+              <p className="text-slate-400 text-sm text-center py-6">
                 No context generated yet — add memories above
               </p>
             )}
@@ -494,10 +494,10 @@ export default function MemoryPage() {
         </div>
 
         {/* ── Inferred Facts ──────────────────────────────────────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-8">
-          <div className="px-5 py-4 border-b border-zinc-800">
-            <h3 className="text-sm font-semibold text-white">Inferred Facts</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-8">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-900">Inferred Facts</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
               Observations Arivarangam auto-detected from your tasks
             </p>
           </div>
@@ -505,23 +505,23 @@ export default function MemoryPage() {
             {loadingFacts ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 bg-zinc-800 rounded-xl animate-pulse" />
+                  <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : facts.length === 0 ? (
               <div className="py-10 text-center">
-                <p className="text-zinc-600 text-sm">No inferred facts yet</p>
-                <p className="text-zinc-700 text-xs mt-1">Run a few tasks and Arivarangam will start learning patterns</p>
+                <p className="text-slate-400 text-sm">No inferred facts yet</p>
+                <p className="text-slate-300 text-xs mt-1">Run a few tasks and Arivarangam will start learning patterns</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {facts.map((f) => {
-                  const color = f.confidence >= 0.8 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                    : f.confidence >= 0.5 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-                    : 'text-red-400 bg-red-500/10 border-red-500/20'
+                  const color = f.confidence >= 0.8 ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
+                    : f.confidence >= 0.5 ? 'text-amber-600 bg-amber-50 border-amber-200'
+                    : 'text-red-600 bg-red-50 border-red-200'
                   return (
-                    <div key={f.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800">
-                      <p className="flex-1 text-sm text-zinc-300 leading-relaxed">{f.fact}</p>
+                    <div key={f.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <p className="flex-1 text-sm text-slate-700 leading-relaxed">{f.fact}</p>
                       <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${color}`}>
                         {Math.round(f.confidence * 100)}%
                       </span>
@@ -534,14 +534,14 @@ export default function MemoryPage() {
         </div>
 
         {/* ── Danger zone ─────────────────────────────────────────────────────── */}
-        <div className="bg-zinc-900 border border-red-500/20 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-800">
-            <h3 className="text-sm font-semibold text-red-400">Danger Zone</h3>
+        <div className="bg-white border border-red-200 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <h3 className="text-sm font-semibold text-red-600">Danger Zone</h3>
           </div>
           <div className="p-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-white">Reset all memories</p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-sm font-medium text-slate-900">Reset all memories</p>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Permanently delete all stored context, preferences, and inferred facts.
                 This cannot be undone.
               </p>
@@ -550,13 +550,13 @@ export default function MemoryPage() {
             {!showResetConfirm ? (
               <button
                 onClick={() => setShowResetConfirm(true)}
-                className="shrink-0 px-4 py-2 text-sm font-medium text-red-400 border border-red-500/30 hover:bg-red-500/10 rounded-xl transition-colors"
+                className="shrink-0 px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 rounded-xl transition-colors"
               >
                 Reset all
               </button>
             ) : (
               <div className="shrink-0 flex items-center gap-2">
-                <span className="text-xs text-zinc-400">Are you sure?</span>
+                <span className="text-xs text-slate-500">Are you sure?</span>
                 <button
                   onClick={handleResetAll}
                   disabled={resetting}
@@ -570,7 +570,7 @@ export default function MemoryPage() {
                 <button
                   onClick={() => { setShowResetConfirm(false); setResetError(null) }}
                   disabled={resetting}
-                  className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors"
+                  className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -579,7 +579,7 @@ export default function MemoryPage() {
           </div>
           {resetError && (
             <div className="px-5 pb-4">
-              <p className="text-xs text-red-400">{resetError}</p>
+              <p className="text-xs text-red-600">{resetError}</p>
             </div>
           )}
         </div>

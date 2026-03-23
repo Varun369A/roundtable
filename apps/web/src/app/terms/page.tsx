@@ -28,15 +28,15 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-7xl mx-auto">
-        <Link href="/" className="text-xl font-bold tracking-tight">
+      <nav className="border-b border-slate-200 bg-white px-6 h-16 flex items-center justify-between max-w-7xl mx-auto">
+        <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
           Arivarangam<span className="text-brand-500">.</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/privacy" className="text-sm text-zinc-400 hover:text-white transition-colors">Privacy Policy</Link>
-          <Link href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">Log in</Link>
+          <Link href="/privacy" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Privacy Policy</Link>
+          <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Log in</Link>
         </div>
       </nav>
 
@@ -47,18 +47,18 @@ export default function TermsPage() {
         {/* Content */}
         <main className="flex-1 max-w-3xl">
           <div className="mb-10">
-            <h1 className="text-4xl font-bold tracking-tight mb-3">Terms of Service</h1>
-            <p className="text-zinc-400">Effective date: <span className="text-zinc-300">January 1, 2025</span></p>
-            <p className="mt-4 text-zinc-400 leading-relaxed">
-              Please read these Terms of Service (&ldquo;Terms&rdquo;, &ldquo;Agreement&rdquo;) carefully before using Arivarangam (&ldquo;Arivarangam&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By accessing or using our platform at <span className="text-zinc-300">arivarangam.com</span>, you agree to be bound by these Terms. If you do not agree, do not use the Service.
+            <h1 className="text-4xl font-bold tracking-tight mb-3 text-slate-900">Terms of Service</h1>
+            <p className="text-slate-500">Effective date: <span className="text-slate-700">January 1, 2025</span></p>
+            <p className="mt-4 text-slate-500 leading-relaxed">
+              Please read these Terms of Service (&ldquo;Terms&rdquo;, &ldquo;Agreement&rdquo;) carefully before using Arivarangam (&ldquo;Arivarangam&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By accessing or using our platform at <span className="text-slate-700">arivarangam.com</span>, you agree to be bound by these Terms. If you do not agree, do not use the Service.
             </p>
           </div>
 
           <div className="space-y-12">
 
             <section id="acceptance">
-              <h2 className="text-2xl font-bold mb-4 text-white">1. Acceptance of Terms</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">1. Acceptance of Terms</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   By creating an account or using Arivarangam in any way, you represent that you are at least 13 years of age, have the legal capacity to enter into a binding contract, and agree to comply with and be bound by these Terms.
                 </p>
@@ -72,8 +72,8 @@ export default function TermsPage() {
             </section>
 
             <section id="service">
-              <h2 className="text-2xl font-bold mb-4 text-white">2. Description of Service</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">2. Description of Service</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   Arivarangam is an AI coordination platform that enables users to submit tasks and goals to a curated ensemble of artificial intelligence models — including but not limited to Claude (Anthropic), GPT-4 (OpenAI), Gemini (Google), Perplexity, Midjourney, ElevenLabs, Sarvam AI, and others (collectively, &ldquo;AI Providers&rdquo;) — and receive synthesised outputs through Arivarangam&rsquo;s proprietary Discussion Engine.
                 </p>
@@ -87,13 +87,13 @@ export default function TermsPage() {
             </section>
 
             <section id="accounts">
-              <h2 className="text-2xl font-bold mb-4 text-white">3. User Accounts</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">3. User Accounts</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   You must register for an account to use Arivarangam. You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate.
                 </p>
                 <p>
-                  You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must immediately notify us at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a> if you become aware of any unauthorised use of your account.
+                  You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must immediately notify us at <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a> if you become aware of any unauthorised use of your account.
                 </p>
                 <p>
                   You may not share your account with others, create accounts for the purpose of abusing the Service, or use automated methods to create accounts. Each account is for a single natural person or legal entity.
@@ -105,8 +105,8 @@ export default function TermsPage() {
             </section>
 
             <section id="acceptable-use">
-              <h2 className="text-2xl font-bold mb-4 text-white">4. Acceptable Use Policy</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">4. Acceptable Use Policy</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>You agree not to use Arivarangam to:</p>
                 <ul className="space-y-2 list-none pl-0">
                   {[
@@ -134,16 +134,16 @@ export default function TermsPage() {
             </section>
 
             <section id="ai-content">
-              <h2 className="text-2xl font-bold mb-4 text-white">5. AI-Generated Content Disclaimer</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
-                <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-                  <p className="text-amber-300 font-semibold mb-2">Important Notice</p>
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">5. AI-Generated Content Disclaimer</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
+                <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
+                  <p className="text-amber-800 font-semibold mb-2">Important Notice</p>
                   <p>All outputs generated by Arivarangam&rsquo;s platform are produced by artificial intelligence systems and are provided for informational and productivity purposes only. They do not constitute professional legal, medical, financial, psychological, or any other regulated professional advice.</p>
                 </div>
-                <ul className="space-y-2 list-disc list-inside text-zinc-400">
-                  <li><span className="text-zinc-300">Legal content:</span> Arivarangam&rsquo;s outputs are not a substitute for advice from a qualified advocate, solicitor, or legal professional licensed in your jurisdiction.</li>
-                  <li><span className="text-zinc-300">Medical content:</span> Arivarangam&rsquo;s outputs are not a substitute for advice, diagnosis, or treatment from a qualified medical practitioner. Always seek the advice of your physician.</li>
-                  <li><span className="text-zinc-300">Financial content:</span> Arivarangam&rsquo;s outputs are not investment advice and do not constitute a recommendation to buy, sell, or hold any security or financial instrument.</li>
+                <ul className="space-y-2 list-disc list-inside text-slate-600">
+                  <li><span className="text-slate-800">Legal content:</span> Arivarangam&rsquo;s outputs are not a substitute for advice from a qualified advocate, solicitor, or legal professional licensed in your jurisdiction.</li>
+                  <li><span className="text-slate-800">Medical content:</span> Arivarangam&rsquo;s outputs are not a substitute for advice, diagnosis, or treatment from a qualified medical practitioner. Always seek the advice of your physician.</li>
+                  <li><span className="text-slate-800">Financial content:</span> Arivarangam&rsquo;s outputs are not investment advice and do not constitute a recommendation to buy, sell, or hold any security or financial instrument.</li>
                 </ul>
                 <p>
                   AI models may produce outputs that are factually incorrect, outdated, biased, or inappropriate. Arivarangam does not warrant the accuracy, completeness, reliability, or fitness for any particular purpose of any AI-generated output. You are solely responsible for evaluating and verifying all AI-generated content before acting upon it.
@@ -155,24 +155,24 @@ export default function TermsPage() {
             </section>
 
             <section id="payment">
-              <h2 className="text-2xl font-bold mb-4 text-white">6. Payment &amp; Billing</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">6. Payment &amp; Billing</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   Arivarangam offers subscription plans and a credit-based economy. All prices are denominated in Indian Rupees (INR) and are inclusive of applicable Goods and Services Tax (GST) unless explicitly stated otherwise.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Payment processing:</span> All payments are processed by Razorpay Payment Solutions Private Limited (&ldquo;Razorpay&rdquo;), a third-party payment gateway. By making a payment, you also agree to Razorpay&rsquo;s terms of service. Arivarangam does not store your full card details on its servers.
+                  <span className="text-slate-900 font-medium">Payment processing:</span> All payments are processed by Razorpay Payment Solutions Private Limited (&ldquo;Razorpay&rdquo;), a third-party payment gateway. By making a payment, you also agree to Razorpay&rsquo;s terms of service. Arivarangam does not store your full card details on its servers.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Subscriptions:</span> Subscription plans renew automatically on the same date each calendar month. You authorise Arivarangam to charge your payment method on a recurring basis. You may cancel your subscription at any time from your billing settings; cancellation takes effect at the end of the current billing period and you retain access until that date.
+                  <span className="text-slate-900 font-medium">Subscriptions:</span> Subscription plans renew automatically on the same date each calendar month. You authorise Arivarangam to charge your payment method on a recurring basis. You may cancel your subscription at any time from your billing settings; cancellation takes effect at the end of the current billing period and you retain access until that date.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Credits:</span> Credits are a non-monetary unit of value used to meter certain Arivarangam features. Credits purchased do not expire and are non-transferable between accounts unless Arivarangam expressly states otherwise.
+                  <span className="text-slate-900 font-medium">Credits:</span> Credits are a non-monetary unit of value used to meter certain Arivarangam features. Credits purchased do not expire and are non-transferable between accounts unless Arivarangam expressly states otherwise.
                 </p>
-                <div className="p-4 rounded-xl border border-zinc-700 bg-zinc-900">
-                  <p className="text-white font-semibold mb-2">Refund Policy</p>
-                  <p className="text-zinc-400">
-                    Subscription payments are eligible for a full refund within <span className="text-white">7 (seven) days</span> of the initial charge, provided you have used fewer than 10 tasks under the plan during that period. No refunds will be issued after 7 days or if the usage threshold has been exceeded. Credit purchases are non-refundable. Refund requests must be submitted to <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>.
+                <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <p className="text-slate-900 font-semibold mb-2">Refund Policy</p>
+                  <p className="text-slate-500">
+                    Subscription payments are eligible for a full refund within <span className="text-slate-700">7 (seven) days</span> of the initial charge, provided you have used fewer than 10 tasks under the plan during that period. No refunds will be issued after 7 days or if the usage threshold has been exceeded. Credit purchases are non-refundable. Refund requests must be submitted to <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a>.
                   </p>
                 </div>
                 <p>
@@ -182,12 +182,12 @@ export default function TermsPage() {
             </section>
 
             <section id="byoai">
-              <h2 className="text-2xl font-bold mb-4 text-white">7. Bring Your Own AI (BYOAI)</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">7. Bring Your Own AI (BYOAI)</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   Arivarangam allows you to connect your own API keys from third-party AI Providers (&ldquo;BYOAI Keys&rdquo;) to use within the Arivarangam platform. When you use BYOAI Keys:
                 </p>
-                <ul className="space-y-2 list-disc list-inside text-zinc-400">
+                <ul className="space-y-2 list-disc list-inside text-slate-600">
                   <li>Your API keys are encrypted at rest using AES-256-GCM encryption and are only decrypted at the time of use to make API calls on your behalf.</li>
                   <li>You remain solely responsible for complying with the terms of service of the respective AI Provider associated with each BYOAI Key.</li>
                   <li>You are solely responsible for all costs incurred on your third-party AI Provider accounts as a result of Arivarangam&rsquo;s use of your BYOAI Keys.</li>
@@ -201,10 +201,10 @@ export default function TermsPage() {
             </section>
 
             <section id="data-privacy">
-              <h2 className="text-2xl font-bold mb-4 text-white">8. Data &amp; Privacy</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">8. Data &amp; Privacy</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
-                  Your privacy is important to us. Our collection and use of personal data is governed by our <Link href="/privacy" className="text-brand-400 hover:text-brand-300">Privacy Policy</Link>, which is incorporated into these Terms by reference.
+                  Your privacy is important to us. Our collection and use of personal data is governed by our <Link href="/privacy" className="text-brand-600 hover:text-brand-500">Privacy Policy</Link>, which is incorporated into these Terms by reference.
                 </p>
                 <p>
                   By using Arivarangam, you acknowledge that your prompts and task content will be transmitted to one or more third-party AI Provider APIs for processing. While Arivarangam&rsquo;s AI Firewall automatically redacts identified personally identifiable information (PII) before transmission, you should exercise care in the content you submit and avoid including sensitive personal information where possible.
@@ -216,28 +216,28 @@ export default function TermsPage() {
             </section>
 
             <section id="ip">
-              <h2 className="text-2xl font-bold mb-4 text-white">9. Intellectual Property</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">9. Intellectual Property</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
-                  <span className="text-white font-medium">Arivarangam&rsquo;s IP:</span> The Arivarangam platform, including its software, Discussion Engine, AI Firewall, user interface, branding, and all related intellectual property, is owned by Arivarangam and its licensors. These Terms do not grant you any right to use Arivarangam&rsquo;s trademarks, logos, or brand features without prior written consent.
+                  <span className="text-slate-900 font-medium">Arivarangam&rsquo;s IP:</span> The Arivarangam platform, including its software, Discussion Engine, AI Firewall, user interface, branding, and all related intellectual property, is owned by Arivarangam and its licensors. These Terms do not grant you any right to use Arivarangam&rsquo;s trademarks, logos, or brand features without prior written consent.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Your content:</span> You own the prompts you input and, subject to the terms of the applicable AI Providers, the outputs generated in response to those prompts. You are responsible for ensuring you have the right to use any content you submit to Arivarangam.
+                  <span className="text-slate-900 font-medium">Your content:</span> You own the prompts you input and, subject to the terms of the applicable AI Providers, the outputs generated in response to those prompts. You are responsible for ensuring you have the right to use any content you submit to Arivarangam.
                 </p>
                 <p>
-                  <span className="text-white font-medium">AI-generated outputs:</span> The ownership and copyright status of AI-generated content is an evolving area of law. Arivarangam makes no representation regarding the copyrightability of AI outputs. You assume all risk associated with the use, publication, or commercialisation of AI-generated content.
+                  <span className="text-slate-900 font-medium">AI-generated outputs:</span> The ownership and copyright status of AI-generated content is an evolving area of law. Arivarangam makes no representation regarding the copyrightability of AI outputs. You assume all risk associated with the use, publication, or commercialisation of AI-generated content.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Feedback:</span> If you provide Arivarangam with any suggestions, ideas, or feedback about the Service, you grant Arivarangam a perpetual, irrevocable, royalty-free licence to use such feedback for any purpose without compensation to you.
+                  <span className="text-slate-900 font-medium">Feedback:</span> If you provide Arivarangam with any suggestions, ideas, or feedback about the Service, you grant Arivarangam a perpetual, irrevocable, royalty-free licence to use such feedback for any purpose without compensation to you.
                 </p>
               </div>
             </section>
 
             <section id="liability">
-              <h2 className="text-2xl font-bold mb-4 text-white">10. Limitation of Liability</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
-                <div className="p-4 rounded-xl border border-zinc-700 bg-zinc-900">
-                  <p className="text-sm uppercase text-zinc-500 font-semibold mb-3">Important Legal Notice</p>
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">10. Limitation of Liability</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
+                <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <p className="text-sm uppercase text-slate-400 font-semibold mb-3">Important Legal Notice</p>
                   <p>
                     TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, ARIVARANGAM AI AND ITS DIRECTORS, EMPLOYEES, CONTRACTORS, AGENTS, AFFILIATES, AND LICENSORS (&ldquo;ARIVARANGAM PARTIES&rdquo;) SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION LOSS OF PROFITS, REVENUE, DATA, GOODWILL, OR BUSINESS INTERRUPTION, ARISING OUT OF OR IN CONNECTION WITH THESE TERMS OR YOUR USE OF THE SERVICE, EVEN IF ARIVARANGAM HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
                   </p>
@@ -255,12 +255,12 @@ export default function TermsPage() {
             </section>
 
             <section id="indemnification">
-              <h2 className="text-2xl font-bold mb-4 text-white">11. Indemnification</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">11. Indemnification</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   You agree to indemnify, defend, and hold harmless Arivarangam and the Arivarangam Parties from and against any claims, liabilities, damages, losses, costs, and expenses (including reasonable legal fees) arising out of or in any way related to:
                 </p>
-                <ul className="space-y-2 list-disc list-inside text-zinc-400">
+                <ul className="space-y-2 list-disc list-inside text-slate-600">
                   <li>Your use of or inability to use the Service;</li>
                   <li>Your violation of these Terms;</li>
                   <li>Your violation of any rights of a third party, including intellectual property rights, privacy rights, or applicable laws;</li>
@@ -273,31 +273,31 @@ export default function TermsPage() {
             </section>
 
             <section id="termination">
-              <h2 className="text-2xl font-bold mb-4 text-white">12. Termination</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">12. Termination</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
-                  <span className="text-white font-medium">By you:</span> You may terminate your account at any time by contacting us at <a href="mailto:support@arivarangam.com" className="text-brand-400 hover:text-brand-300">support@arivarangam.com</a> or through your account settings. Upon termination, your right to use the Service ceases immediately. Unused subscription time is not refunded, except as required by applicable law.
+                  <span className="text-slate-900 font-medium">By you:</span> You may terminate your account at any time by contacting us at <a href="mailto:support@arivarangam.com" className="text-brand-600 hover:text-brand-500">support@arivarangam.com</a> or through your account settings. Upon termination, your right to use the Service ceases immediately. Unused subscription time is not refunded, except as required by applicable law.
                 </p>
                 <p>
-                  <span className="text-white font-medium">By Arivarangam:</span> Arivarangam may suspend or terminate your account immediately, without notice or liability, if we have reasonable grounds to believe you have violated these Terms, engaged in fraudulent activity, or if required to do so by law or court order.
+                  <span className="text-slate-900 font-medium">By Arivarangam:</span> Arivarangam may suspend or terminate your account immediately, without notice or liability, if we have reasonable grounds to believe you have violated these Terms, engaged in fraudulent activity, or if required to do so by law or court order.
                 </p>
                 <p>
-                  <span className="text-white font-medium">Effect of termination:</span> Upon termination, all licences granted to you under these Terms immediately cease. Arivarangam may delete your data in accordance with its data retention policy as described in the Privacy Policy. Sections that by their nature should survive termination (including Sections 5, 9, 10, 11, 13) shall survive.
+                  <span className="text-slate-900 font-medium">Effect of termination:</span> Upon termination, all licences granted to you under these Terms immediately cease. Arivarangam may delete your data in accordance with its data retention policy as described in the Privacy Policy. Sections that by their nature should survive termination (including Sections 5, 9, 10, 11, 13) shall survive.
                 </p>
               </div>
             </section>
 
             <section id="governing-law">
-              <h2 className="text-2xl font-bold mb-4 text-white">13. Governing Law</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">13. Governing Law</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>
                   These Terms and any disputes arising out of or in connection with them shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law provisions.
                 </p>
                 <p>
-                  Any legal action or proceeding arising out of or relating to these Terms or your use of Arivarangam shall be brought exclusively in the courts of competent jurisdiction located in <span className="text-white font-medium">Rajasthan, India</span>. You irrevocably consent to the personal jurisdiction and venue of such courts.
+                  Any legal action or proceeding arising out of or relating to these Terms or your use of Arivarangam shall be brought exclusively in the courts of competent jurisdiction located in <span className="text-slate-900 font-medium">Rajasthan, India</span>. You irrevocably consent to the personal jurisdiction and venue of such courts.
                 </p>
                 <p>
-                  Before initiating any formal legal proceedings, you agree to attempt to resolve any dispute informally by contacting Arivarangam at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>. Arivarangam will attempt to resolve the dispute informally within 30 days.
+                  Before initiating any formal legal proceedings, you agree to attempt to resolve any dispute informally by contacting Arivarangam at <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a>. Arivarangam will attempt to resolve the dispute informally within 30 days.
                 </p>
                 <p>
                   These Terms constitute the entire agreement between you and Arivarangam regarding your use of the Service, and supersede all prior agreements, whether written or oral, on the same subject matter.
@@ -306,28 +306,28 @@ export default function TermsPage() {
             </section>
 
             <section id="contact">
-              <h2 className="text-2xl font-bold mb-4 text-white">14. Contact</h2>
-              <div className="space-y-4 text-zinc-300 leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">14. Contact</h2>
+              <div className="space-y-4 text-slate-700 leading-relaxed">
                 <p>If you have any questions about these Terms, please contact us:</p>
-                <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900 space-y-2">
-                  <p><span className="text-zinc-400">Legal enquiries:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
-                  <p><span className="text-zinc-400">Billing disputes:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
-                  <p><span className="text-zinc-400">Security issues:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
-                  <p><span className="text-zinc-400">General support:</span> <a href="mailto:support@arivarangam.com" className="text-brand-400 hover:text-brand-300">support@arivarangam.com</a></p>
+                <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-sm space-y-2">
+                  <p><span className="text-slate-500">Legal enquiries:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a></p>
+                  <p><span className="text-slate-500">Billing disputes:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a></p>
+                  <p><span className="text-slate-500">Security issues:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-600 hover:text-brand-500">admin@arivarangam.com</a></p>
+                  <p><span className="text-slate-500">General support:</span> <a href="mailto:support@arivarangam.com" className="text-brand-600 hover:text-brand-500">support@arivarangam.com</a></p>
                 </div>
               </div>
             </section>
 
           </div>
 
-          <div className="mt-16 pt-8 border-t border-zinc-800 text-sm text-zinc-600">
-            <p>Last updated: January 1, 2025 · <Link href="/privacy" className="hover:text-zinc-400 transition-colors">Privacy Policy</Link></p>
+          <div className="mt-16 pt-8 border-t border-slate-200 text-sm text-slate-400">
+            <p>Last updated: January 1, 2025 · <Link href="/privacy" className="hover:text-slate-600 transition-colors">Privacy Policy</Link></p>
           </div>
         </main>
       </div>
 
-      <footer className="border-t border-zinc-800 mt-12 py-8 text-center text-zinc-600 text-sm">
-        <p>Arivarangam · <Link href="/privacy" className="hover:text-zinc-500">Privacy Policy</Link> · <Link href="/terms" className="hover:text-zinc-500">Terms of Service</Link></p>
+      <footer className="border-t border-slate-200 bg-white mt-12 py-8 text-center text-slate-400 text-sm">
+        <p>Arivarangam · <Link href="/privacy" className="hover:text-slate-600">Privacy Policy</Link> · <Link href="/terms" className="hover:text-slate-600">Terms of Service</Link></p>
       </footer>
     </div>
   )

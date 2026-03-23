@@ -51,33 +51,33 @@ export default function JoinWorkspacePage() {
   }, [joinWorkspace, token, router])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="text-center max-w-sm">
         {status === 'loading' && (
           <>
             <div className="w-12 h-12 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
-            <h2 className="text-white font-semibold mb-1">Joining workspace…</h2>
-            <p className="text-zinc-500 text-sm">Verifying your invite token</p>
+            <h2 className="text-slate-900 font-semibold mb-1">Joining workspace…</h2>
+            <p className="text-slate-500 text-sm">Verifying your invite token</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-white font-bold text-xl mb-2">You're in!</h2>
-            <p className="text-zinc-400 text-sm mb-4">Welcome to the workspace. Redirecting to dashboard…</p>
-            <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" />
+            <h2 className="text-slate-900 font-bold text-xl mb-2">You're in!</h2>
+            <p className="text-slate-600 text-sm mb-4">Welcome to the workspace. Redirecting to dashboard…</p>
+            <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin mx-auto" />
           </>
         )}
 
         {status === 'error' && (
           <>
             <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-white font-bold text-xl mb-2">Unable to join</h2>
-            <p className="text-zinc-400 text-sm mb-6">{message}</p>
+            <h2 className="text-slate-900 font-bold text-xl mb-2">Unable to join</h2>
+            <p className="text-slate-600 text-sm mb-6">{message}</p>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-sm transition-colors"
+              className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-sm transition-colors"
             >
               Go to Dashboard
             </button>

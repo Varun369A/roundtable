@@ -53,19 +53,19 @@ const WHY_INDIA = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
             Arivarangam<span className="text-brand-500">.</span>
           </Link>
           <div className="flex items-center gap-6">
-            <Link href="/features" className="text-sm text-zinc-400 hover:text-white transition-colors">Features</Link>
-            <Link href="/pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">Pricing</Link>
-            <Link href="/blog" className="text-sm text-zinc-400 hover:text-white transition-colors">Blog</Link>
-            <Link href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">Log in</Link>
-            <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors">
+            <Link href="/features" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Features</Link>
+            <Link href="/pricing" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Pricing</Link>
+            <Link href="/blog" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Blog</Link>
+            <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Log in</Link>
+            <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors text-white">
               Get started
             </Link>
           </div>
@@ -75,35 +75,35 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-40 pb-24 px-6 text-center">
         <div className="max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-400 text-xs font-medium mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-600 text-xs font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
             Made in India, for the world
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-slate-900">
             Building the AI Operating System{' '}
             <span className="bg-gradient-to-r from-brand-400 to-purple-400 bg-clip-text text-transparent">
               for India
             </span>
           </h1>
-          <p className="text-xl text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 leading-relaxed max-w-2xl mx-auto">
             We believe everyone deserves access to the world's best AI tools — not one at a time, but all together.
           </p>
         </div>
       </section>
 
       {/* Mission */}
-      <section className="py-20 px-6 border-y border-zinc-800/50">
+      <section className="py-20 px-6 border-y border-slate-200 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
-              <p className="text-zinc-300 leading-relaxed text-lg">
+              <h2 className="text-3xl font-bold mb-6 text-slate-900">Our Mission</h2>
+              <p className="text-slate-700 leading-relaxed text-lg">
                 We believe everyone deserves access to the world's best AI tools — not one at a time, but all together.
               </p>
-              <p className="text-zinc-400 leading-relaxed mt-4">
+              <p className="text-slate-500 leading-relaxed mt-4">
                 AI has the potential to be the great equaliser — giving a solo founder the research power of a corporate team, or a small-town lawyer access to the analytical capability of a major firm. But today, that potential is locked behind fragmented tools, dollar-denominated pricing, and systems that weren't designed with India in mind.
               </p>
-              <p className="text-zinc-400 leading-relaxed mt-4">
+              <p className="text-slate-500 leading-relaxed mt-4">
                 Arivarangam exists to change that.
               </p>
             </div>
@@ -114,9 +114,9 @@ export default function AboutPage() {
                 { icon: '💰', text: 'INR pricing. No dollar premium.' },
                 { icon: '🗣️', text: 'Works in Hindi, Tamil, Telugu, and 7 more Indian languages.' },
               ].map(({ icon, text }) => (
-                <div key={text} className="flex items-center gap-4 p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+                <div key={text} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
                   <span className="text-2xl">{icon}</span>
-                  <span className="text-zinc-300 font-medium">{text}</span>
+                  <span className="text-slate-700 font-medium">{text}</span>
                 </div>
               ))}
             </div>
@@ -128,8 +128,8 @@ export default function AboutPage() {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">The Problem We Solve</h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-slate-900">The Problem We Solve</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Using the world's best AI tools today is fragmented, expensive, and exhausting.
             </p>
           </div>
@@ -152,21 +152,21 @@ export default function AboutPage() {
                 pain: true,
               },
             ].map(({ title, desc }) => (
-              <div key={title} className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5">
-                <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 mb-4 text-lg">✕</div>
-                <h3 className="font-bold text-white mb-3">{title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{desc}</p>
+              <div key={title} className="p-6 rounded-2xl border border-red-200 bg-red-50">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-4 text-lg">✕</div>
+                <h3 className="font-bold text-slate-900 mb-3">{title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
 
           {/* Solution */}
           <div className="rounded-2xl border border-brand-500/30 bg-brand-500/5 p-8 text-center">
-            <h3 className="text-2xl font-bold text-white mb-4">Arivarangam's Solution</h3>
-            <p className="text-zinc-300 leading-relaxed max-w-2xl mx-auto text-lg">
+            <h3 className="text-2xl font-bold text-slate-900 mb-4">Arivarangam's Solution</h3>
+            <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto text-lg">
               Arivarangam acts as the coordinator. You describe a goal once. Arivarangam's Discussion Engine assigns the right AI to each sub-task — Perplexity researches, Claude strategises, GPT-4 writes, Midjourney visualises — and synthesises a complete, coherent deliverable.
             </p>
-            <p className="text-zinc-400 mt-4 leading-relaxed max-w-xl mx-auto">
+            <p className="text-slate-500 mt-4 leading-relaxed max-w-xl mx-auto">
               One subscription. One prompt. Every AI working together.
             </p>
           </div>
@@ -174,27 +174,27 @@ export default function AboutPage() {
       </section>
 
       {/* Why India */}
-      <section className="py-20 px-6 border-y border-zinc-800/50 bg-zinc-900/30">
+      <section className="py-20 px-6 border-y border-slate-200 bg-slate-100">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why India First?</h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-slate-900">Why India First?</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               India is the world's largest underserved AI market. Western AI tools were built for Western defaults.
             </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {WHY_INDIA.map(({ stat, label, detail }) => (
-              <div key={label} className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900 text-center">
-                <p className="text-3xl font-bold text-brand-400 mb-1">{stat}</p>
-                <p className="text-sm font-semibold text-white mb-3">{label}</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">{detail}</p>
+              <div key={label} className="p-6 rounded-2xl border border-slate-200 bg-white text-center shadow-sm">
+                <p className="text-3xl font-bold text-brand-600 mb-1">{stat}</p>
+                <p className="text-sm font-semibold text-slate-900 mb-3">{label}</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{detail}</p>
               </div>
             ))}
           </div>
 
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900">
-            <h3 className="font-bold text-white mb-4">What "India-first" actually means at Arivarangam:</h3>
+          <div className="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-4">What "India-first" actually means at Arivarangam:</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 'All prices in INR, set at Indian purchasing power parity — not a dollar conversion',
@@ -204,8 +204,8 @@ export default function AboutPage() {
                 'Data residency options for enterprises who cannot route data to US servers',
                 'India-specific AI model routing: Sarvam for Indic languages, not Google Translate',
               ].map((item) => (
-                <div key={item} className="flex items-start gap-3 text-sm text-zinc-300">
-                  <span className="text-brand-400 mt-0.5 shrink-0">✓</span>
+                <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                  <span className="text-brand-600 mt-0.5 shrink-0">✓</span>
                   <span>{item}</span>
                 </div>
               ))}
@@ -218,21 +218,21 @@ export default function AboutPage() {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">The Technology</h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-slate-900">The Technology</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Arivarangam is not a wrapper. We've built original AI infrastructure.
             </p>
           </div>
 
           <div className="space-y-6">
             {TECH_FEATURES.map(({ title, description, icon, color }) => (
-              <div key={title} className="flex gap-6 p-6 rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors">
+              <div key={title} className="flex gap-6 p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-2xl flex-shrink-0`}>
                   {icon}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-                  <p className="text-zinc-400 leading-relaxed">{description}</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
+                  <p className="text-slate-500 leading-relaxed">{description}</p>
                 </div>
               </div>
             ))}
@@ -241,24 +241,24 @@ export default function AboutPage() {
       </section>
 
       {/* Team */}
-      <section className="py-20 px-6 border-y border-zinc-800/50 bg-zinc-900/30">
+      <section className="py-20 px-6 border-y border-slate-200 bg-slate-100">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Team</h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-8">
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Team</h2>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-8">
             A small team with a big mission.
           </p>
-          <p className="text-zinc-300 leading-relaxed max-w-2xl mx-auto mb-8">
+          <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto mb-8">
             Arivarangam is built by a small, focused team of engineers, designers, and AI researchers who believe India deserves a world-class AI platform that respects its scale, its languages, and its economics. We move fast, we ship constantly, and we believe the best way to build AI tools is to be the most intensive users of AI tools ourselves.
           </p>
 
-          <div className="p-8 rounded-2xl border border-brand-500/30 bg-brand-500/5 max-w-xl mx-auto">
-            <h3 className="text-xl font-bold text-white mb-3">We're Hiring</h3>
-            <p className="text-zinc-400 mb-6 leading-relaxed">
+          <div className="p-8 rounded-2xl border border-brand-500/30 bg-white shadow-sm max-w-xl mx-auto">
+            <h3 className="text-xl font-bold text-slate-900 mb-3">We're Hiring</h3>
+            <p className="text-slate-500 mb-6 leading-relaxed">
               We're looking for engineers, AI researchers, and product designers who want to build the AI platform for a billion people. Remote-first. Equity-bearing. Interesting problems every day.
             </p>
             <a
               href="mailto:support@arivarangam.com"
-              className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold transition-colors"
+              className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold transition-colors text-white"
             >
               support@arivarangam.com
             </a>
@@ -269,8 +269,8 @@ export default function AboutPage() {
       {/* Contact */}
       <section className="py-20 px-6">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-zinc-400 mb-8">We'd love to hear from you — whether you're a user, a potential partner, or just curious about what we're building.</p>
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Get in Touch</h2>
+          <p className="text-slate-500 mb-8">We'd love to hear from you — whether you're a user, a potential partner, or just curious about what we're building.</p>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
               { label: 'General', email: 'support@arivarangam.com' },
@@ -280,10 +280,10 @@ export default function AboutPage() {
               <a
                 key={email}
                 href={`mailto:${email}`}
-                className="p-4 rounded-xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors"
+                className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm"
               >
-                <p className="text-xs text-zinc-500 mb-1">{label}</p>
-                <p className="text-sm font-medium text-brand-400">{email}</p>
+                <p className="text-xs text-slate-400 mb-1">{label}</p>
+                <p className="text-sm font-medium text-brand-600">{email}</p>
               </a>
             ))}
           </div>
@@ -291,17 +291,17 @@ export default function AboutPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 py-8 px-6">
+      <footer className="border-t border-slate-200 bg-white py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="text-xl font-bold tracking-tight">
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
             Arivarangam<span className="text-brand-500">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-500">
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
-            <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
-            <Link href="/features" className="hover:text-zinc-300 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-300 transition-colors">Pricing</Link>
-            <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/terms" className="hover:text-slate-700 transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privacy</Link>
+            <Link href="/features" className="hover:text-slate-700 transition-colors">Features</Link>
+            <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>
+            <Link href="/blog" className="hover:text-slate-700 transition-colors">Blog</Link>
           </div>
         </div>
       </footer>

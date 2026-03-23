@@ -56,10 +56,10 @@ const MODELS = [
 ]
 
 const STATUS_BADGE: Record<string, string> = {
-  DRAFT:    'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
-  ACTIVE:   'bg-green-500/15 text-green-400 border border-green-500/30',
-  PAUSED:   'bg-orange-500/15 text-orange-400 border border-orange-500/30',
-  ARCHIVED: 'bg-red-500/15 text-red-400 border border-red-500/30',
+  DRAFT:    'bg-yellow-50 text-yellow-600 border border-yellow-200',
+  ACTIVE:   'bg-green-50 text-green-600 border border-green-200',
+  PAUSED:   'bg-orange-50 text-orange-600 border border-orange-200',
+  ARCHIVED: 'bg-red-50 text-red-600 border border-red-200',
 }
 
 const RUN_STATUS_ICON: Record<string, string> = {
@@ -71,11 +71,11 @@ const RUN_STATUS_ICON: Record<string, string> = {
 }
 
 const RUN_STATUS_COLOR: Record<string, string> = {
-  COMPLETED: 'text-green-400',
-  FAILED:    'text-red-400',
-  RUNNING:   'text-blue-400 animate-spin',
-  PENDING:   'text-zinc-600',
-  SKIPPED:   'text-zinc-600',
+  COMPLETED: 'text-green-600',
+  FAILED:    'text-red-600',
+  RUNNING:   'text-blue-500 animate-spin',
+  PENDING:   'text-slate-400',
+  SKIPPED:   'text-slate-400',
 }
 
 function duration(start?: string, end?: string): string {
@@ -101,7 +101,7 @@ function highlightVariables(text: string) {
   const parts = text.split(/({{[^}]+}})/)
   return parts.map((p, i) =>
     p.startsWith('{{') ? (
-      <span key={i} className="text-indigo-400 bg-indigo-500/10 px-0.5 rounded font-mono text-[11px]">{p}</span>
+      <span key={i} className="text-indigo-600 bg-indigo-50 px-0.5 rounded font-mono text-[11px]">{p}</span>
     ) : (
       <span key={i}>{p}</span>
     )
@@ -137,42 +137,42 @@ function StepCard({
   )
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-200">
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all duration-200">
       {/* Step header */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-7 h-7 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xs font-bold text-indigo-400 shrink-0">
+        <div className="w-7 h-7 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-xs font-bold text-indigo-600 shrink-0">
           {step.stepNumber}
         </div>
         <input
           value={step.name}
           onChange={(e) => onChange({ ...step, name: e.target.value })}
           placeholder={`Step ${step.stepNumber} name`}
-          className="flex-1 bg-transparent text-sm font-medium text-zinc-200 placeholder-zinc-600 outline-none"
+          className="flex-1 bg-transparent text-sm font-medium text-slate-800 placeholder-slate-400 outline-none"
         />
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={onMoveUp}
             disabled={index === 0}
-            className="w-6 h-6 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-300 disabled:opacity-20 transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 disabled:opacity-20 transition-colors text-xs"
           >
             ▲
           </button>
           <button
             onClick={onMoveDown}
             disabled={index === total - 1}
-            className="w-6 h-6 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-300 disabled:opacity-20 transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 disabled:opacity-20 transition-colors text-xs"
           >
             ▼
           </button>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="w-6 h-6 flex items-center justify-center rounded text-zinc-600 hover:text-zinc-300 transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 transition-colors text-xs"
           >
             {expanded ? '▲' : '▼'}
           </button>
           <button
             onClick={onRemove}
-            className="w-6 h-6 flex items-center justify-center rounded text-zinc-600 hover:text-red-400 transition-colors text-xs"
+            className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-600 transition-colors text-xs"
           >
             ×
           </button>
@@ -181,9 +181,9 @@ function StepCard({
 
       {/* Goal template */}
       <div className="px-4 pb-3">
-        <div className="px-3 py-2 bg-zinc-800/50 rounded-xl border border-zinc-700/50 text-xs text-zinc-400 leading-relaxed min-h-[2.5rem] mb-1">
+        <div className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed min-h-[2.5rem] mb-1">
           {step.goalTemplate ? highlightVariables(step.goalTemplate) : (
-            <span className="text-zinc-600 italic">Goal template…</span>
+            <span className="text-slate-400 italic">Goal template…</span>
           )}
         </div>
         <textarea
@@ -191,15 +191,15 @@ function StepCard({
           onChange={(e) => onChange({ ...step, goalTemplate: e.target.value })}
           placeholder="Describe what this step should accomplish. Use {{variable}} from previous steps."
           rows={3}
-          className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 focus:border-zinc-500 rounded-xl text-xs text-zinc-300 placeholder-zinc-600 outline-none transition-colors resize-none"
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-xs text-slate-700 placeholder-slate-400 outline-none transition-colors resize-none"
         />
         {availableVars.length > 0 && (
-          <p className="text-[10px] text-zinc-600 mt-1">
+          <p className="text-[10px] text-slate-400 mt-1">
             Available: {availableVars.map((v, i) => (
               <button
                 key={i}
                 onClick={() => onChange({ ...step, goalTemplate: step.goalTemplate + ' ' + v })}
-                className="text-indigo-500 hover:text-indigo-400 font-mono mr-1 transition-colors"
+                className="text-indigo-600 hover:text-indigo-500 font-mono mr-1 transition-colors"
               >
                 {v}
               </button>
@@ -210,16 +210,16 @@ function StepCard({
 
       {/* Expanded settings */}
       {expanded && (
-        <div className="border-t border-zinc-800 px-4 py-3 space-y-4">
+        <div className="border-t border-slate-200 px-4 py-3 space-y-4">
           {/* Model override */}
           <div>
-            <label className="block text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">
               Model Override
             </label>
             <select
               value={step.modelOverride || ''}
               onChange={(e) => onChange({ ...step, modelOverride: e.target.value || undefined })}
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-xs text-zinc-300 outline-none transition-colors"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 outline-none transition-colors"
             >
               {MODELS.map((m) => (
                 <option key={m} value={m === 'Default (auto-route)' ? '' : m}>{m}</option>
@@ -230,7 +230,7 @@ function StepCard({
           {/* Output mappings */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+              <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
                 Output Mappings
               </label>
               <button
@@ -238,13 +238,13 @@ function StepCard({
                   ...step,
                   outputMappings: [...step.outputMappings, { key: '', description: '' }],
                 })}
-                className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-[10px] text-indigo-600 hover:text-indigo-500 transition-colors"
               >
                 + Add
               </button>
             </div>
             {step.outputMappings.length === 0 ? (
-              <p className="text-[11px] text-zinc-600">No output mappings. Add one to expose values to later steps.</p>
+              <p className="text-[11px] text-slate-400">No output mappings. Add one to expose values to later steps.</p>
             ) : (
               <div className="space-y-2">
                 {step.outputMappings.map((m, mi) => (
@@ -257,9 +257,9 @@ function StepCard({
                         onChange({ ...step, outputMappings: updated })
                       }}
                       placeholder="variable_name"
-                      className="w-28 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 outline-none font-mono"
+                      className="w-28 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 placeholder-slate-400 outline-none font-mono"
                     />
-                    <span className="text-zinc-600 text-xs">→</span>
+                    <span className="text-slate-400 text-xs">→</span>
                     <input
                       value={m.description}
                       onChange={(e) => {
@@ -268,14 +268,14 @@ function StepCard({
                         onChange({ ...step, outputMappings: updated })
                       }}
                       placeholder="extract key research findings"
-                      className="flex-1 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 outline-none"
+                      className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 placeholder-slate-400 outline-none"
                     />
                     <button
                       onClick={() => {
                         const updated = step.outputMappings.filter((_, i) => i !== mi)
                         onChange({ ...step, outputMappings: updated })
                       }}
-                      className="text-zinc-600 hover:text-red-400 transition-colors text-xs w-4"
+                      className="text-slate-400 hover:text-red-600 transition-colors text-xs w-4"
                     >
                       ×
                     </button>
@@ -297,48 +297,48 @@ function RunHistoryItem({ run, workflowId }: { run: WorkflowRun; workflowId: str
   const router = useRouter()
 
   const statusColor = {
-    COMPLETED: 'text-green-400',
-    FAILED:    'text-red-400',
-    RUNNING:   'text-blue-400',
-  }[run.status] || 'text-zinc-400'
+    COMPLETED: 'text-green-600',
+    FAILED:    'text-red-600',
+    RUNNING:   'text-blue-500',
+  }[run.status] || 'text-slate-500'
 
   return (
-    <div className="border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-zinc-800/30 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
       >
         <span className={`text-xs font-bold w-4 ${statusColor}`}>
           {run.status === 'RUNNING' ? '⟳' : run.status === 'COMPLETED' ? '✓' : '✗'}
         </span>
         <div className="flex-1 min-w-0">
           <p className={`text-xs font-medium ${statusColor}`}>{run.status}</p>
-          <p className="text-[10px] text-zinc-600">{relativeTime(run.startedAt)}</p>
+          <p className="text-[10px] text-slate-400">{relativeTime(run.startedAt)}</p>
         </div>
-        <span className="text-[10px] text-zinc-600 shrink-0">
+        <span className="text-[10px] text-slate-400 shrink-0">
           {duration(run.startedAt, run.completedAt)}
         </span>
-        <span className="text-zinc-600 text-xs">{expanded ? '▲' : '▼'}</span>
+        <span className="text-slate-400 text-xs">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 px-4 py-3 space-y-2">
+        <div className="border-t border-slate-200 px-4 py-3 space-y-2">
           {run.stepRuns.map((sr) => (
             <div key={sr.id} className="flex items-center gap-2.5">
               <span className={`text-xs font-bold w-4 shrink-0 ${RUN_STATUS_COLOR[sr.status]}`}>
                 {RUN_STATUS_ICON[sr.status]}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-zinc-400 truncate">{sr.stepName}</p>
-                {sr.model && <p className="text-[10px] text-zinc-600">{sr.model}</p>}
+                <p className="text-xs text-slate-600 truncate">{sr.stepName}</p>
+                {sr.model && <p className="text-[10px] text-slate-400">{sr.model}</p>}
               </div>
-              <span className="text-[10px] text-zinc-600 shrink-0">
+              <span className="text-[10px] text-slate-400 shrink-0">
                 {duration(sr.startedAt, sr.completedAt)}
               </span>
               {sr.taskId && (
                 <Link
                   href={`/roundtable/${sr.taskId}`}
-                  className="text-[10px] text-indigo-400 hover:text-indigo-300 shrink-0 transition-colors"
+                  className="text-[10px] text-indigo-600 hover:text-indigo-500 shrink-0 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   View →
@@ -349,7 +349,7 @@ function RunHistoryItem({ run, workflowId }: { run: WorkflowRun; workflowId: str
           <div className="pt-1">
             <button
               onClick={() => router.push(`/workflows/${workflowId}/runs/${run.id}`)}
-              className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="text-[11px] text-indigo-600 hover:text-indigo-500 transition-colors"
             >
               Full run details →
             </button>
@@ -475,8 +475,8 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
       </div>
     )
   }
@@ -484,30 +484,30 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
   if (!workflow) return null
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
 
       {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/95 backdrop-blur-sm sticky top-0 z-10 px-6 py-3 flex items-center justify-between gap-4">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-10 px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <Link href="/workflows" className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm shrink-0">
+          <Link href="/workflows" className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0">
             ← Workflows
           </Link>
-          <div className="h-4 w-px bg-zinc-800 shrink-0" />
+          <div className="h-4 w-px bg-slate-200 shrink-0" />
           <input
             value={workflow.name}
             onChange={(e) => setWorkflow({ ...workflow, name: e.target.value })}
-            className="bg-transparent text-sm font-semibold text-zinc-200 outline-none min-w-0 flex-1 truncate"
+            className="bg-transparent text-sm font-semibold text-slate-800 outline-none min-w-0 flex-1 truncate"
           />
           <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[workflow.status] || ''}`}>
             {workflow.status}
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {saveError && <span className="text-xs text-red-400">{saveError}</span>}
+          {saveError && <span className="text-xs text-red-600">{saveError}</span>}
           <button
             onClick={handleRunNow}
             disabled={running}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-green-400 rounded-xl text-xs font-medium transition-all duration-200"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 rounded-xl text-xs font-medium transition-all duration-200"
           >
             {running ? '⟳' : '▶'} Run Now
           </button>
@@ -520,7 +520,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
           </button>
           <button
             onClick={handleDelete}
-            className="px-3 py-1.5 bg-zinc-800 hover:bg-red-900/40 border border-zinc-700 hover:border-red-700/30 text-zinc-400 hover:text-red-400 rounded-xl text-xs transition-all duration-200"
+            className="px-3 py-1.5 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-500 hover:text-red-600 rounded-xl text-xs transition-all duration-200"
           >
             Delete
           </button>
@@ -538,11 +538,11 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
               value={workflow.description}
               onChange={(e) => setWorkflow({ ...workflow, description: e.target.value })}
               placeholder="Describe what this workflow accomplishes…"
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-zinc-600 rounded-xl text-sm text-zinc-400 placeholder-zinc-600 outline-none transition-colors"
+              className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-sm text-slate-600 placeholder-slate-400 outline-none transition-colors"
             />
           </div>
 
-          <h2 className="text-sm font-semibold text-zinc-300 mb-4">Steps</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Steps</h2>
 
           {/* Steps */}
           <div className="space-y-3">
@@ -550,7 +550,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
               <div key={step.id} className="relative">
                 {/* Dependency arrow */}
                 {index > 0 && (
-                  <div className="absolute -top-3 left-[22px] w-px h-3 bg-zinc-800" />
+                  <div className="absolute -top-3 left-[22px] w-px h-3 bg-slate-200" />
                 )}
                 <StepCard
                   step={step}
@@ -568,21 +568,21 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
 
           <button
             onClick={addStep}
-            className="mt-4 w-full py-3 border border-dashed border-zinc-700 hover:border-zinc-500 rounded-2xl text-xs text-zinc-600 hover:text-zinc-400 transition-all duration-200"
+            className="mt-4 w-full py-3 border border-dashed border-slate-300 hover:border-slate-400 rounded-2xl text-xs text-slate-400 hover:text-slate-600 transition-all duration-200"
           >
             + Add Step
           </button>
 
           {/* Settings panel */}
-          <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-800">
-              <h3 className="text-sm font-semibold text-zinc-300">Settings</h3>
+          <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200">
+              <h3 className="text-sm font-semibold text-slate-700">Settings</h3>
             </div>
             <div className="px-5 py-4 space-y-5">
 
               {/* Trigger */}
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-2">Trigger Type</label>
+                <label className="block text-xs font-medium text-slate-500 mb-2">Trigger Type</label>
                 <div className="flex gap-2">
                   {(['MANUAL', 'SCHEDULED', 'WEBHOOK'] as const).map((t) => (
                     <button
@@ -591,7 +591,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
                       className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                         workflow.triggerType === t
                           ? 'bg-indigo-600 text-white'
-                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700'
+                          : 'bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200'
                       }`}
                     >
                       {t === 'MANUAL' ? '▶ Manual' : t === 'SCHEDULED' ? '⏰ Scheduled' : '🔗 Webhook'}
@@ -603,19 +603,19 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
               {/* Cron */}
               {workflow.triggerType === 'SCHEDULED' && (
                 <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Cron Expression</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">Cron Expression</label>
                   <input
                     value={workflow.cronExpression || ''}
                     onChange={(e) => setWorkflow({ ...workflow, cronExpression: e.target.value })}
                     placeholder="0 9 * * 1  (every Monday at 9am)"
-                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 focus:border-zinc-500 rounded-xl text-xs text-zinc-300 placeholder-zinc-600 outline-none font-mono transition-colors"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-slate-400 rounded-xl text-xs text-slate-700 placeholder-slate-400 outline-none font-mono transition-colors"
                   />
                 </div>
               )}
 
               {/* Status */}
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Status</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">Status</label>
                 <div className="flex gap-2">
                   {(['DRAFT', 'ACTIVE'] as const).map((s) => (
                     <button
@@ -623,8 +623,8 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
                       onClick={() => setWorkflow({ ...workflow, status: s })}
                       className={`px-4 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 ${
                         workflow.status === s
-                          ? s === 'ACTIVE' ? 'bg-green-600 text-white' : 'bg-yellow-600/30 text-yellow-400'
-                          : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300 border border-zinc-700'
+                          ? s === 'ACTIVE' ? 'bg-green-600 text-white' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          : 'bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200'
                       }`}
                     >
                       {s}
@@ -637,24 +637,24 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
 
           {/* Webhook config */}
           {workflow.triggerType === 'WEBHOOK' && (
-            <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-zinc-300">Webhook Configuration</h3>
+            <div className="mt-4 bg-white border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-700">Webhook Configuration</h3>
               </div>
               <div className="px-5 py-4 space-y-4">
                 {/* URL */}
                 <div>
-                  <label className="block text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Webhook URL</label>
+                  <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Webhook URL</label>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-[11px] text-zinc-400 font-mono truncate">
+                    <code className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 font-mono truncate">
                       {webhookUrl}
                     </code>
                     <button
                       onClick={() => copyText(webhookUrl, 'webhook')}
                       className={`shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                         copiedWebhook
-                          ? 'bg-green-500/15 text-green-400 border border-green-500/30'
-                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200'
+                          ? 'bg-green-50 text-green-600 border border-green-200'
+                          : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-800'
                       }`}
                     >
                       {copiedWebhook ? 'Copied!' : 'Copy'}
@@ -665,14 +665,14 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
                 {/* Secret */}
                 {workflow.webhookSecret && (
                   <div>
-                    <label className="block text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Webhook Secret</label>
+                    <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Webhook Secret</label>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-[11px] text-zinc-400 font-mono truncate">
+                      <code className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 font-mono truncate">
                         {revealSecret ? workflow.webhookSecret : '●●●●●●●●●●●●●●●●'}
                       </code>
                       <button
                         onClick={() => setRevealSecret((v) => !v)}
-                        className="shrink-0 px-3 py-2 rounded-xl text-xs text-zinc-500 hover:text-zinc-300 bg-zinc-800 border border-zinc-700 transition-colors"
+                        className="shrink-0 px-3 py-2 rounded-xl text-xs text-slate-500 hover:text-slate-700 bg-slate-100 border border-slate-200 transition-colors"
                       >
                         {revealSecret ? 'Hide' : 'Reveal'}
                       </button>
@@ -680,8 +680,8 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
                         onClick={() => copyText(workflow.webhookSecret!, 'secret')}
                         className={`shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
                           copiedSecret
-                            ? 'bg-green-500/15 text-green-400 border border-green-500/30'
-                            : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200'
+                            ? 'bg-green-50 text-green-600 border border-green-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-800'
                         }`}
                       >
                         {copiedSecret ? 'Copied!' : 'Copy'}
@@ -692,8 +692,8 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
 
                 {/* Example curl */}
                 <div>
-                  <label className="block text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Example</label>
-                  <pre className="px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-[10px] text-zinc-500 font-mono overflow-x-auto whitespace-pre-wrap break-all">
+                  <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Example</label>
+                  <pre className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] text-slate-500 font-mono overflow-x-auto whitespace-pre-wrap break-all">
 {`curl -X POST "${webhookUrl}" \\
   -H "Content-Type: application/json" \\
   -H "X-Webhook-Secret: ${workflow.webhookSecret ? '...' : '<secret>'}" \\
@@ -707,12 +707,12 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
 
         {/* ── Right panel: Run History (40%) ── */}
         <div style={{ flexBasis: '40%', minWidth: 0 }}>
-          <h2 className="text-sm font-semibold text-zinc-300 mb-4">Run History</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Run History</h2>
 
           {runs.length === 0 ? (
-            <div className="text-center py-12 bg-zinc-900 border border-zinc-800 rounded-2xl">
-              <p className="text-zinc-600 text-sm">No runs yet.</p>
-              <p className="text-xs text-zinc-700 mt-1">Run this workflow to see history here.</p>
+            <div className="text-center py-12 bg-white border border-slate-200 rounded-2xl">
+              <p className="text-slate-400 text-sm">No runs yet.</p>
+              <p className="text-xs text-slate-300 mt-1">Run this workflow to see history here.</p>
             </div>
           ) : (
             <div className="space-y-2">

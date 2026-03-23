@@ -9,7 +9,7 @@ const RELEASES = [
     date: 'March 2025',
     title: 'Credit Economy, Expert Marketplace & Vertical AI Packs',
     tag: 'Major Release',
-    tagColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+    tagColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     changes: [
       { tag: 'Feature',     text: 'Credit Economy: transparent usage-based credits with INR top-up, referral bonuses (500 credits per referred user), and per-task cost estimation before submission.' },
       { tag: 'Feature',     text: 'Expert Marketplace: background-verified legal, medical, finance, and tech experts review AI outputs within defined SLAs (4h, 24h, 48h). Expert annotations appear inline.' },
@@ -26,7 +26,7 @@ const RELEASES = [
     date: 'March 2025',
     title: 'Voice Input (10 Indian Languages), Agent Execution & Quality Verification',
     tag: 'Major Release',
-    tagColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+    tagColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     changes: [
       { tag: 'Feature',     text: 'Voice Input via Sarvam AI: speak your task in Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, or Odia. English via OpenAI Whisper.' },
       { tag: 'Feature',     text: 'Agent Execution: AI can push code to GitHub, send emails via Gmail/Outlook, update Notion pages, and POST to webhooks. Every action requires explicit user approval.' },
@@ -43,7 +43,7 @@ const RELEASES = [
     date: 'March 2025',
     title: 'Multiplayer Roundtable & Workflow Builder',
     tag: 'Major Release',
-    tagColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+    tagColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     changes: [
       { tag: 'Feature',     text: 'Multiplayer Roundtable: share a live Arivarangam session with workspace members. Multiple users can observe AI outputs streaming in real time and send steering messages.' },
       { tag: 'Feature',     text: 'Workflow Builder: chain multiple Arivarangam tasks into pipelines with variable interpolation, conditional branching, webhook triggers, and scheduled execution.' },
@@ -59,7 +59,7 @@ const RELEASES = [
     date: 'March 2025',
     title: 'Clarification Round, User Memory, Mid-Generation Steering & Scheduled Tasks',
     tag: 'Feature Release',
-    tagColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    tagColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     changes: [
       { tag: 'Feature',     text: 'Clarification Round: Arivarangam\'s AI asks 1–3 targeted clarifying questions before starting a task to improve output quality. Always skippable.' },
       { tag: 'Feature',     text: 'User Memory: Arivarangam builds a persistent, private memory profile with your industry, role, writing style, and preferences. Applied automatically to every task.' },
@@ -75,7 +75,7 @@ const RELEASES = [
     date: 'January 2025',
     title: 'Initial Launch: Discussion Engine, 15+ AI Models, BYOAI, AI Firewall',
     tag: 'Launch',
-    tagColor: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    tagColor: 'bg-amber-50 text-amber-700 border-amber-200',
     changes: [
       { tag: 'Feature',  text: 'Discussion Engine: 3-round adversarial peer review. Initial responses → cross-AI critique → synthesis. Produces better results than any single AI.' },
       { tag: 'Feature',  text: '15+ AI models: Claude, GPT-4, Gemini, Perplexity, DALL-E 3, Midjourney, Stable Diffusion, ElevenLabs, Sarvam AI, and more.' },
@@ -90,10 +90,10 @@ const RELEASES = [
 ]
 
 const TAG_STYLES: Record<string, string> = {
-  Feature:     'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20',
-  Improvement: 'bg-blue-500/15 text-blue-300 border border-blue-500/20',
-  Fix:         'bg-amber-500/15 text-amber-300 border border-amber-500/20',
-  Security:    'bg-green-500/15 text-green-300 border border-green-500/20',
+  Feature:     'bg-indigo-50 text-indigo-700 border border-indigo-200',
+  Improvement: 'bg-blue-50 text-blue-700 border border-blue-200',
+  Fix:         'bg-amber-50 text-amber-700 border border-amber-200',
+  Security:    'bg-green-50 text-green-700 border border-green-200',
 }
 
 export default function ChangelogPage() {
@@ -120,17 +120,17 @@ export default function ChangelogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Arivarangam<span className="text-indigo-400">.</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
-            <Link href="/blog" className="hover:text-zinc-100 transition-colors">Blog</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/features" className="hover:text-slate-900 transition-colors">Features</Link>
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
+            <Link href="/blog" className="hover:text-slate-900 transition-colors">Blog</Link>
             <Link
               href="/signup"
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
@@ -144,20 +144,20 @@ export default function ChangelogPage() {
       {/* Header */}
       <section className="pt-32 pb-12 px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-indigo-600 text-xs font-medium mb-6">
             Release notes
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">Changelog</h1>
-          <p className="text-zinc-400 mb-8">
+          <h1 className="text-4xl font-bold tracking-tight mb-4 text-slate-900">Changelog</h1>
+          <p className="text-slate-500 mb-8">
             Every Arivarangam release, documented. New features, improvements, and fixes.
           </p>
 
           {/* Subscribe CTA */}
-          <div className="p-5 rounded-2xl border border-zinc-800 bg-zinc-900 text-left max-w-md mx-auto">
-            <p className="text-sm font-semibold text-white mb-1">Get release updates by email</p>
-            <p className="text-xs text-zinc-500 mb-4">An email whenever Arivarangam ships something new.</p>
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-sm text-left max-w-md mx-auto">
+            <p className="text-sm font-semibold text-slate-900 mb-1">Get release updates by email</p>
+            <p className="text-xs text-slate-400 mb-4">An email whenever Arivarangam ships something new.</p>
             {subscribed ? (
-              <div className="flex items-center gap-2 text-sm text-green-400">
+              <div className="flex items-center gap-2 text-sm text-green-600">
                 <span>✓</span>
                 <span>You&apos;re subscribed. Watch your inbox.</span>
               </div>
@@ -169,12 +169,12 @@ export default function ChangelogPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:outline-none text-sm text-white placeholder-zinc-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-sm text-slate-900 placeholder:text-slate-400 transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={subscribing}
-                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap text-white"
                 >
                   {subscribing ? 'Subscribing…' : 'Subscribe'}
                 </button>
@@ -189,7 +189,7 @@ export default function ChangelogPage() {
         <div className="max-w-3xl mx-auto">
           <div className="relative">
             {/* Vertical line */}
-            <div className="absolute left-3.5 top-0 bottom-0 w-px bg-zinc-800" aria-hidden="true" />
+            <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-200" aria-hidden="true" />
 
             <div className="space-y-12 pl-12">
               {RELEASES.map((release, i) => (
@@ -197,7 +197,7 @@ export default function ChangelogPage() {
                   {/* Timeline dot */}
                   <div
                     className={`absolute -left-[2.45rem] top-1.5 w-3.5 h-3.5 rounded-full border-2 ${
-                      i === 0 ? 'border-indigo-500 bg-indigo-500' : 'border-zinc-600 bg-zinc-900'
+                      i === 0 ? 'border-indigo-500 bg-indigo-500' : 'border-slate-300 bg-white'
                     }`}
                     aria-hidden="true"
                   />
@@ -206,35 +206,35 @@ export default function ChangelogPage() {
                   <div className="flex flex-wrap items-center gap-3 mb-3">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold font-mono ${
                       i === 0
-                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
                     }`}>
                       {release.version}
                     </span>
                     <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${release.tagColor}`}>
                       {release.tag}
                     </span>
-                    <span className="text-sm text-zinc-500">{release.date}</span>
+                    <span className="text-sm text-slate-400">{release.date}</span>
                     {i === 0 && (
-                      <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-xs rounded-full border border-indigo-500/30 font-medium">
+                      <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs rounded-full border border-indigo-200 font-medium">
                         Latest
                       </span>
                     )}
                   </div>
 
-                  <h2 className="text-lg font-bold text-zinc-100 mb-4">{release.title}</h2>
+                  <h2 className="text-lg font-bold text-slate-900 mb-4">{release.title}</h2>
 
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-                    <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">
                       What&apos;s new
                     </p>
                     <ul className="space-y-3">
                       {release.changes.map((change, j) => (
                         <li key={j} className="flex items-start gap-3">
-                          <span className={`shrink-0 mt-0.5 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${TAG_STYLES[change.tag] || 'bg-zinc-700 text-zinc-300'}`}>
+                          <span className={`shrink-0 mt-0.5 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${TAG_STYLES[change.tag] || 'bg-slate-100 text-slate-600'}`}>
                             {change.tag}
                           </span>
-                          <span className="text-sm text-zinc-300 leading-relaxed">{change.text}</span>
+                          <span className="text-sm text-slate-700 leading-relaxed">{change.text}</span>
                         </li>
                       ))}
                     </ul>
@@ -248,20 +248,20 @@ export default function ChangelogPage() {
 
       {/* CTA */}
       <section className="pb-20 px-6 text-center">
-        <p className="text-zinc-500 text-sm mb-4">Want to try all these features?</p>
-        <Link href="/signup" className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors">
+        <p className="text-slate-400 text-sm mb-4">Want to try all these features?</p>
+        <Link href="/signup" className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors text-white">
           Get started free →
         </Link>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
+      <footer className="py-10 px-6 border-t border-slate-200 bg-white text-center text-sm text-slate-500">
         <div className="flex flex-wrap items-center justify-center gap-6 mb-3">
-          <Link href="/features" className="hover:text-zinc-300 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-zinc-300 transition-colors">Pricing</Link>
-          <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link>
-          <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
-          <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
+          <Link href="/features" className="hover:text-slate-700 transition-colors">Features</Link>
+          <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>
+          <Link href="/blog" className="hover:text-slate-700 transition-colors">Blog</Link>
+          <Link href="/terms" className="hover:text-slate-700 transition-colors">Terms</Link>
+          <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privacy</Link>
         </div>
         <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>

@@ -188,13 +188,13 @@ export function VoiceInputButton({
       <div className={`relative group inline-flex ${className}`}>
         <button
           disabled
-          className="flex items-center justify-center w-9 h-9 rounded-xl bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-60"
+          className="flex items-center justify-center w-9 h-9 rounded-xl bg-slate-100 text-slate-400 cursor-not-allowed opacity-60"
           aria-label="Voice input not supported"
         >
           <MicIcon />
         </button>
         <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-50 pointer-events-none">
-          <div className="bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+          <div className="bg-white border border-slate-200 text-xs text-slate-600 px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
             Voice input not supported in this browser
           </div>
         </div>
@@ -211,7 +211,7 @@ export function VoiceInputButton({
             type="button"
             onClick={() => setShowLangPicker((v) => !v)}
             disabled={disabled}
-            className="flex items-center gap-1 px-1.5 py-1 rounded-lg text-[10px] font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors border border-zinc-700/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-1.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Change input language"
             aria-label={`Change input language, currently ${currentLang.label}`}
             aria-expanded={showLangPicker}
@@ -222,21 +222,21 @@ export function VoiceInputButton({
           </button>
 
           {showLangPicker && (
-            <div className="absolute bottom-full mb-1.5 left-0 z-50 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl shadow-black/60 overflow-hidden w-44">
+            <div className="absolute bottom-full mb-1.5 left-0 z-50 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden w-44">
               <div className="max-h-52 overflow-y-auto">
                 {SARVAM_LANGUAGES.map((l) => (
                   <button
                     key={l.code}
                     type="button"
                     onClick={() => { setLang(l.code); setShowLangPicker(false) }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors hover:bg-zinc-800 ${
-                      l.code === lang ? 'text-white bg-zinc-800 font-semibold' : 'text-zinc-300'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors hover:bg-slate-50 ${
+                      l.code === lang ? 'text-slate-900 bg-slate-100 font-semibold' : 'text-slate-600'
                     }`}
                   >
                     <span>{l.flag}</span>
                     <span>{l.label}</span>
                     {l.code === lang && (
-                      <svg className="w-3 h-3 ml-auto text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <svg className="w-3 h-3 ml-auto text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -264,19 +264,19 @@ export function VoiceInputButton({
             state === 'recording'
               ? 'bg-red-600 hover:bg-red-500 text-white'
               : state === 'transcribing'
-              ? 'bg-blue-600/30 text-blue-400 cursor-wait'
+              ? 'bg-blue-50 text-blue-500 cursor-wait'
               : state === 'done'
-              ? 'bg-green-600/30 text-green-400'
+              ? 'bg-emerald-50 text-emerald-600'
               : state === 'error'
-              ? 'bg-zinc-800 text-red-400 hover:bg-zinc-700'
+              ? 'bg-slate-100 text-red-500 hover:bg-slate-200'
               : state === 'requesting_permission'
-              ? 'bg-zinc-800 text-zinc-500 cursor-wait'
-              : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200'
+              ? 'bg-slate-100 text-slate-400 cursor-wait'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700'
           } disabled:cursor-not-allowed`}
         >
           {state === 'recording' && <StopIcon />}
           {state === 'transcribing' && (
-            <span className="w-4 h-4 border-2 border-blue-400/40 border-t-blue-400 rounded-full animate-spin" />
+            <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin" />
           )}
           {state === 'done' && (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -289,20 +289,20 @@ export function VoiceInputButton({
 
       {/* Duration while recording */}
       {state === 'recording' && (
-        <span className="text-xs font-mono tabular-nums text-red-400 select-none min-w-[2.5rem]">
+        <span className="text-xs font-mono tabular-nums text-red-500 select-none min-w-[2.5rem]">
           {formatDuration(duration)}
         </span>
       )}
 
       {/* Transcribing label */}
       {state === 'transcribing' && (
-        <span className="text-xs text-blue-400 select-none">Transcribing…</span>
+        <span className="text-xs text-blue-500 select-none">Transcribing…</span>
       )}
 
       {/* Error tooltip */}
       {state === 'error' && error && (
         <div className="absolute bottom-full mb-2 left-0 z-50 max-w-xs">
-          <div className="bg-zinc-800 border border-red-500/30 text-xs text-red-400 px-2.5 py-1.5 rounded-lg shadow-xl leading-snug">
+          <div className="bg-white border border-red-200 text-xs text-red-600 px-2.5 py-1.5 rounded-lg shadow-xl leading-snug">
             {error}
           </div>
         </div>

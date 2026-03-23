@@ -210,18 +210,18 @@ const FEATURES = [
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Arivarangam<span className="text-indigo-400">.</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
-            <Link href="/about" className="hover:text-zinc-100 transition-colors">About</Link>
-            <Link href="/changelog" className="hover:text-zinc-100 transition-colors">Changelog</Link>
-            <Link href="/login" className="hover:text-zinc-100 transition-colors">Log in</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
+            <Link href="/about" className="hover:text-slate-900 transition-colors">About</Link>
+            <Link href="/changelog" className="hover:text-slate-900 transition-colors">Changelog</Link>
+            <Link href="/login" className="hover:text-slate-900 transition-colors">Log in</Link>
             <Link
               href="/signup"
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
@@ -235,14 +235,14 @@ export default function FeaturesPage() {
       {/* Hero */}
       <section className="pt-36 pb-16 px-6 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400 text-xs font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-indigo-600 text-xs font-medium mb-6">
             14 capabilities. One platform.
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-slate-900">
             Every feature that makes Arivarangam{' '}
-            <span className="text-indigo-400">different</span>
+            <span className="text-indigo-600">different</span>
           </h1>
-          <p className="text-lg text-zinc-400 leading-relaxed">
+          <p className="text-lg text-slate-500 leading-relaxed">
             Arivarangam orchestrates Claude, GPT-4, Gemini, Perplexity, and more so India's knowledge workers
             get the best of every AI — without managing multiple subscriptions.
           </p>
@@ -250,13 +250,13 @@ export default function FeaturesPage() {
       </section>
 
       {/* Feature quick-nav */}
-      <div className="sticky top-16 z-30 border-y border-zinc-800/50 bg-zinc-950/90 backdrop-blur-md py-3 px-6 overflow-x-auto">
+      <div className="sticky top-16 z-30 border-y border-slate-200 bg-white/95 backdrop-blur-md py-3 px-6 overflow-x-auto">
         <div className="max-w-6xl mx-auto flex items-center gap-2 min-w-max">
           {FEATURES.map(({ id, icon, title }) => (
             <a
               key={id}
               href={`#${id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap"
             >
               <span>{icon}</span>
               <span>{title}</span>
@@ -272,22 +272,22 @@ export default function FeaturesPage() {
             <div
               key={id}
               id={id}
-              className={`grid md:grid-cols-2 gap-8 items-center p-8 rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors`}
+              className={`grid md:grid-cols-2 gap-8 items-center p-8 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm`}
             >
               {/* Text */}
               <div className={i % 2 === 1 ? 'md:order-2' : ''}>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-3xl">{icon}</span>
                   <div>
-                    <h2 className="text-xl font-bold text-zinc-100">{title}</h2>
-                    <p className="text-sm text-zinc-500 mt-0.5">{tagline}</p>
+                    <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">{tagline}</p>
                   </div>
                 </div>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-5">{description}</p>
+                <p className="text-sm text-slate-600 leading-relaxed mb-5">{description}</p>
                 <ul className="space-y-2">
                   {highlights.map((h) => (
-                    <li key={h} className="flex items-start gap-2 text-sm text-zinc-300">
-                      <span className="text-indigo-400 mt-0.5 shrink-0">✓</span>
+                    <li key={h} className="flex items-start gap-2 text-sm text-slate-700">
+                      <span className="text-indigo-600 mt-0.5 shrink-0">✓</span>
                       <span>{h}</span>
                     </li>
                   ))}
@@ -295,19 +295,19 @@ export default function FeaturesPage() {
               </div>
 
               {/* Visual placeholder */}
-              <div className={`rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden ${i % 2 === 1 ? 'md:order-1' : ''}`}>
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800 bg-zinc-900">
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-                  <span className="ml-2 text-xs text-zinc-600 font-mono">{title}</span>
+              <div className={`rounded-xl border border-slate-200 bg-slate-50 overflow-hidden ${i % 2 === 1 ? 'md:order-1' : ''}`}>
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200 bg-white">
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                  <span className="ml-2 text-xs text-slate-400 font-mono">{title}</span>
                 </div>
                 <div className="h-40 flex items-center justify-center">
                   <span className="text-5xl opacity-20">{icon}</span>
                 </div>
-                <div className="p-4 space-y-2 border-t border-zinc-800">
+                <div className="p-4 space-y-2 border-t border-slate-200">
                   {[...Array(3)].map((_, j) => (
-                    <div key={j} className={`h-2 rounded-full bg-zinc-800 ${j === 2 ? 'w-2/3' : 'w-full'}`} />
+                    <div key={j} className={`h-2 rounded-full bg-slate-200 ${j === 2 ? 'w-2/3' : 'w-full'}`} />
                   ))}
                 </div>
               </div>
@@ -317,10 +317,10 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 border-t border-zinc-800">
+      <section className="py-20 px-6 border-t border-slate-200 bg-white">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to try Arivarangam?</h2>
-          <p className="text-zinc-400 mb-8">
+          <h2 className="text-3xl font-bold mb-4 text-slate-900">Ready to try Arivarangam?</h2>
+          <p className="text-slate-500 mb-8">
             Start free — no credit card required. Run your first AI Roundtable in 60 seconds.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -332,7 +332,7 @@ export default function FeaturesPage() {
             </Link>
             <Link
               href="/pricing"
-              className="px-8 py-3 border border-zinc-700 hover:border-zinc-500 text-zinc-300 rounded-xl font-semibold transition-colors"
+              className="px-8 py-3 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl font-semibold transition-colors"
             >
               View pricing
             </Link>
@@ -341,13 +341,13 @@ export default function FeaturesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
+      <footer className="py-10 px-6 border-t border-slate-200 bg-white text-center text-sm text-slate-500">
         <div className="flex flex-wrap items-center justify-center gap-6 mb-4">
-          <Link href="/about" className="hover:text-zinc-300 transition-colors">About</Link>
-          <Link href="/pricing" className="hover:text-zinc-300 transition-colors">Pricing</Link>
-          <Link href="/changelog" className="hover:text-zinc-300 transition-colors">Changelog</Link>
-          <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
-          <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
+          <Link href="/about" className="hover:text-slate-700 transition-colors">About</Link>
+          <Link href="/pricing" className="hover:text-slate-700 transition-colors">Pricing</Link>
+          <Link href="/changelog" className="hover:text-slate-700 transition-colors">Changelog</Link>
+          <Link href="/terms" className="hover:text-slate-700 transition-colors">Terms</Link>
+          <Link href="/privacy" className="hover:text-slate-700 transition-colors">Privacy</Link>
         </div>
         <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>

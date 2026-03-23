@@ -22,10 +22,10 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
   const pct = max > 0 ? (value / max) * 100 : 0
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-zinc-800 rounded-full">
+      <div className="flex-1 h-1.5 bg-slate-200 rounded-full">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs font-mono text-zinc-400 w-8 text-right">{value}</span>
+      <span className="text-xs font-mono text-slate-400 w-8 text-right">{value}</span>
     </div>
   )
 }
@@ -46,7 +46,7 @@ export default function AdminAnalyticsPage() {
     })
   }, [])
 
-  if (loading) return <div className="p-8 text-zinc-500">Loading analytics…</div>
+  if (loading) return <div className="p-8 text-slate-400">Loading analytics…</div>
   if (!daily) return null
 
   const maxUsers = Math.max(...daily.dailyUsers.map((d) => d.count || 0), 1)
@@ -60,12 +60,12 @@ export default function AdminAnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* New users */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-semibold mb-4">New users / day</h2>
           <div className="space-y-1.5">
             {daily.dailyUsers.slice(-14).map((d) => (
               <div key={d.date}>
-                <div className="flex justify-between text-xs text-zinc-600 mb-0.5">
+                <div className="flex justify-between text-xs text-slate-400 mb-0.5">
                   <span>{new Date(d.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                 </div>
                 <MiniBar value={d.count || 0} max={maxUsers} color="bg-brand-500" />
@@ -75,12 +75,12 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* Tasks */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-semibold mb-4">Tasks / day</h2>
           <div className="space-y-1.5">
             {daily.dailyTasks.slice(-14).map((d) => (
               <div key={d.date}>
-                <div className="flex justify-between text-xs text-zinc-600 mb-0.5">
+                <div className="flex justify-between text-xs text-slate-400 mb-0.5">
                   <span>{new Date(d.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                 </div>
                 <MiniBar value={d.count || 0} max={maxTasks} color="bg-blue-500" />
@@ -90,12 +90,12 @@ export default function AdminAnalyticsPage() {
         </div>
 
         {/* API costs */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="text-sm font-semibold mb-4">API cost / day (USD)</h2>
           <div className="space-y-1.5">
             {daily.dailyCosts.slice(-14).map((d) => (
               <div key={d.date}>
-                <div className="flex justify-between text-xs text-zinc-600 mb-0.5">
+                <div className="flex justify-between text-xs text-slate-400 mb-0.5">
                   <span>{new Date(d.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                   <span>${(d.cost || 0).toFixed(3)}</span>
                 </div>
@@ -107,26 +107,26 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* AI model usage */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-sm font-semibold mb-5">AI usage — last 30 days</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-zinc-500 border-b border-zinc-800">
+              <tr className="text-xs text-slate-400 border-b border-slate-200">
                 {['Model', 'Calls', 'Cost (USD)', 'Avg latency', 'Success rate', 'Volume'].map((h) => (
                   <th key={h} className="text-left pb-3 pr-4">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/30">
+            <tbody className="divide-y divide-slate-100">
               {models.map((m) => (
-                <tr key={m.model} className="hover:bg-zinc-800/30">
+                <tr key={m.model} className="hover:bg-slate-50">
                   <td className="py-3 pr-4 font-mono text-xs">{m.model}</td>
                   <td className="py-3 pr-4 font-mono">{m.calls.toLocaleString()}</td>
                   <td className="py-3 pr-4 font-mono">${m.costUsd.toFixed(4)}</td>
                   <td className="py-3 pr-4 font-mono">{m.avgLatencyMs}ms</td>
                   <td className="py-3 pr-4">
-                    <span className={`font-mono ${m.successRate >= 95 ? 'text-green-400' : m.successRate >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    <span className={`font-mono ${m.successRate >= 95 ? 'text-green-600' : m.successRate >= 80 ? 'text-yellow-600' : 'text-red-600'}`}>
                       {m.successRate}%
                     </span>
                   </td>

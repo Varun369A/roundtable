@@ -41,19 +41,19 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
         <div className="w-full max-w-md text-center">
           <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-white mb-3">Check your email</h1>
-          <p className="text-zinc-400 text-sm mb-2">
+          <h1 className="text-xl font-semibold text-slate-900 mb-3">Check your email</h1>
+          <p className="text-slate-500 text-sm mb-2">
             We&apos;ve sent a password reset link to{' '}
-            <span className="text-white font-medium">{email}</span>.
+            <span className="text-slate-900 font-medium">{email}</span>.
           </p>
-          <p className="text-zinc-500 text-xs mb-8">
+          <p className="text-slate-400 text-xs mb-8">
             The link expires in 1 hour. Check your spam folder if you don&apos;t see it.
           </p>
           <Link
@@ -68,34 +68,34 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
         <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-slate-900">
             Arivarangam<span className="text-brand-500">.</span>
           </Link>
-          <h1 className="mt-4 text-xl font-semibold text-white">Forgot your password?</h1>
-          <p className="mt-2 text-zinc-400 text-sm">
+          <h1 className="mt-4 text-xl font-semibold text-slate-900">Forgot your password?</h1>
+          <p className="mt-2 text-slate-500 text-sm">
             Enter your email and we&apos;ll send you a reset link.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-1.5">Email address</label>
+            <label className="block text-sm text-slate-700 mb-1.5">Email address</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-brand-500 focus:outline-none transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-colors"
               placeholder="you@example.com"
               autoFocus
             />
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-red-500 text-sm">{error}</p>
           )}
 
           <button
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-zinc-500 text-sm">
+        <p className="mt-6 text-center text-slate-500 text-sm">
           Remembered it?{' '}
           <Link href="/login" className="text-brand-400 hover:text-brand-300">
             Back to login

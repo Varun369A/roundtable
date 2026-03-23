@@ -49,17 +49,17 @@ function formatTime(iso?: string): string {
 }
 
 const STEP_STATUS_CONFIG: Record<string, { icon: string; color: string; bg: string; border: string }> = {
-  COMPLETED: { icon: '✓', color: 'text-green-400',  bg: 'bg-green-500/15',  border: 'border-green-500/30' },
-  FAILED:    { icon: '✗', color: 'text-red-400',    bg: 'bg-red-500/15',    border: 'border-red-500/30'   },
-  RUNNING:   { icon: '⟳', color: 'text-blue-400',   bg: 'bg-blue-500/15',   border: 'border-blue-500/30'  },
-  PENDING:   { icon: '○', color: 'text-zinc-600',   bg: 'bg-zinc-800/40',   border: 'border-zinc-700/30'  },
-  SKIPPED:   { icon: '—', color: 'text-zinc-600',   bg: 'bg-zinc-800/40',   border: 'border-zinc-700/30'  },
+  COMPLETED: { icon: '✓', color: 'text-green-600',  bg: 'bg-green-50',   border: 'border-green-200' },
+  FAILED:    { icon: '✗', color: 'text-red-600',    bg: 'bg-red-50',     border: 'border-red-200'   },
+  RUNNING:   { icon: '⟳', color: 'text-blue-500',   bg: 'bg-blue-50',    border: 'border-blue-200'  },
+  PENDING:   { icon: '○', color: 'text-slate-400',  bg: 'bg-slate-100',  border: 'border-slate-200' },
+  SKIPPED:   { icon: '—', color: 'text-slate-400',  bg: 'bg-slate-100',  border: 'border-slate-200' },
 }
 
 const RUN_STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  RUNNING:   { label: 'Running',   color: 'text-blue-400',  bg: 'bg-blue-500/15',  border: 'border-blue-500/30'  },
-  COMPLETED: { label: 'Completed', color: 'text-green-400', bg: 'bg-green-500/15', border: 'border-green-500/30' },
-  FAILED:    { label: 'Failed',    color: 'text-red-400',   bg: 'bg-red-500/15',   border: 'border-red-500/30'   },
+  RUNNING:   { label: 'Running',   color: 'text-blue-600',  bg: 'bg-blue-50',   border: 'border-blue-200'  },
+  COMPLETED: { label: 'Completed', color: 'text-green-700', bg: 'bg-green-50',  border: 'border-green-200' },
+  FAILED:    { label: 'Failed',    color: 'text-red-700',   bg: 'bg-red-50',    border: 'border-red-200'   },
 }
 
 // ─── Step Timeline Item ────────────────────────────────────────────────────────
@@ -75,77 +75,77 @@ function StepTimelineItem({ stepRun, isLast }: { stepRun: StepRun; isLast: boole
         <div className={`w-8 h-8 rounded-full ${cfg.bg} border ${cfg.border} flex items-center justify-center text-sm font-bold ${cfg.color} ${stepRun.status === 'RUNNING' ? 'animate-spin' : ''}`}>
           {cfg.icon}
         </div>
-        {!isLast && <div className="w-px flex-1 bg-zinc-800 mt-1 mb-0 min-h-4" />}
+        {!isLast && <div className="w-px flex-1 bg-slate-200 mt-1 mb-0 min-h-4" />}
       </div>
 
       {/* Content */}
       <div className={`flex-1 pb-6 ${isLast ? '' : ''}`}>
         <div
-          className={`bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-200 ${
-            stepRun.status !== 'PENDING' ? 'cursor-pointer hover:border-zinc-700' : ''
+          className={`bg-white border border-slate-200 rounded-2xl overflow-hidden transition-all duration-200 ${
+            stepRun.status !== 'PENDING' ? 'cursor-pointer hover:border-slate-300' : ''
           }`}
           onClick={() => stepRun.status !== 'PENDING' && setExpanded((v) => !v)}
         >
           {/* Step header */}
           <div className="px-4 py-3 flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] text-zinc-500 shrink-0">
+            <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] text-slate-500 shrink-0">
               {stepRun.stepNumber}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-zinc-300 truncate">{stepRun.stepName}</p>
+              <p className="text-sm font-medium text-slate-700 truncate">{stepRun.stepName}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 {stepRun.model && (
-                  <span className="text-[11px] text-zinc-600">{stepRun.model}</span>
+                  <span className="text-[11px] text-slate-400">{stepRun.model}</span>
                 )}
                 {stepRun.startedAt && (
-                  <span className="text-[11px] text-zinc-700">
+                  <span className="text-[11px] text-slate-400">
                     {formatTime(stepRun.startedAt)}
                   </span>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] text-zinc-500">{duration(stepRun.startedAt, stepRun.completedAt)}</span>
+              <span className="text-[11px] text-slate-500">{duration(stepRun.startedAt, stepRun.completedAt)}</span>
               {stepRun.taskId && (
                 <Link
                   href={`/roundtable/${stepRun.taskId}`}
-                  className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="text-[11px] text-indigo-600 hover:text-indigo-500 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   View Arivarangam →
                 </Link>
               )}
               {stepRun.status !== 'PENDING' && (
-                <span className="text-zinc-600 text-xs">{expanded ? '▲' : '▼'}</span>
+                <span className="text-slate-400 text-xs">{expanded ? '▲' : '▼'}</span>
               )}
             </div>
           </div>
 
           {/* Expanded content */}
           {expanded && (
-            <div className="border-t border-zinc-800 px-4 py-3">
+            <div className="border-t border-slate-200 px-4 py-3">
               {stepRun.status === 'FAILED' && stepRun.errorMessage && (
-                <div className="mb-3 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
-                  <p className="text-xs text-red-400 font-medium mb-0.5">Error</p>
-                  <p className="text-xs text-red-300/80">{stepRun.errorMessage}</p>
+                <div className="mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-xs text-red-700 font-medium mb-0.5">Error</p>
+                  <p className="text-xs text-red-600">{stepRun.errorMessage}</p>
                 </div>
               )}
 
               {stepRun.output && (
                 <div className="mb-3">
-                  <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Output Preview</p>
-                  <p className="text-xs text-zinc-400 line-clamp-4 leading-relaxed">{stepRun.output}</p>
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Output Preview</p>
+                  <p className="text-xs text-slate-600 line-clamp-4 leading-relaxed">{stepRun.output}</p>
                 </div>
               )}
 
               {stepRun.outputValues && Object.keys(stepRun.outputValues).length > 0 && (
                 <div>
-                  <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Extracted Values</p>
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1.5">Extracted Values</p>
                   <div className="space-y-1.5">
                     {Object.entries(stepRun.outputValues).map(([key, value]) => (
                       <div key={key} className="flex items-start gap-2">
-                        <code className="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded font-mono shrink-0">{key}</code>
-                        <p className="text-[11px] text-zinc-500 line-clamp-2">{value}</p>
+                        <code className="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono shrink-0">{key}</code>
+                        <p className="text-[11px] text-slate-500 line-clamp-2">{value}</p>
                       </div>
                     ))}
                   </div>
@@ -202,8 +202,8 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
       </div>
     )
   }
@@ -216,16 +216,16 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
   const canRerun         = run.status === 'COMPLETED' || run.status === 'FAILED'
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
 
       {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/95 backdrop-blur-sm sticky top-0 z-10 px-6 py-3 flex items-center justify-between gap-4">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-10 px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <Link href={`/workflows/${params.id}`} className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm shrink-0">
+          <Link href={`/workflows/${params.id}`} className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0">
             ← {run.workflowName}
           </Link>
-          <div className="h-4 w-px bg-zinc-800 shrink-0" />
-          <span className="text-sm text-zinc-400">Run Details</span>
+          <div className="h-4 w-px bg-slate-200 shrink-0" />
+          <span className="text-sm text-slate-500">Run Details</span>
         </div>
         {canRerun && (
           <button
@@ -246,30 +246,30 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
             <div>
               <div className="flex items-center gap-2 mb-1">
                 {run.status === 'RUNNING' && (
-                  <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                 )}
                 <span className={`text-lg font-bold ${cfg.color}`}>{cfg.label}</span>
               </div>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-600">
                 {run.workflowName}
               </p>
-              <p className="text-xs text-zinc-600 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Started {new Date(run.startedAt).toLocaleString()}
                 {run.completedAt && ` · ${duration(run.startedAt, run.completedAt)}`}
               </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-2xl font-bold text-zinc-200">
-                {completedSteps}<span className="text-zinc-600 text-lg">/{totalSteps}</span>
+              <p className="text-2xl font-bold text-slate-800">
+                {completedSteps}<span className="text-slate-400 text-lg">/{totalSteps}</span>
               </p>
-              <p className="text-xs text-zinc-600">steps done</p>
+              <p className="text-xs text-slate-500">steps done</p>
             </div>
           </div>
 
           {/* Progress bar */}
           {totalSteps > 0 && (
             <div className="mt-4">
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     run.status === 'FAILED' ? 'bg-red-500' :
@@ -283,11 +283,11 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
         </div>
 
         {/* Step Timeline */}
-        <h2 className="text-sm font-semibold text-zinc-300 mb-6">Step Timeline</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-6">Step Timeline</h2>
 
         {run.stepRuns.length === 0 ? (
-          <div className="text-center py-12 bg-zinc-900 border border-zinc-800 rounded-2xl">
-            <p className="text-zinc-600 text-sm">No steps to show.</p>
+          <div className="text-center py-12 bg-white border border-slate-200 rounded-2xl">
+            <p className="text-slate-400 text-sm">No steps to show.</p>
           </div>
         ) : (
           <div>

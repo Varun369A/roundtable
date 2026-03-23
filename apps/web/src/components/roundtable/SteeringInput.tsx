@@ -82,11 +82,11 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
   }
 
   return (
-    <div className="sticky bottom-0 z-20 w-full border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-sm">
+    <div className="sticky bottom-0 z-20 w-full border-t border-slate-200 bg-white">
       {/* Success flash */}
       {successFlash && (
         <div className="px-4 pt-2">
-          <p className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-1.5">
+          <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
             Steering applied to next AI step ✓
           </p>
         </div>
@@ -95,7 +95,7 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
       {/* Error */}
       {error && (
         <div className="px-4 pt-2">
-          <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5">
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
             {error}
           </p>
         </div>
@@ -122,14 +122,14 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
             }
             className={`w-full px-4 py-2.5 pr-14 rounded-xl text-sm outline-none transition-colors ${
               isVisible
-                ? 'bg-zinc-900 border border-zinc-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-white placeholder-zinc-600'
-                : 'bg-zinc-900/50 border border-zinc-800 text-zinc-600 placeholder-zinc-700 cursor-not-allowed'
+                ? 'bg-white border border-slate-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-slate-900 placeholder-slate-400'
+                : 'bg-slate-50 border border-slate-200 text-slate-400 placeholder-slate-300 cursor-not-allowed'
             }`}
           />
           {/* Char counter */}
           <span
             className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums pointer-events-none ${
-              charsLeft < 50 ? 'text-amber-400' : 'text-zinc-600'
+              charsLeft < 50 ? 'text-amber-500' : 'text-slate-400'
             }`}
           >
             {charsLeft}
@@ -145,7 +145,7 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
               canSend
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
             }`}
           >
             {sending ? (
@@ -163,7 +163,7 @@ export function SteeringInput({ taskId, isVisible, onSteered, initialText, onTex
           {/* Tooltip for disabled state */}
           {!isVisible && (
             <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block">
-              <div className="bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
+              <div className="bg-white border border-slate-200 text-xs text-slate-600 px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl">
                 Task must be running to steer
               </div>
             </div>

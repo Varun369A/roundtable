@@ -89,21 +89,21 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
         <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-slate-900">
             Arivarangam<span className="text-brand-500">.</span>
           </Link>
-          <h1 className="mt-4 text-xl font-semibold text-white">Set new password</h1>
-          <p className="mt-2 text-zinc-400 text-sm">
+          <h1 className="mt-4 text-xl font-semibold text-slate-900">Set new password</h1>
+          <p className="mt-2 text-slate-500 text-sm">
             Choose a strong password for your account.
           </p>
         </div>
 
         {!token ? (
           <div className="text-center space-y-4">
-            <p className="text-red-400 text-sm">
+            <p className="text-red-500 text-sm">
               This reset link is invalid or has expired.
             </p>
             <Link
@@ -116,14 +116,14 @@ function ResetPasswordForm() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-1.5">New password</label>
+              <label className="block text-sm text-slate-700 mb-1.5">New password</label>
               <input
                 type="password"
                 required
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-brand-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-colors"
                 placeholder="Minimum 8 characters"
                 autoFocus
               />
@@ -135,16 +135,16 @@ function ResetPasswordForm() {
                       <div
                         key={i}
                         className={`h-1 flex-1 rounded-full transition-colors ${
-                          strength.score >= i ? strength.color : 'bg-zinc-800'
+                          strength.score >= i ? strength.color : 'bg-slate-200'
                         }`}
                       />
                     ))}
                   </div>
                   <p className={`text-xs ${
-                    strength.score <= 1 ? 'text-red-400' :
-                    strength.score <= 2 ? 'text-yellow-400' :
-                    strength.score <= 3 ? 'text-blue-400' :
-                    'text-emerald-400'
+                    strength.score <= 1 ? 'text-red-500' :
+                    strength.score <= 2 ? 'text-yellow-600' :
+                    strength.score <= 3 ? 'text-blue-600' :
+                    'text-emerald-600'
                   }`}>
                     {strength.label}
                     {strength.score <= 2 && ' — add uppercase letters, numbers, or symbols'}
@@ -154,27 +154,27 @@ function ResetPasswordForm() {
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-1.5">Confirm password</label>
+              <label className="block text-sm text-slate-700 mb-1.5">Confirm password</label>
               <input
                 type="password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl bg-zinc-900 border focus:outline-none transition-colors ${
+                className={`w-full px-4 py-3 rounded-xl bg-white focus:outline-none transition-colors ${
                   confirmPassword && password !== confirmPassword
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-zinc-800 focus:border-brand-500'
+                    ? 'border border-red-500 focus:border-red-500'
+                    : 'border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
                 }`}
                 placeholder="Repeat your password"
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-red-400 text-xs mt-1">Passwords do not match</p>
+                <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
               )}
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-red-600 text-sm">{error}</p>
                 {error.toLowerCase().includes('expired') && (
                   <Link href="/forgot-password" className="text-xs text-brand-400 hover:text-brand-300 mt-1 inline-block">
                     Request a new link →
@@ -200,7 +200,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>

@@ -48,12 +48,12 @@ export default function LanguageSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-md">
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-slate-200 sticky top-0 z-10 bg-white/90 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center gap-3">
-          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">← Dashboard</Link>
-          <div className="h-4 w-px bg-zinc-800" />
-          <span className="font-medium text-sm">Language Settings</span>
+          <Link href="/dashboard" className="text-slate-500 hover:text-slate-700 text-sm transition-colors">← Dashboard</Link>
+          <div className="h-4 w-px bg-slate-200" />
+          <span className="font-medium text-sm text-slate-900">Language Settings</span>
         </div>
       </header>
 
@@ -61,10 +61,10 @@ export default function LanguageSettingsPage() {
 
         {/* Hero */}
         <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6">
-          <h1 className="text-xl font-bold mb-2">
+          <h1 className="text-xl font-bold text-slate-900 mb-2">
             Arivarangam speaks your language
           </h1>
-          <p className="text-zinc-400 text-sm leading-relaxed">
+          <p className="text-slate-500 text-sm leading-relaxed">
             Type your goals in Hindi, Tamil, Telugu, or any of 10 Indian languages.
             Arivarangam's AI team works in English internally and delivers everything back to you
             in your chosen language. Powered by Sarvam AI.
@@ -72,9 +72,9 @@ export default function LanguageSettingsPage() {
         </div>
 
         {/* Language preference */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="font-semibold mb-1">Preferred language</h2>
-          <p className="text-zinc-500 text-sm mb-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="font-semibold text-slate-900 mb-1">Preferred language</h2>
+          <p className="text-slate-500 text-sm mb-4">
             Arivarangam will detect your language automatically, or you can set a fixed preference.
           </p>
 
@@ -95,9 +95,9 @@ export default function LanguageSettingsPage() {
         </div>
 
         {/* Live language demo */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="font-semibold mb-4">See it in action</h2>
-          <p className="text-zinc-500 text-sm mb-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="font-semibold text-slate-900 mb-4">See it in action</h2>
+          <p className="text-slate-500 text-sm mb-4">
             This is how Arivarangam understands the same goal in different languages:
           </p>
 
@@ -109,7 +109,7 @@ export default function LanguageSettingsPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   previewLang === code
                     ? 'bg-brand-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {code.toUpperCase()}
@@ -117,16 +117,16 @@ export default function LanguageSettingsPage() {
             ))}
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700">
-            <p className="text-sm text-zinc-400 mb-1 font-mono">User input ({previewLang}):</p>
-            <p className="text-zinc-100 leading-relaxed">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <p className="text-sm text-slate-500 mb-1 font-mono">User input ({previewLang}):</p>
+            <p className="text-slate-800 leading-relaxed">
               {DEMO_TRANSLATIONS[previewLang] || DEMO_TRANSLATIONS['en']}
             </p>
             {previewLang !== 'en' && (
               <>
-                <div className="my-3 border-t border-zinc-700" />
-                <p className="text-sm text-zinc-400 mb-1 font-mono">Arivarangam understands (en):</p>
-                <p className="text-zinc-400 leading-relaxed italic">
+                <div className="my-3 border-t border-slate-200" />
+                <p className="text-sm text-slate-500 mb-1 font-mono">Arivarangam understands (en):</p>
+                <p className="text-slate-500 leading-relaxed italic">
                   {DEMO_TRANSLATIONS['en']}
                 </p>
               </>
@@ -135,8 +135,8 @@ export default function LanguageSettingsPage() {
         </div>
 
         {/* Supported languages grid */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="font-semibold mb-4">Supported languages</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <h2 className="font-semibold text-slate-900 mb-4">Supported languages</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               { code: 'hi', name: 'Hindi',     native: 'हिन्दी',   speakers: '600M+' },
@@ -152,11 +152,11 @@ export default function LanguageSettingsPage() {
             ].map((lang) => (
               <div
                 key={lang.code}
-                className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200"
               >
                 <div className="text-lg mb-0.5">{lang.native}</div>
-                <div className="text-sm font-medium text-zinc-300">{lang.name}</div>
-                <div className="text-xs text-zinc-600">{lang.speakers} speakers</div>
+                <div className="text-sm font-medium text-slate-700">{lang.name}</div>
+                <div className="text-xs text-slate-400">{lang.speakers} speakers</div>
               </div>
             ))}
           </div>

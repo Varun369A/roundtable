@@ -18,9 +18,9 @@ export function TypingIndicator({ model, title }: TypingIndicatorProps) {
           <span className="text-xs font-semibold" style={{ color: config.color }}>
             {config.label}
           </span>
-          <span className="text-xs text-zinc-600">{title}</span>
+          <span className="text-xs text-slate-400">{title}</span>
         </div>
-        <div className="flex items-center gap-1.5 h-8 px-3 rounded-xl rounded-tl-sm bg-zinc-900 border border-zinc-800 w-fit">
+        <div className="flex items-center gap-1.5 h-8 px-3 rounded-xl rounded-tl-sm bg-white border border-slate-200 w-fit">
           {[0, 150, 300].map((delay) => (
             <div
               key={delay}

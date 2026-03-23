@@ -25,9 +25,9 @@ interface Session {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  owner:        'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
-  collaborator: 'bg-green-500/15 text-green-400 border border-green-500/30',
-  viewer:       'bg-zinc-700/50 text-zinc-400 border border-zinc-600/30',
+  owner:        'bg-indigo-50 text-indigo-600 border border-indigo-200',
+  collaborator: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  viewer:       'bg-slate-100 text-slate-500 border border-slate-200',
 }
 
 function getInitials(name: string): string {
@@ -144,11 +144,11 @@ export function SessionPanel({ taskId, taskStatus, isOwner }: SessionPanelProps)
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all duration-200 ${
           session
-            ? 'bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/20'
-            : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200 hover:border-zinc-600'
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+            : 'bg-white text-slate-500 border border-slate-200 hover:text-slate-700 hover:border-slate-300'
         }`}
       >
-        <span className={`w-1.5 h-1.5 rounded-full ${session ? 'bg-green-400 animate-pulse' : 'bg-zinc-600'}`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${session ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
         {session
           ? `${participants.length || 1} online`
           : isOwner ? 'Invite' : 'Session'}
@@ -156,22 +156,22 @@ export function SessionPanel({ taskId, taskStatus, isOwner }: SessionPanelProps)
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl z-30 overflow-hidden">
+        <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 overflow-hidden">
 
           {/* Panel header */}
-          <div className="px-4 py-3 border-b border-zinc-800">
-            <p className="text-xs font-semibold text-zinc-300">Multiplayer Session</p>
-            <p className="text-[11px] text-zinc-600 mt-0.5">Invite collaborators to watch live</p>
+          <div className="px-4 py-3 border-b border-slate-200">
+            <p className="text-xs font-semibold text-slate-700">Multiplayer Session</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Invite collaborators to watch live</p>
           </div>
 
           {loading ? (
             <div className="px-4 py-6 flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />
             </div>
           ) : !session ? (
             /* No session yet */
             <div className="px-4 py-5 text-center">
-              <p className="text-[11px] text-zinc-500 mb-4">
+              <p className="text-[11px] text-slate-400 mb-4">
                 Start a session to share this roundtable with teammates in real time.
               </p>
               {isOwner ? (
@@ -183,43 +183,43 @@ export function SessionPanel({ taskId, taskStatus, isOwner }: SessionPanelProps)
                   {creating ? 'Creating…' : 'Start Session'}
                 </button>
               ) : (
-                <p className="text-[11px] text-zinc-600">Only the owner can start a session.</p>
+                <p className="text-[11px] text-slate-400">Only the owner can start a session.</p>
               )}
             </div>
           ) : (
             /* Session active */
             <>
               {/* Share link */}
-              <div className="px-4 py-3 border-b border-zinc-800/50">
-                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2">Share Link</p>
+              <div className="px-4 py-3 border-b border-slate-100">
+                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-2">Share Link</p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0 px-2.5 py-1.5 bg-zinc-800 rounded-lg border border-zinc-700/50">
-                    <p className="text-[11px] text-zinc-400 truncate font-mono">{shareUrl}</p>
+                  <div className="flex-1 min-w-0 px-2.5 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-[11px] text-slate-500 truncate font-mono">{shareUrl}</p>
                   </div>
                   <button
                     onClick={copyShareLink}
                     className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-200 ${
                       copied
-                        ? 'bg-green-500/15 text-green-400 border border-green-500/30'
-                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                     }`}
                   >
                     {copied ? 'Copied!' : 'Share →'}
                   </button>
                 </div>
-                <p className="text-[10px] text-zinc-700 mt-1.5 font-mono">
-                  Code: <span className="text-zinc-500">{session.accessCode}</span>
+                <p className="text-[10px] text-slate-300 mt-1.5 font-mono">
+                  Code: <span className="text-slate-500">{session.accessCode}</span>
                 </p>
               </div>
 
               {/* Participants */}
               <div className="px-4 py-3">
-                <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-2.5">
+                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-2.5">
                   Participants ({participants.length})
                 </p>
 
                 {participants.length === 0 ? (
-                  <p className="text-[11px] text-zinc-600 text-center py-2">No one else has joined yet.</p>
+                  <p className="text-[11px] text-slate-400 text-center py-2">No one else has joined yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {participants.map((p) => (
@@ -232,15 +232,15 @@ export function SessionPanel({ taskId, taskStatus, isOwner }: SessionPanelProps)
                             {getInitials(p.name)}
                           </div>
                           {p.online && (
-                            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-zinc-900 rounded-full flex items-center justify-center">
-                              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-white rounded-full flex items-center justify-center">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                             </span>
                           )}
                         </div>
 
                         {/* Name */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-zinc-300 truncate">{p.name}</p>
+                          <p className="text-xs font-medium text-slate-700 truncate">{p.name}</p>
                         </div>
 
                         {/* Role badge */}

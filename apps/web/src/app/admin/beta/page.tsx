@@ -86,13 +86,13 @@ export default function BetaAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="max-w-5xl mx-auto px-6 py-10">
         <div className="flex items-center gap-3 mb-8">
-          <Link href="/admin" className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors">← Admin</Link>
+          <Link href="/admin" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Admin</Link>
           <div>
             <h1 className="text-xl font-bold">Beta Launch Dashboard</h1>
-            <p className="text-xs text-zinc-500">100-user private beta management</p>
+            <p className="text-xs text-slate-500">100-user private beta management</p>
           </div>
         </div>
 
@@ -106,10 +106,10 @@ export default function BetaAdminPage() {
               { label: 'Activation', value: `${stats.users.activationRate}%`, sub: 'created task' },
               { label: 'D1 Retention', value: `${stats.users.d1RetentionApprox}%`, sub: 'approx' },
             ].map(({ label, value, sub }) => (
-              <div key={label} className="bg-white/5 rounded-2xl border border-white/8 p-4">
-                <p className="text-xs text-zinc-500 mb-1">{label}</p>
-                <p className="text-2xl font-bold text-white">{value}</p>
-                <p className="text-xs text-zinc-600">{sub}</p>
+              <div key={label} className="bg-white rounded-2xl border border-slate-200 p-4">
+                <p className="text-xs text-slate-500 mb-1">{label}</p>
+                <p className="text-2xl font-bold text-slate-900">{value}</p>
+                <p className="text-xs text-slate-400">{sub}</p>
               </div>
             ))}
           </div>
@@ -119,17 +119,17 @@ export default function BetaAdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* Invite code stats */}
           {stats && (
-            <div className="bg-white/5 rounded-2xl border border-white/8 p-6">
-              <h2 className="text-sm font-semibold text-white mb-4">Invite Codes</h2>
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              <h2 className="text-sm font-semibold text-slate-900 mb-4">Invite Codes</h2>
               <div className="space-y-2 text-sm">
                 {[
                   { label: 'Total generated', value: stats.codes.total },
-                  { label: 'Used', value: stats.codes.used, color: 'text-emerald-400' },
-                  { label: 'Available', value: stats.codes.available, color: 'text-indigo-400' },
+                  { label: 'Used', value: stats.codes.used, color: 'text-emerald-600' },
+                  { label: 'Available', value: stats.codes.available, color: 'text-indigo-600' },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="flex justify-between">
-                    <span className="text-zinc-500">{label}</span>
-                    <span className={`font-semibold ${color || 'text-white'}`}>{value}</span>
+                    <span className="text-slate-500">{label}</span>
+                    <span className={`font-semibold ${color || 'text-slate-900'}`}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -137,8 +137,8 @@ export default function BetaAdminPage() {
           )}
 
           {/* Generate codes */}
-          <div className="bg-white/5 rounded-2xl border border-white/8 p-6">
-            <h2 className="text-sm font-semibold text-white mb-4">Generate Codes</h2>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h2 className="text-sm font-semibold text-slate-900 mb-4">Generate Codes</h2>
             <div className="space-y-3">
               <div className="flex gap-2">
                 <input
@@ -147,14 +147,14 @@ export default function BetaAdminPage() {
                   onChange={(e) => setGenCount(Number(e.target.value))}
                   min={1}
                   max={200}
-                  className="w-20 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"
+                  className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-300"
                 />
                 <input
                   type="text"
                   placeholder="Internal note (optional)"
                   value={genNote}
                   onChange={(e) => setGenNote(e.target.value)}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-300"
                 />
               </div>
               <button
@@ -169,15 +169,15 @@ export default function BetaAdminPage() {
         </div>
 
         {/* Send invite email */}
-        <div className="bg-white/5 rounded-2xl border border-white/8 p-6 mb-8">
-          <h2 className="text-sm font-semibold text-white mb-4">Send Beta Invite Email</h2>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Send Beta Invite Email</h2>
           <div className="flex gap-3">
             <input
               type="email"
               placeholder="friend@example.com"
               value={sendEmail}
               onChange={(e) => setSendEmail(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-300"
             />
             <button
               onClick={handleSendEmail}
@@ -190,16 +190,16 @@ export default function BetaAdminPage() {
         </div>
 
         {/* Invite code list */}
-        <div className="bg-white/5 rounded-2xl border border-white/8 overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">{invites.length} Codes</h2>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-900">{invites.length} Codes</h2>
             <div className="flex gap-1">
               {(['all', 'false', 'true'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`px-3 py-1 rounded-lg text-xs transition-colors ${
-                    filter === f ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-600 hover:text-zinc-400'
+                    filter === f ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   {f === 'all' ? 'All' : f === 'false' ? 'Unused' : 'Used'}
@@ -207,33 +207,33 @@ export default function BetaAdminPage() {
               ))}
             </div>
           </div>
-          <div className="divide-y divide-white/5 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
             {invites.map((invite) => (
               <div key={invite.id} className="flex items-center justify-between px-6 py-3">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => copyCode(invite.code)}
-                    className="font-mono text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+                    className="font-mono text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
                   >
                     {copied === invite.code ? '✓ Copied' : invite.code}
                   </button>
-                  {invite.email && <span className="text-xs text-zinc-600">→ {invite.email}</span>}
-                  {invite.note && <span className="text-xs text-zinc-700 italic">{invite.note}</span>}
+                  {invite.email && <span className="text-xs text-slate-400">→ {invite.email}</span>}
+                  {invite.note && <span className="text-xs text-slate-300 italic">{invite.note}</span>}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    invite.usedById ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
+                    invite.usedById ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'
                   }`}>
                     {invite.usedById ? 'Used' : 'Available'}
                   </span>
-                  <span className="text-xs text-zinc-700">
+                  <span className="text-xs text-slate-300">
                     {new Date(invite.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>
             ))}
             {invites.length === 0 && (
-              <div className="px-6 py-8 text-center text-zinc-600 text-sm">No codes yet — generate some above.</div>
+              <div className="px-6 py-8 text-center text-slate-400 text-sm">No codes yet — generate some above.</div>
             )}
           </div>
         </div>

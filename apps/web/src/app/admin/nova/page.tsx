@@ -96,38 +96,38 @@ export default function NovaPage() {
     // Minimal markdown: **bold**, `code`, line breaks
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/`([^`]+)`/g, '<code class="bg-white/10 px-1 py-0.5 rounded text-indigo-300 text-xs font-mono">$1</code>')
+      .replace(/`([^`]+)`/g, '<code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 text-xs font-mono">$1</code>')
       .replace(/\n/g, '<br/>')
   }
 
   return (
-    <div className="h-screen bg-[#0a0a0a] text-white flex flex-col">
+    <div className="h-screen bg-slate-50 text-slate-900 flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/8 flex-shrink-0">
-        <Link href="/admin" className="text-zinc-600 hover:text-zinc-400 text-sm transition-colors">← Admin</Link>
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-slate-200 flex-shrink-0 bg-white">
+        <Link href="/admin" className="text-slate-400 hover:text-slate-600 text-sm transition-colors">← Admin</Link>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm">🤖</div>
           <div>
             <p className="text-sm font-bold">NOVA</p>
-            <p className="text-xs text-zinc-500">AI Admin Assistant · Live platform access</p>
+            <p className="text-xs text-slate-500">AI Admin Assistant · Live platform access</p>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-zinc-500">Connected</span>
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs text-slate-500">Connected</span>
         </div>
       </div>
 
       {/* Suggestions (only shown before any user message) */}
       {messages.filter((m) => m.role === 'user').length === 0 && (
         <div className="px-6 pt-6 flex-shrink-0">
-          <p className="text-xs text-zinc-600 mb-3">Suggested questions</p>
+          <p className="text-xs text-slate-400 mb-3">Suggested questions</p>
           <div className="grid grid-cols-2 gap-2">
             {SUGGESTIONS.map((s) => (
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="text-left text-xs text-zinc-400 bg-white/4 hover:bg-white/8 border border-white/5 rounded-xl px-3 py-2.5 transition-colors hover:text-white"
+                className="text-left text-xs text-slate-500 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 transition-colors hover:text-slate-700"
               >
                 {s}
               </button>
@@ -147,7 +147,7 @@ export default function NovaPage() {
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-tr-sm'
-                  : 'bg-white/6 border border-white/8 text-zinc-200 rounded-tl-sm'
+                  : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm'
               }`}>
                 {msg.role === 'assistant' ? (
                   <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
@@ -158,7 +158,7 @@ export default function NovaPage() {
               {msg.toolsUsed && msg.toolsUsed.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {msg.toolsUsed.map((t) => (
-                    <span key={t} className="text-[10px] text-zinc-600 bg-white/5 px-2 py-0.5 rounded-full font-mono">
+                    <span key={t} className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-mono">
                       ⚡ {t}
                     </span>
                   ))}
@@ -166,7 +166,7 @@ export default function NovaPage() {
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="w-7 h-7 rounded-lg bg-zinc-700 flex items-center justify-center text-xs flex-shrink-0 mt-1">👤</div>
+              <div className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center text-xs flex-shrink-0 mt-1">👤</div>
             )}
           </div>
         ))}
@@ -174,10 +174,10 @@ export default function NovaPage() {
         {loading && (
           <div className="flex gap-3 justify-start">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs flex-shrink-0">🤖</div>
-            <div className="bg-white/6 border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                  <div key={i} className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                 ))}
               </div>
             </div>
@@ -187,8 +187,8 @@ export default function NovaPage() {
       </div>
 
       {/* Input */}
-      <div className="px-6 pb-6 pt-2 flex-shrink-0 border-t border-white/5">
-        <div className="flex gap-3 items-end bg-white/5 border border-white/10 rounded-2xl px-4 py-3 focus-within:border-white/20 transition-colors">
+      <div className="px-6 pb-6 pt-2 flex-shrink-0 border-t border-slate-200 bg-white">
+        <div className="flex gap-3 items-end bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 focus-within:border-slate-300 transition-colors">
           <textarea
             ref={inputRef}
             value={input}
@@ -197,7 +197,7 @@ export default function NovaPage() {
             placeholder="Ask NOVA anything about the platform…"
             rows={1}
             disabled={loading}
-            className="flex-1 bg-transparent text-sm text-white placeholder-zinc-600 resize-none focus:outline-none max-h-32 disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 resize-none focus:outline-none max-h-32 disabled:opacity-50"
             style={{ minHeight: '24px' }}
           />
           <button
@@ -208,7 +208,7 @@ export default function NovaPage() {
             <span className="text-white text-sm">↑</span>
           </button>
         </div>
-        <p className="text-xs text-zinc-700 mt-2 text-center">
+        <p className="text-xs text-slate-300 mt-2 text-center">
           Enter to send · Shift+Enter for new line · Session resets after 2h
         </p>
       </div>

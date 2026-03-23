@@ -171,15 +171,15 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-slate-50">
       {/* Nav */}
-      <nav role="navigation" aria-label="Main navigation" className="border-b border-zinc-800/50 px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
-        <Link href="/" className="text-xl font-bold tracking-tight">
+      <nav role="navigation" aria-label="Main navigation" className="border-b border-slate-200 bg-white px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
+        <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
           Arivarangam<span className="text-brand-500">.</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">Log in</Link>
-          <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors">
+          <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Log in</Link>
+          <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors text-white">
             Get started free
           </Link>
         </div>
@@ -188,10 +188,10 @@ export default function PricingPage() {
       <main id="main-content" className="max-w-6xl mx-auto px-6 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 tracking-tight">
+          <h1 className="text-5xl font-bold mb-4 tracking-tight text-slate-900">
             Simple, honest pricing
           </h1>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
             ChatGPT + Claude + Midjourney + ElevenLabs + Perplexity = ₹8,526/month separately.
             <br />
             Arivarangam Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
@@ -202,7 +202,7 @@ export default function PricingPage() {
         <div className="flex items-center justify-center gap-4 mb-12">
           <button
             onClick={() => setIsAnnual(false)}
-            className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
           >
             Monthly
           </button>
@@ -212,7 +212,7 @@ export default function PricingPage() {
             aria-checked={isAnnual}
             aria-label="Toggle annual billing"
             onClick={() => setIsAnnual((v) => !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${isAnnual ? 'bg-brand-600' : 'bg-zinc-700'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors ${isAnnual ? 'bg-brand-600' : 'bg-slate-300'}`}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`}
@@ -222,11 +222,11 @@ export default function PricingPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsAnnual(true)}
-              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
             >
               Annual
             </button>
-            <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
               Save 20%
             </span>
           </div>
@@ -242,42 +242,42 @@ export default function PricingPage() {
                 role="listitem"
                 className={`relative rounded-2xl p-6 flex flex-col ${
                   plan.highlight
-                    ? 'border-2 border-brand-500 bg-brand-500/5'
-                    : 'border border-zinc-800 bg-zinc-900/50'
+                    ? 'border-2 border-brand-500 bg-white shadow-md'
+                    : 'border border-slate-200 bg-white shadow-sm'
                 }`}
               >
                 {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-600 rounded-full text-xs font-semibold whitespace-nowrap">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-600 rounded-full text-xs font-semibold whitespace-nowrap text-white">
                     {plan.badge}
                   </div>
                 )}
 
                 <div className="mb-4">
-                  <h2 className="font-bold text-lg mb-1">{plan.name}</h2>
-                  <p id={`plan-desc-${plan.id}`} className="text-zinc-500 text-sm">{plan.description}</p>
+                  <h2 className="font-bold text-lg mb-1 text-slate-900">{plan.name}</h2>
+                  <p id={`plan-desc-${plan.id}`} className="text-slate-500 text-sm">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
                   {'originalComboInr' in plan && isAnnual && (
-                    <p className="text-zinc-600 text-sm line-through">
+                    <p className="text-slate-400 text-sm line-through">
                       ₹{(plan as typeof plan & { originalComboInr: number }).originalComboInr.toLocaleString('en-IN')}/mo if bought separately
                     </p>
                   )}
                   {!isAnnual && plan.monthlyInr > 0 && (
-                    <p className="text-zinc-600 text-sm">
+                    <p className="text-slate-400 text-sm">
                       or ₹{plan.annualInr.toLocaleString('en-IN')}/mo billed annually
                     </p>
                   )}
                   <div className="flex items-end gap-1 mt-1">
-                    <span className="text-4xl font-bold">
+                    <span className="text-4xl font-bold text-slate-900">
                       {price === 0 ? 'Free' : `₹${price.toLocaleString('en-IN')}`}
                     </span>
                     {price > 0 && (
-                      <span className="text-zinc-500 mb-1">/mo{isAnnual ? ' · billed annually' : ''}</span>
+                      <span className="text-slate-500 mb-1">/mo{isAnnual ? ' · billed annually' : ''}</span>
                     )}
                   </div>
                   {isAnnual && plan.monthlyInr > 0 && (
-                    <p className="text-emerald-400 text-xs mt-1 font-medium">
+                    <p className="text-emerald-600 text-xs mt-1 font-medium">
                       Saves ₹{((plan.monthlyInr - plan.annualInr) * 12).toLocaleString('en-IN')}/year
                     </p>
                   )}
@@ -285,8 +285,8 @@ export default function PricingPage() {
 
                 <ul className="space-y-2 mb-8 flex-1">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
-                      <span className={plan.highlight ? 'text-brand-400' : 'text-green-400'}>✓</span>
+                    <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                      <span className={plan.highlight ? 'text-brand-400' : 'text-green-600'}>✓</span>
                       {f}
                     </li>
                   ))}
@@ -299,8 +299,8 @@ export default function PricingPage() {
                   aria-describedby={`plan-desc-${plan.id}`}
                   className={`w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 ${
                     plan.highlight
-                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-105'
-                      : 'bg-zinc-800 hover:bg-zinc-700'
+                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-105 text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
                   {loading === plan.id ? 'Opening checkout…' : plan.cta}
@@ -311,14 +311,14 @@ export default function PricingPage() {
         </div>
 
         {/* Enterprise callout */}
-        <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-8 text-center mb-20">
-          <h2 className="text-2xl font-bold mb-2">Enterprise</h2>
-          <p className="text-zinc-400 mb-4 max-w-xl mx-auto">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center mb-20">
+          <h2 className="text-2xl font-bold mb-2 text-slate-900">Enterprise</h2>
+          <p className="text-slate-500 mb-4 max-w-xl mx-auto">
             Custom contracts for teams. SLA, role-based access, admin dashboard, on-prem routing, dedicated account manager.
           </p>
           <a
             href="mailto:admin@arivarangam.com"
-            className="inline-block px-6 py-3 border border-zinc-700 hover:border-zinc-500 rounded-xl text-sm font-medium transition-colors"
+            className="inline-block px-6 py-3 border border-slate-300 hover:border-slate-400 rounded-xl text-sm font-medium transition-colors text-slate-700 hover:text-slate-900"
           >
             Contact sales →
           </a>
@@ -326,23 +326,23 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently asked</h2>
+          <h2 className="text-2xl font-bold text-center mb-8 text-slate-900">Frequently asked</h2>
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
+                className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-medium hover:bg-zinc-800/50 transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-medium hover:bg-slate-50 transition-colors text-slate-800"
                   aria-expanded={openFaq === i}
                 >
                   <span>{faq.q}</span>
-                  <span className="text-zinc-500 ml-4 flex-shrink-0">{openFaq === i ? '−' : '+'}</span>
+                  <span className="text-slate-400 ml-4 flex-shrink-0">{openFaq === i ? '−' : '+'}</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800">
+                  <div className="px-5 pb-4 text-sm text-slate-600 leading-relaxed border-t border-slate-100">
                     <p className="pt-3">{faq.a}</p>
                   </div>
                 )}
