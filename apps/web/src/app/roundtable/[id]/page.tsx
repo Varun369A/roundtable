@@ -127,9 +127,9 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         addSystemMessage('Analysing your goal and assembling the team…')
       } else if (t.status === 'WAITING_CLARIFICATION') {
         // Task is paused waiting for user input — load and show questions
-        const clRes = await apiFetch<{ questions: any[] }>(`/api/v1/tasks/${id}/clarifications`)
-        if (clRes.success && clRes.data?.questions?.length) {
-          setClarifications(clRes.data.questions)
+        const clRes = await apiFetch<{ clarifications: any[] }>(`/api/v1/tasks/${id}/clarifications`)
+        if (clRes.success && (clRes.data as any)?.clarifications?.length) {
+          setClarifications((clRes.data as any).clarifications)
           setShowClarification(true)
         }
       } else if (t.status === 'ROUTING' || t.status === 'IN_PROGRESS') {
