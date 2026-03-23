@@ -22,7 +22,9 @@ jobs:
             git pull origin main
             npm install
             npx prisma generate --schema=packages/db/prisma/schema.prisma
-            cd apps/api
-            npx tsc || true
+            cd packages/types && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
+            cd packages/config && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
+            cd packages/db && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
+            cd apps/api && NODE_OPTIONS="--max-old-space-size=3072" npx tsc || true
             pm2 restart arivarangam-api
             echo "Deployed successfully"
