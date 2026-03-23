@@ -9,12 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fastify/jwt": "10.0.0",
     "@arivarangam/types": "*",
     "@sentry/nextjs": "^10.45.0",
     "axios": "^1.7.0",
     "clsx": "^2.1.1",
-    "fastify": "5.8.2",
     "framer-motion": "^11.2.0",
     "next": "^16.2.1",
     "react": "^18.3.0",
