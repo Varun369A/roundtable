@@ -119,6 +119,15 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
         addSystemMessage('Analysing your goal and assembling the team…')
+      } else if (t.status === 'WAITING_CLARIFICATION') {
+        // Task is paused waiting for user input — load and show questions
+        const clRes = await apiFetch<{ questions: any[] }>(`/api/v1/tasks/${id}/clarifications`)
+        if (clRes.success && clRes.data?.questions?.length) {
+          setClarifications(clRes.data.questions)
+          setShowClarification(true)
+        }
+      } else if (t.status === 'ROUTING' || t.status === 'IN_PROGRESS') {
+        addSystemMessage('Reconnected — resuming…')
       }
     }
     init()
@@ -307,6 +316,22 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           </p>
 
           <div className="flex items-center gap-3 shrink-0">
+            {/* Cancel button — only for non-terminal tasks */}
+            {!['COMPLETED', 'FAILED', 'CANCELLED'].includes(taskStatus) && (
+              <button
+                onClick={async () => {
+                  if (!confirm('Cancel this task?')) return
+                  await apiFetch(`/api/v1/tasks/${id}`, { method: 'DELETE' })
+                  router.push('/dashboard')
+                }}
+                className="text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
             {/* Preview toggle (desktop) */}
             {hasPreview && (
               <button
@@ -372,7 +397,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           <div className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 space-y-5">
 
             {/* Empty state */}
-            {messages.length === 0 && activeSubtasks.length === 0 && (
+            {messages.length === 0 && activeSubtasks.length === 0 && taskStatus !== 'WAITING_CLARIFICATION' && (
               <div className="flex flex-col items-center justify-center py-36 text-center gap-4">
                 <div className="flex gap-2">
                   {[0, 150, 300].map((d) => (
@@ -384,8 +409,27 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                   ))}
                 </div>
                 <p className="text-slate-500 text-sm max-w-xs">
-                  Parsing your goal and selecting the best AIs for each step…
+                  {taskStatus === 'ROUTING'
+                    ? 'Analysing your goal and assembling the AI team…'
+                    : 'Preparing your roundtable…'}
                 </p>
+              </div>
+            )}
+
+            {/* Clarification waiting state */}
+            {messages.length === 0 && taskStatus === 'WAITING_CLARIFICATION' && !showClarification && (
+              <div className="flex flex-col items-center justify-center py-36 text-center gap-4">
+                <p className="text-2xl">💬</p>
+                <p className="text-slate-700 font-medium text-sm">A few quick questions</p>
+                <p className="text-slate-400 text-xs max-w-xs">
+                  Answering these will help the AI team deliver better results for your goal.
+                </p>
+                <button
+                  onClick={() => setShowClarification(true)}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                >
+                  Answer questions
+                </button>
               </div>
             )}
 

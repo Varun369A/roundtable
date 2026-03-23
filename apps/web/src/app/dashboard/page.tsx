@@ -46,12 +46,17 @@ interface Workspace {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:     'text-amber-700 bg-amber-50 border border-amber-200',
-  ROUTING:     'text-blue-700 bg-blue-50 border border-blue-200',
-  IN_PROGRESS: 'text-indigo-700 bg-indigo-50 border border-indigo-200',
-  COMPLETED:   'text-emerald-700 bg-emerald-50 border border-emerald-200',
-  FAILED:      'text-red-700 bg-red-50 border border-red-200',
-  CANCELLED:   'text-slate-500 bg-slate-100 border border-slate-200',
+  PENDING:               'text-amber-700 bg-amber-50 border border-amber-200',
+  ROUTING:               'text-blue-700 bg-blue-50 border border-blue-200',
+  IN_PROGRESS:           'text-indigo-700 bg-indigo-50 border border-indigo-200',
+  COMPLETED:             'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  FAILED:                'text-red-700 bg-red-50 border border-red-200',
+  CANCELLED:             'text-slate-500 bg-slate-100 border border-slate-200',
+  WAITING_CLARIFICATION: 'text-amber-700 bg-amber-50 border border-amber-200',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  WAITING_CLARIFICATION: 'needs input',
 }
 
 // ─── Sidebar Nav ──────────────────────────────────────────────────────────────
@@ -281,6 +286,7 @@ export default function DashboardPage() {
   const [resendingVerification, setResendingVerification] = useState(false)
   const [verificationResent, setVerificationResent] = useState(false)
   const [creditBalance, setCreditBalance] = useState<number | null>(null)
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
   const detectTimeout = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
@@ -357,6 +363,15 @@ export default function DashboardPage() {
     })
     const res = await apiFetch('/api/v1/tasks')
     if (res.success) setTasks((res.data as any).tasks || res.data || [])
+  }
+
+  async function deleteTask(e: React.MouseEvent, taskId: string) {
+    e.stopPropagation()
+    if (!confirm('Delete this task?')) return
+    setDeletingTaskId(taskId)
+    await apiFetch(`/api/v1/tasks/${taskId}`, { method: 'DELETE' })
+    setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    setDeletingTaskId(null)
   }
 
   async function createTask(e: React.FormEvent) {
@@ -600,7 +615,7 @@ export default function DashboardPage() {
                     <div
                       key={task.id}
                       onClick={() => router.push(`/roundtable/${task.id}`)}
-                      className="flex items-center justify-between px-5 py-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
+                      className="group flex items-center justify-between px-5 py-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-xs flex-shrink-0" title={task.visibility === 'private' ? 'Private' : 'Shared in workspace'}>
@@ -613,9 +628,19 @@ export default function DashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-slate-500 bg-slate-100'}`}>
-                        {task.status.toLowerCase().replace('_', ' ')}
-                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-slate-500 bg-slate-100'}`}>
+                          {STATUS_LABELS[task.status] || task.status.toLowerCase().replace(/_/g, ' ')}
+                        </span>
+                        <button
+                          onClick={(e) => deleteTask(e, task.id)}
+                          disabled={deletingTaskId === task.id}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-50"
+                          title="Delete task"
+                        >
+                          {deletingTaskId === task.id ? '…' : '✕'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
