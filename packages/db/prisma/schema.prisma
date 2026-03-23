@@ -154,6 +154,11 @@ model User {
   trainingConsent    Boolean   @default(false)
   trainingConsentAt  DateTime? // when they gave consent (required for audit)
 
+  // Suspension
+  isSuspended        Boolean   @default(false)
+  suspendedAt        DateTime?
+  suspendedReason    String?
+
   // Beta access
   betaCode           String?   // the invite code used to sign up
   isBeta             Boolean   @default(false)
@@ -554,6 +559,12 @@ enum NotificationType {
   healing_applied
   sabha_ready
   sabha_ai_correction
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  REPO_ACCESS_GRANTED
+  REPO_ACCESS_REVOKED
+  PRIORITY_REPORT
+  ACCOUNT_WARNING
 }
 
 model Notification {
@@ -1760,4 +1771,616 @@ model UpiPayment {
   @@index([razorpayOrderId])
   @@index([status])
   @@map("upi_payments")
+}
+
+// ─── TERMS & POLICY ───────────────────────────────────────────────────────────
+
+model TermsVersion {
+  id          String               @id @default(cuid())
+  version     String               @unique
+  content     String               @db.Text
+  effectiveAt DateTime
+  createdAt   DateTime             @default(now())
+  acceptances UserTermsAcceptance[]
+  @@map("terms_versions")
+}
+
+model UserTermsAcceptance {
+  id             String       @id @default(cuid())
+  userId         String
+  termsVersionId String
+  acceptedAt     DateTime     @default(now())
+  ipAddress      String
+  userAgent      String
+  termsVersion   TermsVersion @relation(fields: [termsVersionId], references: [id])
+  @@unique([userId, termsVersionId])
+  @@index([userId])
+  @@map("user_terms_acceptances")
+}
+
+// ─── SOCIAL GRAPH ─────────────────────────────────────────────────────────────
+
+model UserSocialProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  displayName  String   @db.VarChar(50)
+  bio          String?  @db.VarChar(300)
+  avatarUrl    String?
+  isPrivate    Boolean  @default(true)
+  isVerified   Boolean  @default(false)
+  location     String?  @db.VarChar(100)
+  website      String?  @db.VarChar(200)
+  friendsCount Int      @default(0)
+  reposCount   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@map("user_social_profiles")
+}
+
+model FriendRequest {
+  id          String              @id @default(cuid())
+  senderId    String
+  receiverId  String
+  status      FriendRequestStatus @default(PENDING)
+  message     String?             @db.VarChar(200)
+  createdAt   DateTime            @default(now())
+  respondedAt DateTime?
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+  @@map("friend_requests")
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@map("friendships")
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("user_blocks")
+}
+
+// ─── MESSAGING ────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id          String               @id @default(cuid())
+  type        ConversationType
+  name        String?              @db.VarChar(100)
+  avatarUrl   String?
+  description String?              @db.VarChar(300)
+  isArchived  Boolean              @default(false)
+  createdById String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  members     ConversationMember[]
+  messages    Message[]
+  @@map("conversations")
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  role           MemberRole   @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  leftAt         DateTime?
+  lastReadAt     DateTime?
+  isMuted        Boolean      @default(false)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+enum MemberRole {
+  MEMBER
+  ADMIN
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String       @db.Text
+  type           MessageType  @default(TEXT)
+  fileUrl        String?
+  fileMeta       Json?
+  replyToId      String?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reads          MessageRead[]
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  ROUNDTABLE_SHARE
+  REPO_SHARE
+  GROUP_COLLAB_INVITE
+  SYSTEM
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  @@unique([messageId, userId])
+  @@map("message_reads")
+}
+
+model AdminMessageAccess {
+  id             String   @id @default(cuid())
+  adminId        String
+  conversationId String
+  reason         String   @db.VarChar(500)
+  accessedAt     DateTime @default(now())
+  @@index([conversationId])
+  @@index([adminId])
+  @@map("admin_message_access")
+}
+
+// ─── GROUP COLLABORATION ──────────────────────────────────────────────────────
+
+model GroupCollaboration {
+  id               String            @id @default(cuid())
+  initiatorGroupId String
+  targetGroupId    String
+  status           GroupCollabStatus @default(PENDING)
+  sharedRepoId     String?
+  createdById      String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  @@unique([initiatorGroupId, targetGroupId])
+  @@map("group_collaborations")
+}
+
+enum GroupCollabStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+  ENDED
+}
+
+// ─── REPOSITORIES ─────────────────────────────────────────────────────────────
+
+model SabhaRepo {
+  id            String             @id @default(cuid())
+  ownerId       String
+  name          String             @db.VarChar(100)
+  slug          String             @db.VarChar(100)
+  description   String?            @db.VarChar(500)
+  category      RepoCategory
+  visibility    RepoVisibility     @default(PRIVATE)
+  isArchived    Boolean            @default(false)
+  starCount     Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  items         RepoItem[]
+  commits       RepoCommit[]
+  collaborators RepoCollaborator[]
+  stars         RepoStar[]
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+  @@map("sabha_repos")
+}
+
+enum RepoCategory {
+  CODE
+  CONTENT
+  DESIGN
+  STRATEGY
+  RESEARCH
+  MIXED
+}
+
+enum RepoVisibility {
+  PRIVATE
+  FRIENDS
+  COLLABORATORS
+}
+
+model RepoCollaborator {
+  id          String         @id @default(cuid())
+  repoId      String
+  userId      String
+  permission  RepoPermission
+  grantedById String
+  grantedAt   DateTime       @default(now())
+  revokedAt   DateTime?
+  repo        SabhaRepo      @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  @@unique([repoId, userId])
+  @@index([userId])
+  @@map("repo_collaborators")
+}
+
+enum RepoPermission {
+  READ
+  WRITE
+  ADMIN
+}
+
+model RepoItem {
+  id              String       @id @default(cuid())
+  repoId          String
+  authorId        String
+  title           String       @db.VarChar(200)
+  category        RepoCategory
+  content         String       @db.Text
+  fileUrl         String?
+  metadata        Json?
+  sourceTaskId    String?
+  sourceSubtaskId String?
+  version         Int          @default(1)
+  isArchived      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  repo            SabhaRepo    @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  @@index([repoId])
+  @@index([authorId])
+  @@map("repo_items")
+}
+
+model RepoCommit {
+  id            String    @id @default(cuid())
+  repoId        String
+  authorId      String
+  message       String    @db.VarChar(500)
+  itemsAdded    Int       @default(0)
+  itemsModified Int       @default(0)
+  itemsRemoved  Int       @default(0)
+  snapshot      Json
+  createdAt     DateTime  @default(now())
+  repo          SabhaRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  @@index([repoId])
+  @@map("repo_commits")
+}
+
+model RepoStar {
+  id        String    @id @default(cuid())
+  repoId    String
+  userId    String
+  createdAt DateTime  @default(now())
+  repo      SabhaRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  @@unique([repoId, userId])
+  @@map("repo_stars")
+}
+
+// ─── MODERATION ───────────────────────────────────────────────────────────────
+
+model UserReport {
+  id           String       @id @default(cuid())
+  reporterId   String
+  reportedId   String
+  contentType  String       @db.VarChar(50)
+  contentId    String
+  reason       ReportReason
+  description  String?      @db.VarChar(500)
+  status       ReportStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  @@index([status])
+  @@index([reportedId])
+  @@map("user_reports")
+}
+
+enum ReportReason {
+  ILLEGAL_CONTENT
+  HARASSMENT
+  SPAM
+  FRAUD
+  HATE_SPEECH
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTIONED
+  DISMISSED
+}
+
+model AdminAction {
+  id         String   @id @default(cuid())
+  adminId    String
+  targetType String   @db.VarChar(50)
+  targetId   String
+  action     String   @db.VarChar(100)
+  reason     String   @db.Text
+  createdAt  DateTime @default(now())
+  @@index([adminId])
+  @@index([targetId])
+  @@map("admin_actions")
+}
+
+// ─── MARKETING AUTOMATION ────────────────────────────────────────────────────
+
+model SocialCredential {
+  id           String         @id @default(cuid())
+  platform     SocialPlatform
+  accountName  String
+  accountId    String
+  accessToken  String         @db.Text
+  refreshToken String?        @db.Text
+  tokenExpiry  DateTime?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  @@unique([platform])
+  @@map("social_credentials")
+}
+
+enum SocialPlatform {
+  LINKEDIN
+  TWITTER
+  INSTAGRAM
+  YOUTUBE
+  WHATSAPP_BUSINESS
+  FACEBOOK
+}
+
+model ContentCalendar {
+  id               String        @id @default(cuid())
+  date             DateTime
+  platform         SocialPlatform
+  contentType      ContentType
+  title            String
+  body             String        @db.Text
+  mediaUrl         String?
+  mediaType        String?
+  hashtags         String[]
+  scheduledAt      DateTime
+  status           ContentStatus @default(PENDING_APPROVAL)
+  approvedAt       DateTime?
+  postedAt         DateTime?
+  platformPostId   String?
+  engagementData   Json?
+  createdAt        DateTime      @default(now())
+  @@index([date, platform])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("content_calendar")
+}
+
+enum ContentType {
+  PROBLEM_POST
+  DEMO_VIDEO
+  USER_RESULT
+  EDUCATIONAL
+  REGIONAL_TAMIL
+  REGIONAL_HINDI
+  BEHIND_SCENES
+  WEEKLY_RECAP
+  PRODUCT_UPDATE
+  THREAD
+  REEL_SCRIPT
+  CAROUSEL
+  ARTICLE
+}
+
+enum ContentStatus {
+  GENERATING
+  PENDING_APPROVAL
+  APPROVED
+  EDITED_AND_APPROVED
+  SKIPPED
+  POSTED
+  FAILED
+  SCHEDULED
+}
+
+model EngagementItem {
+  id             String         @id @default(cuid())
+  platform       SocialPlatform
+  platformPostId String
+  type           EngagementType
+  authorName     String
+  authorHandle   String
+  content        String         @db.Text
+  draftReply     String?        @db.Text
+  replyStatus    ReplyStatus    @default(PENDING)
+  repliedAt      DateTime?
+  detectedAt     DateTime       @default(now())
+  @@index([replyStatus])
+  @@index([platform])
+  @@map("engagement_items")
+}
+
+enum EngagementType {
+  COMMENT
+  MENTION
+  DM
+  SHARE
+  REPLY
+}
+
+enum ReplyStatus {
+  PENDING
+  APPROVED
+  POSTED
+  SKIPPED
+}
+
+model MarketingAnalytics {
+  id            String         @id @default(cuid())
+  platform      SocialPlatform
+  date          DateTime       @db.Date
+  impressions   Int            @default(0)
+  engagements   Int            @default(0)
+  clicks        Int            @default(0)
+  signups       Int            @default(0)
+  conversions   Int            @default(0)
+  topPost       String?
+  createdAt     DateTime       @default(now())
+  @@unique([platform, date])
+  @@map("marketing_analytics")
+}
+
+model ContentTemplate {
+  id              String         @id @default(cuid())
+  platform        SocialPlatform
+  contentType     ContentType
+  dayOfWeek       Int
+  promptTemplate  String         @db.Text
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  @@map("content_templates")
+}
+
+model UserSocialCredential {
+  id           String         @id @default(cuid())
+  userId       String
+  platform     SocialPlatform
+  accountName  String
+  accessToken  String         @db.Text
+  refreshToken String?        @db.Text
+  tokenExpiry  DateTime?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  @@unique([userId, platform])
+  @@index([userId])
+  @@map("user_social_credentials")
+}
+
+model UserContentCalendar {
+  id           String         @id @default(cuid())
+  userId       String
+  platform     SocialPlatform
+  contentType  ContentType
+  body         String         @db.Text
+  mediaUrl     String?
+  hashtags     String[]
+  scheduledAt  DateTime
+  status       ContentStatus  @default(PENDING_APPROVAL)
+  approvedAt   DateTime?
+  postedAt     DateTime?
+  sourceTaskId String?
+  createdAt    DateTime       @default(now())
+  @@index([userId, status])
+  @@index([scheduledAt])
+  @@map("user_content_calendar")
+}
+
+// ─── DIGITAL PASSPORT ─────────────────────────────────────────────────────────
+
+model SabhaPassport {
+  id           String               @id @default(cuid())
+  userId       String               @unique
+  username     String               @unique @db.VarChar(50)
+  displayName  String               @db.VarChar(100)
+  title        String?              @db.VarChar(150)
+  bio          String?              @db.VarChar(300)
+  avatarUrl    String?
+  location     String?              @db.VarChar(100)
+  website      String?              @db.VarChar(200)
+  isPublic     Boolean              @default(true)
+  memberNumber Int                  @unique @default(autoincrement())
+  isVerified   Boolean              @default(false)
+  showWatermark Boolean             @default(true)
+  education    Json?
+  experience   Json?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  skills       PassportSkill[]
+  achievements PassportAchievement[]
+  showcases    PassportShowcase[]
+  views        PassportView[]
+  @@map("sabha_passports")
+}
+
+model PassportSkill {
+  id            String        @id @default(cuid())
+  passportId    String
+  skill         String        @db.VarChar(100)
+  evidenceCount Int           @default(0)
+  autoDetected  Boolean       @default(true)
+  isVisible     Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  passport      SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  @@unique([passportId, skill])
+  @@map("passport_skills")
+}
+
+model PassportAchievement {
+  id          String          @id @default(cuid())
+  passportId  String
+  achievement AchievementType
+  awardedAt   DateTime        @default(now())
+  isVisible   Boolean         @default(true)
+  passport    SabhaPassport   @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  @@unique([passportId, achievement])
+  @@map("passport_achievements")
+}
+
+enum AchievementType {
+  FIRST_ROUNDTABLE
+  TEN_ROUNDTABLES
+  FIFTY_ROUNDTABLES
+  HUNDRED_ROUNDTABLES
+  FIVE_HUNDRED_ROUNDTABLES
+  MULTILINGUAL_CREATOR
+  FULL_STACK_BUILDER
+  TEAM_PLAYER
+  EARLY_ADOPTER
+  FOUNDING_MEMBER
+  TOP_CONTRIBUTOR
+  CODE_BUILDER
+  CONTENT_CREATOR
+  DESIGN_THINKER
+  RESEARCH_ANALYST
+}
+
+model PassportShowcase {
+  id         String        @id @default(cuid())
+  passportId String
+  taskId     String
+  order      Int           @default(0)
+  createdAt  DateTime      @default(now())
+  passport   SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  @@unique([passportId, taskId])
+  @@map("passport_showcases")
+}
+
+model PassportView {
+  id         String        @id @default(cuid())
+  passportId String
+  viewerIp   String        @db.VarChar(45)
+  referrer   String?       @db.VarChar(500)
+  createdAt  DateTime      @default(now())
+  passport   SabhaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  @@index([passportId, createdAt])
+  @@map("passport_views")
 }

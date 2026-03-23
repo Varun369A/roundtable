@@ -17,6 +17,7 @@ import { checkLoginRateLimit, recordLoginFailure, clearLoginFailures } from '../
 import { isEnabled, FLAGS } from '../lib/feature-flags'
 import { sendWelcomeEmail, sendVerificationEmail } from '../lib/email'
 import { grantSignupBonus } from './credits'
+import { createPassportOnSignup } from '../jobs/skill-detector'
 
 function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string) {
   const isProduction = process.env.NODE_ENV === 'production'
@@ -171,6 +172,9 @@ export async function authRoutes(app: FastifyInstance) {
 
     // Grant signup bonus credits (non-blocking, fire-and-forget)
     grantSignupBonus(user.id).catch(() => {})
+
+    // Create Sabha Passport for new user (non-blocking)
+    createPassportOnSignup(user.id, user.email, user.name ?? undefined).catch(() => {})
 
     // Create email verification token and send verification email (non-blocking)
     ;(async () => {

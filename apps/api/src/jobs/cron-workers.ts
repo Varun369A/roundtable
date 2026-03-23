@@ -23,6 +23,10 @@ import { orchestrateTask } from '../orchestration/orchestrator'
 import { enqueueTask } from './queue'
 import { expireStaleReviews } from '../lib/expert-marketplace'
 import { creditWallet } from '../lib/credit-manager'
+import { runContentGeneration } from './content-generator'
+import { runDailyApprovalNotifier } from './daily-approval-notifier'
+import { runEngagementMonitor } from './engagement-monitor'
+import { runPostScheduler } from './post-scheduler'
 
 const prisma = new PrismaClient()
 
@@ -58,6 +62,10 @@ const clarificationTimeoutQueue = new Queue('clarification-timeout', { connectio
 const presencePruneQueue = new Queue('presence-prune', { connection: bullConnection })
 const expireReviewsQueue = new Queue('expire-reviews', { connection: bullConnection })
 const creditExpiryQueue = new Queue('credit-expiry', { connection: bullConnection })
+const contentGenerationQueue = new Queue('content-generation', { connection: bullConnection })
+const dailyApprovalQueue = new Queue('daily-approval-notifier', { connection: bullConnection })
+const engagementMonitorQueue = new Queue('engagement-monitor', { connection: bullConnection })
+const postSchedulerQueue = new Queue('post-scheduler', { connection: bullConnection })
 
 // Subtask queue (for re-enqueuing)
 const subtaskQueue = new Queue('subtask-queue', { connection: bullConnection })
@@ -937,6 +945,38 @@ export function startCronWorkers(): void {
       console.log(`[credit-expiry] Expired ${expiredCount} promotional credit transaction(s)`)
     }
   }, { connection: bullConnection })
+
+  // ---- Content generation: every day at 11pm IST (5pm UTC) ----
+  contentGenerationQueue.add(
+    'generate',
+    {},
+    { repeat: { pattern: '0 17 * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('content-generation', async (_job: Job) => { await runContentGeneration() }, { connection: bullConnection })
+
+  // ---- Daily approval notifier: every day at 8am IST (2:30am UTC) ----
+  dailyApprovalQueue.add(
+    'notify',
+    {},
+    { repeat: { pattern: '30 2 * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('daily-approval-notifier', async (_job: Job) => { await runDailyApprovalNotifier() }, { connection: bullConnection })
+
+  // ---- Engagement monitor: every 2 hours ----
+  engagementMonitorQueue.add(
+    'monitor',
+    {},
+    { repeat: { pattern: '0 */2 * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('engagement-monitor', async (_job: Job) => { await runEngagementMonitor() }, { connection: bullConnection })
+
+  // ---- Post scheduler: every 5 minutes ----
+  postSchedulerQueue.add(
+    'schedule',
+    {},
+    { repeat: { pattern: '*/5 * * * *' }, removeOnComplete: 5, removeOnFail: 3 }
+  )
+  new Worker('post-scheduler', async (_job: Job) => { await runPostScheduler() }, { connection: bullConnection })
 
   console.log('[cron-workers] All cron workers started')
 }

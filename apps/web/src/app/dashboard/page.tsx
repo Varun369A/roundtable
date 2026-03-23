@@ -288,6 +288,10 @@ export default function DashboardPage() {
             active={activeWorkspace}
             onSwitch={handleSwitchWorkspace}
           />
+          <Link href="/people" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">People</Link>
+          <Link href="/friends" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Friends</Link>
+          <Link href="/messages" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Messages</Link>
+          <Link href="/repos" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Repos</Link>
           <Link href="/templates" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Templates</Link>
           <Link href="/marketplace" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Marketplace</Link>
           <Link href="/marketplace/experts" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Experts</Link>

@@ -53,6 +53,13 @@ import { creditsRoutes } from './routes/credits'
 import { verticalPacksRoutes } from './routes/vertical-packs'
 import { gdprRoutes } from './routes/gdpr'
 import { correctionsRoutes } from './routes/corrections'
+import { termsRoutes } from './routes/terms'
+import { socialRoutes } from './routes/social'
+import { messagingRoutes } from './routes/messaging'
+import { repositoryRoutes } from './routes/repositories'
+import { moderationRoutes } from './routes/moderation'
+import { marketingRoutes } from './routes/marketing'
+import { passportRoutes } from './routes/passport'
 import { seedBuiltInPacks } from './lib/vertical-pack-manager'
 import { startCronWorkers } from './jobs'
 import { registerHttpMetrics } from './middleware/http-metrics'
@@ -236,6 +243,13 @@ const start = async () => {
     await app.register(verticalPacksRoutes,      { prefix: '/api/v1' })
     await app.register(gdprRoutes,               { prefix: '/api/v1/account' })
     await app.register(correctionsRoutes,        { prefix: '/api/v1' })
+    await app.register(termsRoutes,              { prefix: '/api/v1' })
+    await app.register(socialRoutes,             { prefix: '/api/v1' })
+    await app.register(messagingRoutes,          { prefix: '/api/v1' })
+    await app.register(repositoryRoutes,         { prefix: '/api/v1' })
+    await app.register(moderationRoutes,         { prefix: '/api/v1' })
+    await app.register(marketingRoutes,          { prefix: '/api/v1' })
+    await app.register(passportRoutes,           { prefix: '/api/v1' })
 
     // ── Global error handler ───────────────────────────────────────────────────
 

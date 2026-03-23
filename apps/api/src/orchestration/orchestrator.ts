@@ -7,6 +7,7 @@ import { enqueueTask } from '../jobs/queue'
 import { processInputLanguage, getUserLanguagePreference } from './language-layer'
 import { generateClarifications, saveClarifications, buildClarificationContext } from '../lib/clarification-generator'
 import { getMemoryContext } from '../lib/memory-manager'
+import { detectSkillsAndAwards } from '../jobs/skill-detector'
 
 /**
  * Entry point — called when user triggers a task.
@@ -304,6 +305,11 @@ async function maybeCompleteTask(taskId: string): Promise<void> {
 
     // Update usage stats
     const task = await prisma.task.findUnique({ where: { id: taskId }, select: { userId: true } })
+
+    // Detect skills and award achievements for passport (non-blocking)
+    if (task) {
+      detectSkillsAndAwards(taskId, task.userId).catch(() => {})
+    }
     if (task) {
       await prisma.usageStats.upsert({
         where: { userId: task.userId },
