@@ -16,12 +16,12 @@ interface AdminTask {
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  PENDING:     'text-yellow-400 bg-yellow-400/10',
-  ROUTING:     'text-blue-400 bg-blue-400/10',
-  IN_PROGRESS: 'text-brand-400 bg-brand-400/10',
-  COMPLETED:   'text-green-400 bg-green-400/10',
-  FAILED:      'text-red-400 bg-red-400/10',
-  CANCELLED:   'text-zinc-500 bg-zinc-500/10',
+  PENDING:     'text-amber-700 bg-amber-50 border border-amber-200',
+  ROUTING:     'text-blue-700 bg-blue-50 border border-blue-200',
+  IN_PROGRESS: 'text-indigo-700 bg-indigo-50 border border-indigo-200',
+  COMPLETED:   'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  FAILED:      'text-red-700 bg-red-50 border border-red-200',
+  CANCELLED:   'text-slate-500 bg-slate-100 border border-slate-200',
 }
 
 export default function AdminTasksPage() {
@@ -55,7 +55,7 @@ export default function AdminTasksPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">All Tasks</h1>
-        <span className="text-sm text-zinc-500">{total.toLocaleString()} total</span>
+        <span className="text-sm text-slate-500">{total.toLocaleString()} total</span>
       </div>
 
       {/* Filter */}
@@ -66,8 +66,8 @@ export default function AdminTasksPage() {
             onClick={() => { setFilter(s); setPage(1) }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === s
-                ? 'bg-brand-600 text-white'
-                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
             {s || 'All'}
@@ -75,42 +75,42 @@ export default function AdminTasksPage() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-900 border-b border-zinc-800">
+          <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               {['Task', 'Status', 'User', 'Cost', 'Subtasks', 'Created', 'Actions'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs text-zinc-500 font-medium uppercase tracking-wider">{h}</th>
+                <th key={h} className="text-left px-4 py-3 text-xs text-slate-500 font-medium uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-slate-200/50">
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-4 bg-zinc-800 rounded animate-pulse" /></td></tr>
+                <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-4 bg-slate-200 rounded animate-pulse" /></td></tr>
               ))
             ) : tasks.map((task) => (
-              <tr key={task.id} className="hover:bg-zinc-900/50">
+              <tr key={task.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 max-w-xs">
                   <p className="font-medium truncate text-sm">{task.title}</p>
-                  <p className="text-xs text-zinc-600 font-mono">{task.id.slice(0, 8)}…</p>
+                  <p className="text-xs text-slate-400 font-mono">{task.id.slice(0, 8)}…</p>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLE[task.status] || ''}`}>
                     {task.status.toLowerCase().replace('_', ' ')}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-xs text-zinc-400">{task.user.email}</td>
+                <td className="px-4 py-3 text-xs text-slate-500">{task.user.email}</td>
                 <td className="px-4 py-3 font-mono text-xs">${Number(task.totalCostUsd).toFixed(4)}</td>
                 <td className="px-4 py-3 font-mono text-xs">{task._count.subtasks}</td>
-                <td className="px-4 py-3 text-xs text-zinc-500">
+                <td className="px-4 py-3 text-xs text-slate-500">
                   {new Date(task.createdAt).toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <Link
                       href={`/roundtable/${task.id}`}
-                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
                     >
                       View
                     </Link>
@@ -132,9 +132,9 @@ export default function AdminTasksPage() {
 
       {total > 30 && (
         <div className="flex justify-center gap-2 mt-4">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 text-sm bg-zinc-900 border border-zinc-800 rounded-lg disabled:opacity-40">← Prev</button>
-          <span className="px-3 py-1.5 text-sm text-zinc-500">Page {page} of {Math.ceil(total / 30)}</span>
-          <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(total / 30)} className="px-3 py-1.5 text-sm bg-zinc-900 border border-zinc-800 rounded-lg disabled:opacity-40">Next →</button>
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40">← Prev</button>
+          <span className="px-3 py-1.5 text-sm text-slate-500">Page {page} of {Math.ceil(total / 30)}</span>
+          <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(total / 30)} className="px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 disabled:opacity-40">Next →</button>
         </div>
       )}
     </div>

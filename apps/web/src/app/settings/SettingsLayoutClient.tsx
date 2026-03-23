@@ -45,11 +45,11 @@ export default function SettingsLayoutClient({ children }: { children: React.Rea
   )
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex">
-      <aside className="w-52 shrink-0 border-r border-zinc-800 p-4">
+    <div className="min-h-screen bg-slate-50 flex">
+      <aside className="w-52 shrink-0 border-r border-slate-200 bg-white p-4">
         <div className="mb-6">
-          <Link href="/dashboard" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">← Dashboard</Link>
-          <h2 className="text-sm font-semibold text-white mt-3">Settings</h2>
+          <Link href="/dashboard" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">← Dashboard</Link>
+          <h2 className="text-sm font-semibold text-slate-900 mt-3">Settings</h2>
         </div>
         <nav className="space-y-0.5">
           {nav.map((item) => (
@@ -58,14 +58,14 @@ export default function SettingsLayoutClient({ children }: { children: React.Rea
               href={item.href}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                 pathname === item.href
-                  ? 'bg-zinc-800 text-white font-medium'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                  ? 'bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <span>{item.icon}</span>
               <span className="flex-1">{item.label}</span>
               {item.badge != null && item.badge > 0 && (
-                <span className="ml-auto flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <span className="ml-auto flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 border border-amber-500/30">
                   {item.badge}
                 </span>
               )}

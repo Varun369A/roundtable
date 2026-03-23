@@ -85,7 +85,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-lg">
 
         {/* Progress dots */}
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === step ? 'w-8 bg-brand-500' : i < step ? 'w-4 bg-brand-500/40' : 'w-4 bg-white/10'
+                i === step ? 'w-8 bg-indigo-600' : i < step ? 'w-4 bg-indigo-300' : 'w-4 bg-slate-200'
               }`}
             />
           ))}
@@ -102,11 +102,11 @@ export default function OnboardingPage() {
 
         {/* Step 0 — Welcome */}
         {step === 0 && (
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8">
             <div className="text-center mb-8">
               <div className="text-5xl mb-4">👋</div>
-              <h1 className="text-2xl font-bold text-white mb-2">Welcome to Arivarangam</h1>
-              <p className="text-zinc-400 text-sm">
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome to Arivarangam</h1>
+              <p className="text-slate-500 text-sm">
                 Your AI roundtable is ready. Multiple AIs collaborate on your tasks in parallel —
                 let's get you to your first result in seconds.
               </p>
@@ -119,16 +119,16 @@ export default function OnboardingPage() {
                 { icon: '🎯', text: 'Pre-built templates for marketing, coding, design and more' },
                 { icon: '🌐', text: 'Supports Hindi, Tamil, Bengali, and 10+ other languages' },
               ].map(({ icon, text }) => (
-                <div key={text} className="flex items-center gap-3 p-3 bg-white/3 rounded-xl">
+                <div key={text} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                   <span className="text-xl flex-shrink-0">{icon}</span>
-                  <p className="text-sm text-zinc-300">{text}</p>
+                  <p className="text-sm text-slate-700">{text}</p>
                 </div>
               ))}
             </div>
 
             <button
               onClick={() => setStep(1)}
-              className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white text-sm rounded-xl font-semibold transition-colors"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-xl font-semibold transition-colors"
             >
               Let's go →
             </button>
@@ -137,11 +137,11 @@ export default function OnboardingPage() {
 
         {/* Step 1 — Use case (skippable) */}
         {step === 1 && (
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8">
             <div className="text-center mb-6">
               <div className="text-5xl mb-4">🎯</div>
-              <h1 className="text-2xl font-bold text-white mb-2">What will you use Arivarangam for?</h1>
-              <p className="text-zinc-400 text-sm">We'll surface relevant templates. Pick as many as you like.</p>
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">What will you use Arivarangam for?</h1>
+              <p className="text-slate-500 text-sm">We'll surface relevant templates. Pick as many as you like.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 mb-8">
@@ -151,14 +151,14 @@ export default function OnboardingPage() {
                   onClick={() => toggleUseCase(id)}
                   className={`flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition-all ${
                     selectedUseCases.includes(id)
-                      ? 'bg-brand-500/15 border-brand-500/40 text-white'
-                      : 'bg-white/3 border-white/8 text-zinc-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                      : 'bg-white border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <span>{icon}</span>
                   <span className="font-medium">{label}</span>
                   {selectedUseCases.includes(id) && (
-                    <span className="ml-auto text-brand-400">✓</span>
+                    <span className="ml-auto text-indigo-600">✓</span>
                   )}
                 </button>
               ))}
@@ -167,13 +167,13 @@ export default function OnboardingPage() {
             <div className="flex justify-between items-center">
               <button
                 onClick={() => setStep(0)}
-                className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
+                className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
               >
                 ← Back
               </button>
               <button
                 onClick={() => setStep(2)}
-                className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm rounded-xl font-semibold transition-colors"
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-xl font-semibold transition-colors"
               >
                 {selectedUseCases.length > 0 ? 'Next →' : 'Skip →'}
               </button>
@@ -183,11 +183,11 @@ export default function OnboardingPage() {
 
         {/* Step 2 — First task (value moment) */}
         {step === 2 && (
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8">
             <div className="text-center mb-6">
               <div className="text-5xl mb-4">🚀</div>
-              <h1 className="text-2xl font-bold text-white mb-2">Start your first Roundtable</h1>
-              <p className="text-zinc-400 text-sm">
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">Start your first Roundtable</h1>
+              <p className="text-slate-500 text-sm">
                 Describe what you want to accomplish — Arivarangam will assemble an AI team for it.
               </p>
             </div>
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
               <textarea
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-500/40 focus:outline-none transition-colors text-white placeholder-zinc-600 resize-none text-sm mb-3"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-indigo-400 focus:outline-none transition-colors text-slate-900 placeholder-slate-400 resize-none text-sm mb-3"
                 placeholder="Create a go-to-market strategy for my SaaS product…"
                 rows={4}
                 autoFocus
@@ -216,7 +216,7 @@ export default function OnboardingPage() {
                       key={p}
                       type="button"
                       onClick={() => setGoal(p)}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 border border-white/8 text-zinc-500 hover:text-zinc-300 hover:bg-white/8 transition-all text-left"
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all text-left"
                     >
                       {p}
                     </button>
@@ -225,27 +225,27 @@ export default function OnboardingPage() {
               )}
 
               {createError && (
-                <p className="text-red-400 text-xs mb-3">{createError}</p>
+                <p className="text-red-500 text-xs mb-3">{createError}</p>
               )}
 
               <div className="flex justify-between items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors flex-shrink-0"
+                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0"
                 >
                   ← Back
                 </button>
                 <button
                   type="submit"
                   disabled={creating || !goal.trim()}
-                  className="flex-1 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm rounded-xl font-semibold transition-all active:scale-95"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm rounded-xl font-semibold transition-all active:scale-95"
                 >
                   {creating ? 'Starting your Roundtable…' : 'Start Roundtable →'}
                 </button>
               </div>
 
-              <p className="text-xs text-zinc-700 text-center mt-3">
+              <p className="text-xs text-slate-400 text-center mt-3">
                 Ctrl+Enter to submit
               </p>
             </form>
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
         <p className="text-center mt-4">
           <button
             onClick={handleSkipToDashboard}
-            className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors"
+            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
             Skip and go to dashboard
           </button>

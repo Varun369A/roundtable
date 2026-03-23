@@ -50,13 +50,13 @@ interface ActiveSubtask {
 }
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  PENDING:               { label: 'Queued',      color: 'text-yellow-400' },
-  ROUTING:               { label: 'Routing…',    color: 'text-blue-400'   },
-  IN_PROGRESS:           { label: 'Live',        color: 'text-brand-400'  },
-  COMPLETED:             { label: 'Complete',    color: 'text-green-400'  },
-  FAILED:                { label: 'Failed',      color: 'text-red-400'    },
-  CANCELLED:             { label: 'Cancelled',   color: 'text-zinc-500'   },
-  WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-yellow-400' },
+  PENDING:               { label: 'Queued',      color: 'text-amber-600' },
+  ROUTING:               { label: 'Routing…',    color: 'text-blue-600'   },
+  IN_PROGRESS:           { label: 'Live',        color: 'text-indigo-600'  },
+  COMPLETED:             { label: 'Complete',    color: 'text-emerald-600'  },
+  FAILED:                { label: 'Failed',      color: 'text-red-600'    },
+  CANCELLED:             { label: 'Cancelled',   color: 'text-slate-500'   },
+  WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-amber-600' },
 }
 
 export default function RoundtablePage({ params }: { params: { id: string } }) {
@@ -287,21 +287,21 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
   const hasPreview = previewUpdates.length > 0
 
   return (
-    <div className="h-screen flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md shrink-0">
+      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm shrink-0">
         <div className="max-w-none px-4 h-14 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm shrink-0"
+            className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0"
           >
             ← Dashboard
           </Link>
 
-          <div className="h-4 w-px bg-zinc-800" />
+          <div className="h-4 w-px bg-slate-200" />
 
-          <p className="flex-1 text-sm font-medium truncate text-zinc-300">
+          <p className="flex-1 text-sm font-medium truncate text-slate-900">
             {task?.originalGoal || '…'}
           </p>
 
@@ -313,7 +313,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                 className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors ${
                   showPreview
                     ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
-                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                    : 'bg-slate-100 text-slate-500 hover:text-slate-700'
                 }`}
               >
                 👁 Preview
@@ -341,15 +341,15 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
 
         {/* Mobile tabs — only show when we have preview content */}
         {hasPreview && (
-          <div className="flex md:hidden border-t border-zinc-800/50">
+          <div className="flex md:hidden border-t border-slate-200">
             {(['feed', 'preview'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 text-xs font-medium transition-colors ${
                   activeTab === tab
-                    ? 'text-white border-b-2 border-indigo-500'
-                    : 'text-zinc-500'
+                    ? 'text-slate-900 border-b-2 border-indigo-500'
+                    : 'text-slate-500'
                 }`}
               >
                 {tab === 'feed' ? '💬 Feed' : '👁 Preview'}
@@ -382,7 +382,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                     />
                   ))}
                 </div>
-                <p className="text-zinc-500 text-sm max-w-xs">
+                <p className="text-slate-500 text-sm max-w-xs">
                   Parsing your goal and selecting the best AIs for each step…
                 </p>
               </div>
@@ -391,11 +391,11 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
             {/* Round 1 header (only shows when discussion is multi-round) */}
             {discussionRound > 1 && messages.some((m) => m.roundNumber === 1) && (
               <div className="flex items-center gap-3 py-1">
-                <div className="h-px flex-1 bg-zinc-800" />
-                <span className="text-xs font-semibold text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10">
+                <div className="h-px flex-1 bg-slate-200" />
+                <span className="text-xs font-semibold text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-200 bg-indigo-50">
                   Round 1 — Initial Work
                 </span>
-                <div className="h-px flex-1 bg-zinc-800" />
+                <div className="h-px flex-1 bg-slate-200" />
               </div>
             )}
 
@@ -407,20 +407,20 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                 <div key={msg.id}>
                   {showRound2Banner && (
                     <div className="flex items-center gap-3 py-1 my-2">
-                      <div className="h-px flex-1 bg-zinc-800" />
-                      <span className="text-xs font-semibold text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10">
+                      <div className="h-px flex-1 bg-slate-200" />
+                      <span className="text-xs font-semibold text-amber-600 px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
                         Round 2 — Peer Review
                       </span>
-                      <div className="h-px flex-1 bg-zinc-800" />
+                      <div className="h-px flex-1 bg-slate-200" />
                     </div>
                   )}
                   {showRound3Banner && (
                     <div className="flex items-center gap-3 py-1 my-2">
-                      <div className="h-px flex-1 bg-zinc-800" />
-                      <span className="text-xs font-semibold text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                      <div className="h-px flex-1 bg-slate-200" />
+                      <span className="text-xs font-semibold text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50">
                         Round 3 — Synthesis
                       </span>
-                      <div className="h-px flex-1 bg-zinc-800" />
+                      <div className="h-px flex-1 bg-slate-200" />
                     </div>
                   )}
                   <div className="group relative">
@@ -480,18 +480,18 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
 
             {/* Completion summary card */}
             {taskStatus === 'COMPLETED' && (
-              <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-6 text-center mt-4">
-                <p className="text-green-400 font-semibold text-lg mb-1">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center mt-4">
+                <p className="text-emerald-700 font-semibold text-lg mb-1">
                   {synthesisComplete ? '🏆 Roundtable Complete — Synthesised' : 'Roundtable complete'}
                 </p>
-                <p className="text-zinc-500 text-sm">
+                <p className="text-slate-500 text-sm">
                   {synthesisComplete
                     ? `${discussionRound} rounds of AI collaboration — ${messages.filter((m) => m.type === 'ai' && !m.isError).length} outputs across ${new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs`
                     : `${messages.filter((m) => m.type === 'ai' && !m.isError).length} tasks completed across ${new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs`
                   }
                 </p>
                 {synthesisComplete && (
-                  <p className="text-xs text-zinc-600 mt-1">
+                  <p className="text-xs text-slate-400 mt-1">
                     Initial work → Peer review → Final synthesis
                   </p>
                 )}
@@ -506,7 +506,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                   )}
                   <button
                     onClick={() => setShowReviewModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-sm font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-sm font-medium transition-colors"
                   >
                     🎓 Request Expert Review
                   </button>
@@ -590,10 +590,10 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
 
       {/* ── Expert review toast ──────────────────────────────────────────────── */}
       {reviewToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-zinc-900 border border-white/10 text-sm text-white shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 shadow-2xl flex items-center gap-2 animate-fade-in">
           <span className="text-amber-400">🎓</span>
           Expert review requested! You'll be notified when it's ready.
-          <button onClick={() => setReviewToast(false)} className="ml-2 text-zinc-500 hover:text-white transition-colors">&times;</button>
+          <button onClick={() => setReviewToast(false)} className="ml-2 text-slate-500 hover:text-slate-900 transition-colors">&times;</button>
         </div>
       )}
     </div>
