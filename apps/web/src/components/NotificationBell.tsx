@@ -39,8 +39,9 @@ export default function NotificationBell() {
     try {
       const data = await apiFetch('/api/v1/notifications?limit=20')
       if (data.success) {
-        setNotifications(data.data.items)
-        setUnreadCount(data.data.unreadCount)
+        const notifs = (data.data as any)?.notifications ?? []
+        setNotifications(notifs)
+        setUnreadCount(notifs.filter((n: Notification) => !n.readAt).length)
       }
     } finally {
       setLoading(false)

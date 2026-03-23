@@ -223,8 +223,8 @@ export default function CreditsPage() {
     if (filter !== 'ALL') params.set('type', filter)
     const res = await apiFetch<TransactionPage>(`/api/v1/credits/transactions?${params}`)
     if (res.success && res.data) {
-      setTransactions(res.data.items)
-      setTxTotal(res.data.total)
+      setTransactions((res.data as any).transactions ?? (res.data as any).items ?? [])
+      setTxTotal((res.data as any).total ?? 0)
       setTxOffset(offset)
     }
     setTxLoading(false)
