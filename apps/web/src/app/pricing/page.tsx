@@ -317,7 +317,7 @@ export default function PricingPage() {
             Custom contracts for teams. SLA, role-based access, admin dashboard, on-prem routing, dedicated account manager.
           </p>
           <a
-            href="mailto:enterprise@arivarangam.com"
+            href="mailto:admin@arivarangam.com"
             className="inline-block px-6 py-3 border border-zinc-700 hover:border-zinc-500 rounded-xl text-sm font-medium transition-colors"
           >
             Contact sales →

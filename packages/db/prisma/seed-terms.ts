@@ -40,7 +40,7 @@ Your use of Arivarangam is subject to our Privacy Policy. By using Arivarangam, 
 Arivarangam reserves the right to terminate or suspend your account at any time for violation of these Terms.
 
 7. CONTACT
-For questions about these Terms, contact support@sabha.app`
+For questions about these Terms, contact support@arivarangam.com`
     },
     update: {}
   })

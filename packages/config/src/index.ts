@@ -41,7 +41,7 @@ const envSchema = z.object({
 
   // ─── Email (Resend) ──────────────────────────────────────────────────────────
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default('Arivarangam <no-reply@arivarangam.com>'),
+  EMAIL_FROM: z.string().default('Arivarangam <admin@arivarangam.com>'),
 
   // ─── Storage ─────────────────────────────────────────────────────────────────
   STORAGE_PROVIDER: z.enum(['local', 'r2']).default('local'),

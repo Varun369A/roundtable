@@ -4,7 +4,7 @@
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM = process.env.EMAIL_FROM || 'Arivarangam <no-reply@arivarangam.com>'
+const FROM = process.env.EMAIL_FROM || 'Arivarangam <admin@arivarangam.com>'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
 
 interface EmailPayload {

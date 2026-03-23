@@ -257,10 +257,10 @@ export default function AboutPage() {
               We're looking for engineers, AI researchers, and product designers who want to build the AI platform for a billion people. Remote-first. Equity-bearing. Interesting problems every day.
             </p>
             <a
-              href="mailto:careers@arivarangam.com"
+              href="mailto:support@arivarangam.com"
               className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold transition-colors"
             >
-              careers@arivarangam.com
+              support@arivarangam.com
             </a>
           </div>
         </div>
@@ -273,9 +273,9 @@ export default function AboutPage() {
           <p className="text-zinc-400 mb-8">We'd love to hear from you — whether you're a user, a potential partner, or just curious about what we're building.</p>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { label: 'General', email: 'hello@arivarangam.com' },
-              { label: 'Enterprise', email: 'enterprise@arivarangam.com' },
-              { label: 'Press', email: 'press@arivarangam.com' },
+              { label: 'General', email: 'support@arivarangam.com' },
+              { label: 'Enterprise', email: 'admin@arivarangam.com' },
+              { label: 'Press', email: 'admin@arivarangam.com' },
             ].map(({ label, email }) => (
               <a
                 key={email}

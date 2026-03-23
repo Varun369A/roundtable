@@ -93,7 +93,7 @@ export default function TermsPage() {
                   You must register for an account to use Arivarangam. You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate.
                 </p>
                 <p>
-                  You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must immediately notify us at <a href="mailto:security@arivarangam.com" className="text-brand-400 hover:text-brand-300">security@arivarangam.com</a> if you become aware of any unauthorised use of your account.
+                  You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must immediately notify us at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a> if you become aware of any unauthorised use of your account.
                 </p>
                 <p>
                   You may not share your account with others, create accounts for the purpose of abusing the Service, or use automated methods to create accounts. Each account is for a single natural person or legal entity.
@@ -172,7 +172,7 @@ export default function TermsPage() {
                 <div className="p-4 rounded-xl border border-zinc-700 bg-zinc-900">
                   <p className="text-white font-semibold mb-2">Refund Policy</p>
                   <p className="text-zinc-400">
-                    Subscription payments are eligible for a full refund within <span className="text-white">7 (seven) days</span> of the initial charge, provided you have used fewer than 10 tasks under the plan during that period. No refunds will be issued after 7 days or if the usage threshold has been exceeded. Credit purchases are non-refundable. Refund requests must be submitted to <a href="mailto:billing@arivarangam.com" className="text-brand-400 hover:text-brand-300">billing@arivarangam.com</a>.
+                    Subscription payments are eligible for a full refund within <span className="text-white">7 (seven) days</span> of the initial charge, provided you have used fewer than 10 tasks under the plan during that period. No refunds will be issued after 7 days or if the usage threshold has been exceeded. Credit purchases are non-refundable. Refund requests must be submitted to <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>.
                   </p>
                 </div>
                 <p>
@@ -297,7 +297,7 @@ export default function TermsPage() {
                   Any legal action or proceeding arising out of or relating to these Terms or your use of Arivarangam shall be brought exclusively in the courts of competent jurisdiction located in <span className="text-white font-medium">Rajasthan, India</span>. You irrevocably consent to the personal jurisdiction and venue of such courts.
                 </p>
                 <p>
-                  Before initiating any formal legal proceedings, you agree to attempt to resolve any dispute informally by contacting Arivarangam at <a href="mailto:legal@arivarangam.com" className="text-brand-400 hover:text-brand-300">legal@arivarangam.com</a>. Arivarangam will attempt to resolve the dispute informally within 30 days.
+                  Before initiating any formal legal proceedings, you agree to attempt to resolve any dispute informally by contacting Arivarangam at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>. Arivarangam will attempt to resolve the dispute informally within 30 days.
                 </p>
                 <p>
                   These Terms constitute the entire agreement between you and Arivarangam regarding your use of the Service, and supersede all prior agreements, whether written or oral, on the same subject matter.
@@ -310,9 +310,9 @@ export default function TermsPage() {
               <div className="space-y-4 text-zinc-300 leading-relaxed">
                 <p>If you have any questions about these Terms, please contact us:</p>
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900 space-y-2">
-                  <p><span className="text-zinc-400">Legal enquiries:</span> <a href="mailto:legal@arivarangam.com" className="text-brand-400 hover:text-brand-300">legal@arivarangam.com</a></p>
-                  <p><span className="text-zinc-400">Billing disputes:</span> <a href="mailto:billing@arivarangam.com" className="text-brand-400 hover:text-brand-300">billing@arivarangam.com</a></p>
-                  <p><span className="text-zinc-400">Security issues:</span> <a href="mailto:security@arivarangam.com" className="text-brand-400 hover:text-brand-300">security@arivarangam.com</a></p>
+                  <p><span className="text-zinc-400">Legal enquiries:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
+                  <p><span className="text-zinc-400">Billing disputes:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
+                  <p><span className="text-zinc-400">Security issues:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
                   <p><span className="text-zinc-400">General support:</span> <a href="mailto:support@arivarangam.com" className="text-brand-400 hover:text-brand-300">support@arivarangam.com</a></p>
                 </div>
               </div>

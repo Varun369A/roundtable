@@ -247,7 +247,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400">
-                  To exercise your rights, visit your <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Account Settings</Link> or contact our Data Protection Officer at <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a>. We will respond to requests within <span className="text-zinc-300">30 days</span>.
+                  To exercise your rights, visit your <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Account Settings</Link> or contact our Data Protection Officer at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>. We will respond to requests within <span className="text-zinc-300">30 days</span>.
                 </p>
               </div>
             </section>
@@ -300,7 +300,7 @@ export default function PrivacyPage() {
                   ))}
                 </div>
                 <p className="text-sm text-zinc-400">
-                  Despite these measures, no system is perfectly secure. In the event of a data breach that is likely to result in high risk to your rights and freedoms, Arivarangam will notify affected users within 72 hours of becoming aware, as required by applicable law. To report a security vulnerability, contact <a href="mailto:security@arivarangam.com" className="text-brand-400 hover:text-brand-300">security@arivarangam.com</a>.
+                  Despite these measures, no system is perfectly secure. In the event of a data breach that is likely to result in high risk to your rights and freedoms, Arivarangam will notify affected users within 72 hours of becoming aware, as required by applicable law. To report a security vulnerability, contact <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a>.
                 </p>
               </div>
             </section>
@@ -312,7 +312,7 @@ export default function PrivacyPage() {
                   <p>Arivarangam is intended for users who are <span className="text-white font-semibold">13 years of age or older</span>. We do not knowingly collect personal data from children under the age of 13.</p>
                 </div>
                 <p>
-                  If you are a parent or guardian and believe that your child under 13 has created a Arivarangam account, please contact us at <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a> and we will promptly delete the account and associated data.
+                  If you are a parent or guardian and believe that your child under 13 has created a Arivarangam account, please contact us at <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a> and we will promptly delete the account and associated data.
                 </p>
                 <p>
                   Users between 13 and 18 years of age should use Arivarangam only with the consent and supervision of a parent or guardian.
@@ -358,7 +358,7 @@ export default function PrivacyPage() {
               <div className="space-y-4 text-zinc-300 leading-relaxed">
                 <p>For any privacy-related enquiries, requests, or complaints:</p>
                 <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900 space-y-2">
-                  <p><span className="text-zinc-400">Data Protection Officer:</span> <a href="mailto:privacy@arivarangam.com" className="text-brand-400 hover:text-brand-300">privacy@arivarangam.com</a></p>
+                  <p><span className="text-zinc-400">Data Protection Officer:</span> <a href="mailto:admin@arivarangam.com" className="text-brand-400 hover:text-brand-300">admin@arivarangam.com</a></p>
                   <p><span className="text-zinc-400">Manage your data:</span> <Link href="/settings/account" className="text-brand-400 hover:text-brand-300">Settings → Account → Data & Privacy</Link></p>
                   <p><span className="text-zinc-400">Response time:</span> <span className="text-zinc-300">Within 30 days of receipt</span></p>
                 </div>
