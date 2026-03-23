@@ -160,9 +160,6 @@ function validateEnv() {
   if (data.NODE_ENV === 'production') {
     const prodRequired = [
       ['VAULT_MASTER_KEY or ENCRYPTED_MASTER_KEY', data.VAULT_MASTER_KEY || data.ENCRYPTED_MASTER_KEY],
-      ['RAZORPAY_KEY_ID', data.RAZORPAY_KEY_ID],
-      ['RAZORPAY_KEY_SECRET', data.RAZORPAY_KEY_SECRET],
-      ['RAZORPAY_WEBHOOK_SECRET', data.RAZORPAY_WEBHOOK_SECRET],
       ['RESEND_API_KEY', data.RESEND_API_KEY],
       ['ADMIN_SECRET', data.ADMIN_SECRET],
       ['SOCIAL_CREDENTIALS_KEY', data.SOCIAL_CREDENTIALS_KEY],
