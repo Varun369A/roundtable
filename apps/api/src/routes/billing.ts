@@ -75,7 +75,7 @@ export async function billingRoutes(app: FastifyInstance) {
         usage,
         billing: {
           hasActiveSubscription: subscription?.status === 'active',
-          canUpgrade: ['FREE', 'STARTER', 'PRO'].includes(tier),
+          canUpgrade: ['FREE', 'BUILDER', 'STUDIO'].includes(tier),
           cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd || false,
         },
       },
@@ -86,13 +86,13 @@ export async function billingRoutes(app: FastifyInstance) {
   // Creates a Razorpay subscription and returns the subscription ID for checkout
   app.post('/create-subscription', async (request, reply) => {
     const body = z.object({
-      planId: z.enum(['starter', 'pro', 'power']),
+      planId: z.enum(['builder', 'studio', 'enterprise']),
     }).safeParse(request.body)
 
     if (!body.success) {
       return reply.status(400).send({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Invalid plan' },
+        error: { code: 'VALIDATION_ERROR', message: 'Invalid plan. Must be builder, studio, or enterprise' },
       })
     }
 
@@ -172,7 +172,7 @@ export async function billingRoutes(app: FastifyInstance) {
       razorpayPaymentId:    z.string(),
       razorpaySubscriptionId: z.string(),
       razorpaySignature:   z.string(),
-      planId:              z.enum(['starter', 'pro', 'power']),
+      planId:              z.enum(['builder', 'studio', 'enterprise']),
     }).safeParse(request.body)
 
     if (!body.success) {

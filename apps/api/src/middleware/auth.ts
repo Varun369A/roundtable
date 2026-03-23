@@ -21,13 +21,32 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     // Attach user to request
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, tier: true, status: true },
+      select: { id: true, email: true, tier: true, status: true, isEmailVerified: true },
     })
 
     if (!user || user.status !== 'ACTIVE') {
       return reply.status(401).send({
         success: false,
         error: { code: 'USER_INACTIVE', message: 'User account is inactive' },
+      })
+    }
+
+    // Block unverified users from all endpoints except email verification itself.
+    // Allows: POST /verify-email, POST /resend-verification, GET /me, POST /logout
+    const path = request.url
+    const isVerificationEndpoint =
+      path.includes('/verify-email') ||
+      path.includes('/resend-verification') ||
+      path === '/api/v1/auth/me' ||
+      path === '/api/v1/auth/logout'
+
+    if (!user.isEmailVerified && !isVerificationEndpoint) {
+      return reply.status(403).send({
+        success: false,
+        error: {
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Please verify your email address before continuing. Check your inbox for the verification link.',
+        },
       })
     }
 

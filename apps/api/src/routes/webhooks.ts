@@ -50,8 +50,14 @@ export async function webhookRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Missing signature' })
       }
 
-      // Get raw body for verification
-      const rawBody = JSON.stringify(request.body)
+      // Get raw body for signature verification.
+      // We attach the raw Buffer in server.ts via addContentTypeParser.
+      // Fall back to JSON.stringify only in dev where body serialization is
+      // deterministic (Razorpay sends compact JSON with no extra whitespace).
+      const rawBodyBuf = (request as any).rawBody as Buffer | undefined
+      const rawBody = rawBodyBuf
+        ? rawBodyBuf.toString('utf8')
+        : JSON.stringify(request.body)
 
       const isValid = verifyWebhookSignature(rawBody, signature, secret)
       if (!isValid) {
@@ -164,7 +170,10 @@ async function handleWebhookEvent(event: {
       // Log billing event
       if (payment) {
         const amountInr = (payment.amount as number) / 100
-        const amountUsd = amountInr / 84 // approximate conversion
+        // Use configurable exchange rate (EXCHANGE_RATE_INR_USD env var, default 84).
+        // This is for internal billing event logging only, not for actual money movement.
+        const exchangeRate = Number(process.env.EXCHANGE_RATE_INR_USD) || 84
+        const amountUsd = amountInr / exchangeRate
         await prisma.billingEvent.create({
           data: {
             userId,

@@ -159,6 +159,23 @@ const start = async () => {
       },
     })
 
+    // ── Raw body preservation (required for webhook signature verification) ────
+    // Replaces the default JSON parser — attaches req.rawBody (Buffer) before
+    // parsing so webhook routes can verify Razorpay signatures against the
+    // original bytes rather than re-serialised JSON (which may differ in whitespace).
+    app.addContentTypeParser(
+      'application/json',
+      { parseAs: 'buffer' },
+      (req, body, done) => {
+        ;(req as any).rawBody = body
+        try {
+          done(null, JSON.parse(body.toString('utf8')))
+        } catch (err) {
+          done(err as Error, undefined)
+        }
+      }
+    )
+
     await app.register(rateLimit, {
       global: true,
       max: 200,
