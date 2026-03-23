@@ -70,9 +70,9 @@ export default function CreditBadge({ className = '' }: CreditBadgeProps) {
       </button>
 
       {tooltip && showTooltip && (
-        <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium px-2 py-1 rounded-lg bg-zinc-900 border border-white/10 text-zinc-300 z-50 pointer-events-none shadow-xl">
+        <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 z-50 pointer-events-none shadow-xl">
           {tooltip}
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 border-t border-l border-white/10 rotate-45" />
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 border-t border-l border-slate-700 rotate-45" />
         </div>
       )}
     </div>
