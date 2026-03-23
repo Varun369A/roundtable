@@ -12,7 +12,7 @@
 
 import { Queue, Worker, Job } from 'bullmq'
 import { PrismaClient } from '@arivarangam/db'
-import { redis } from '../lib/redis'
+import { redis, getBullMQConnection } from '../lib/redis'
 import { broadcastAdminAlert, createNotification } from '../lib/notifications'
 import { sendEmail } from '../lib/email'
 import { metrics } from '../lib/metrics'
@@ -38,12 +38,8 @@ async function acquireCronLock(jobName: string, ttlSeconds: number): Promise<boo
   return result === 'OK'
 }
 
-// BullMQ connection config derived from the shared redis instance
-const bullConnection = {
-  host: process.env.REDIS_HOST ?? 'localhost',
-  port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
-  password: process.env.REDIS_PASSWORD ?? undefined,
-}
+// BullMQ connection config derived from REDIS_URL (includes TLS for Upstash)
+const bullConnection = getBullMQConnection()
 
 // ---------------------------------------------------------------------------
 // Queues

@@ -1,5 +1,5 @@
 import { Queue, Worker, Job, QueueEvents } from 'bullmq'
-import { redis } from '../lib/redis'
+import { redis, getBullMQConnection } from '../lib/redis'
 import { prisma } from '@arivarangam/db'
 import type { AIModel } from '@arivarangam/types'
 import { connectorRegistry } from '../connectors/registry'
@@ -37,7 +37,7 @@ import {
 
 // ─── Queue definitions ────────────────────────────────────────────────────────
 
-const connection = { host: redis.options.host || 'localhost', port: Number(redis.options.port) || 6379 }
+const connection = getBullMQConnection()
 
 export const taskQueue = new Queue<{ taskId: string }>('sabha-tasks', {
   connection,

@@ -41,6 +41,23 @@ export function createSubscriberConnection(): Redis {
   return new Redis(valkeyUrl, {
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
-    connectionName: 'sabha-sub',
+    connectionName: 'arivarangam-sub',
   })
+}
+
+/**
+ * BullMQ connection config parsed from REDIS_URL.
+ * BullMQ requires host/port/tls object — it cannot accept a URL string directly.
+ * maxRetriesPerRequest must be null for BullMQ workers.
+ */
+export function getBullMQConnection() {
+  const parsed = new URL(valkeyUrl)
+  const isTLS = valkeyUrl.startsWith('rediss://')
+  return {
+    host: parsed.hostname,
+    port: parseInt(parsed.port) || 6379,
+    password: parsed.password || undefined,
+    maxRetriesPerRequest: null as null,
+    ...(isTLS ? { tls: {} } : {}),
+  }
 }
