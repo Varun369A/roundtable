@@ -616,6 +616,10 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
               hasExpertReview
             )
 
+            // Admin users never pay credits
+            const taskUser = await prisma.user.findUnique({ where: { id: task.userId }, select: { isAdmin: true } })
+            if (taskUser?.isAdmin) return
+
             // Idempotency guard — two subtask workers completing simultaneously
             // could both see allDone=true and both attempt a debit for the same task
             const alreadyCharged = await prisma.creditTransaction.findFirst({

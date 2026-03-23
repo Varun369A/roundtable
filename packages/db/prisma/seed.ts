@@ -203,6 +203,13 @@ async function main() {
     data: { currentWorkspaceId: adminWorkspace.id },
   })
 
+  // Grant admin unlimited credits (1,000,000)
+  await prisma.creditWallet.upsert({
+    where: { userId: admin.id },
+    update: { balance: 1000000 },
+    create: { userId: admin.id, balance: 1000000, lifetimeEarned: 1000000 },
+  })
+
   console.log(`Admin user seeded: ${adminEmail}`)
 
   // ─── Built-in Roundtable Templates ────────────────────────────────────────

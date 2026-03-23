@@ -21,7 +21,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     // Attach user to request
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, tier: true, status: true, isEmailVerified: true },
+      select: { id: true, email: true, tier: true, status: true, isEmailVerified: true, isAdmin: true },
     })
 
     if (!user || user.status !== 'ACTIVE') {

@@ -22,6 +22,7 @@ interface Task {
 
 interface UserProfile {
   isEmailVerified: boolean
+  isAdmin: boolean
   email: string
 }
 
@@ -196,7 +197,7 @@ export default function DashboardPage() {
 
     if (meRes.status === 'fulfilled' && meRes.value.success) {
       const u = meRes.value.data?.user
-      if (u) setUserProfile({ isEmailVerified: u.isEmailVerified, email: u.email })
+      if (u) setUserProfile({ isEmailVerified: u.isEmailVerified, isAdmin: u.isAdmin ?? false, email: u.email })
     }
 
     if (creditRes.status === 'fulfilled' && creditRes.value.success && creditRes.value.data) {
@@ -303,6 +304,11 @@ export default function DashboardPage() {
           <Link href="/workflows" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Workflows</Link>
           <Link href="/dashboard/scheduled" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Scheduled</Link>
           <Link href="/credits" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Credits</Link>
+          {userProfile?.isAdmin && (
+            <Link href="/admin" className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors border border-purple-500/30 px-2 py-0.5 rounded-md">
+              Admin
+            </Link>
+          )}
           <CreditBadge />
           <NotificationBell />
         </nav>
@@ -398,8 +404,8 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Low-credit warning */}
-          {creditBalance !== null && creditBalance < 50 && (
+          {/* Low-credit warning — hidden for admin */}
+          {creditBalance !== null && creditBalance < 50 && !userProfile?.isAdmin && (
             <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/8 text-sm">
               <span className="text-amber-300 flex items-center gap-2">
                 <span aria-hidden="true">⚠</span>

@@ -9,6 +9,7 @@ declare module 'fastify' {
       email: string
       tier: string
       status: string
+      isAdmin?: boolean
       currentWorkspaceId?: string | null
     }
   }

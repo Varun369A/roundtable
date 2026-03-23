@@ -385,6 +385,7 @@ export async function authRoutes(app: FastifyInstance) {
         status: true,
         emailVerified: true,
         isEmailVerified: true,
+        isAdmin: true,
         avatarUrl: true,
         createdAt: true,
         subscription: {
