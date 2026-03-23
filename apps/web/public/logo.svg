@@ -1,49 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" fill="none">
-  <!-- Roundtable icon: 6 colored dots in a circle with connecting lines -->
-  <!-- Center: (28, 28), radius: 14 for dot positions -->
+<svg viewBox="0 0 256 40" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Three-node triad mark (same geometry as favicon, no background) -->
+  <line x1="14" y1="8" x2="7" y2="20" stroke="#6366f1" stroke-width="1.4" stroke-opacity="0.45"/>
+  <line x1="14" y1="8" x2="21" y2="20" stroke="#6366f1" stroke-width="1.4" stroke-opacity="0.45"/>
+  <line x1="7.5" y1="20" x2="20.5" y2="20" stroke="#6366f1" stroke-width="1.4" stroke-opacity="0.45"/>
+  <!-- Top node -->
+  <circle cx="14" cy="8" r="2.4" fill="#6366f1"/>
+  <!-- Bottom-left node -->
+  <circle cx="7" cy="20" r="2.4" fill="#6366f1" fill-opacity="0.65"/>
+  <!-- Bottom-right node -->
+  <circle cx="21" cy="20" r="2.4" fill="#6366f1" fill-opacity="0.65"/>
 
-  <!-- Connecting lines (thin, subtle) -->
-  <!-- Lines between adjacent dots (hexagon edges) -->
-  <line x1="28" y1="14" x2="40.12" y2="21" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-  <line x1="40.12" y1="21" x2="40.12" y2="35" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-  <line x1="40.12" y1="35" x2="28" y2="42" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-  <line x1="28" y1="42" x2="15.88" y2="35" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-  <line x1="15.88" y1="35" x2="15.88" y2="21" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-  <line x1="15.88" y1="21" x2="28" y2="14" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.6"/>
-
-  <!-- Cross lines (every dot to every other dot for roundtable feel) -->
-  <line x1="28" y1="14" x2="40.12" y2="35" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="28" y1="14" x2="15.88" y2="35" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="28" y1="14" x2="28" y2="42" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="40.12" y1="21" x2="15.88" y2="35" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="40.12" y1="21" x2="28" y2="42" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="40.12" y1="21" x2="15.88" y2="21" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="40.12" y1="35" x2="15.88" y2="21" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="40.12" y1="35" x2="15.88" y2="35" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-  <line x1="28" y1="42" x2="15.88" y2="21" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.5"/>
-
-  <!-- 6 dots: evenly spaced, starting top (12 o'clock), going clockwise -->
-  <!-- Dot 1: top — indigo #6366f1 — angle 270° → (28, 14) -->
-  <circle cx="28" cy="14" r="3.5" fill="#6366f1"/>
-
-  <!-- Dot 2: top-right — purple #8b5cf6 — angle 330° → (28+14*cos(-30°), 28+14*sin(-30°)) = (40.12, 21) -->
-  <circle cx="40.12" cy="21" r="3.5" fill="#8b5cf6"/>
-
-  <!-- Dot 3: bottom-right — blue #3b82f6 — angle 30° → (40.12, 35) -->
-  <circle cx="40.12" cy="35" r="3.5" fill="#3b82f6"/>
-
-  <!-- Dot 4: bottom — emerald #10b981 — angle 90° → (28, 42) -->
-  <circle cx="28" cy="42" r="3.5" fill="#10b981"/>
-
-  <!-- Dot 5: bottom-left — amber #f59e0b — angle 150° → (15.88, 35) -->
-  <circle cx="15.88" cy="35" r="3.5" fill="#f59e0b"/>
-
-  <!-- Dot 6: top-left — rose #f43f5e — angle 210° → (15.88, 21) -->
-  <circle cx="15.88" cy="21" r="3.5" fill="#f43f5e"/>
-
-  <!-- Wordmark: "Arivarangam" with "ar" in indigo -->
-  <!-- "Ariv" dark, "ar" indigo, "angam" dark -->
-  <text font-family="sans-serif" font-weight="700" font-size="28" dominant-baseline="middle" y="30">
-    <tspan x="64" fill="#1e293b">Ariv</tspan><tspan fill="#6366f1">ar</tspan><tspan fill="#1e293b">angam</tspan>
+  <!-- Wordmark: "Ariv" + "ar" (indigo) + "angam" -->
+  <text
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif"
+    font-weight="700"
+    font-size="22"
+    dominant-baseline="middle"
+    y="21"
+  >
+    <tspan x="34" fill="#1e293b">Ariv</tspan><tspan fill="#6366f1">ar</tspan><tspan fill="#1e293b">angam</tspan>
   </text>
 </svg>

@@ -100,12 +100,19 @@ export async function streamRoutes(app: FastifyInstance) {
       metrics.sseConnectionsActive.inc()
 
       // ── Set SSE headers ────────────────────────────────────────────────────────
+      // Dynamically reflect the request origin if it's in our allowed list,
+      // so both www.arivarangam.com and arivarangam.com work correctly.
+      const allowedOrigins = (process.env.CORS_ORIGINS || process.env.WEB_URL || 'http://localhost:3000')
+        .split(',').map((o: string) => o.trim())
+      const requestOrigin = request.headers.origin || ''
+      const acao = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0]
+
       reply.raw.writeHead(200, {
         'Content-Type':                     'text/event-stream',
         'Cache-Control':                    'no-cache, no-transform',
         'Connection':                       'keep-alive',
         'X-Accel-Buffering':               'no', // disable nginx buffering
-        'Access-Control-Allow-Origin':     process.env.WEB_URL || 'http://localhost:3000',
+        'Access-Control-Allow-Origin':     acao,
         'Access-Control-Allow-Credentials': 'true',
       })
 

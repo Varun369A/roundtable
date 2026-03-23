@@ -37,6 +37,39 @@ function isPositiveInt(val: unknown): val is number {
 
 export async function sessionsRoutes(app: FastifyInstance) {
 
+  // ─── GET /tasks/:taskId/session ─────────────────────────────────────────────
+  app.get<{ Params: { taskId: string } }>(
+    '/tasks/:taskId/session',
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const { taskId } = request.params
+      const userId = request.user!.id
+
+      const task = await prisma.task.findFirst({
+        where: { id: taskId, userId },
+        select: { id: true },
+      })
+      if (!task) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'TASK_NOT_FOUND', message: 'Task not found or access denied' },
+        })
+      }
+
+      const session = await prisma.roundtableSession.findFirst({
+        where: { taskId },
+        select: { id: true, accessCode: true, isPublic: true, allowSteering: true, expiresAt: true },
+      })
+
+      if (!session) {
+        return reply.send({ success: true, data: { session: null } })
+      }
+
+      const shareUrl = `${process.env.WEB_URL}/roundtable/${taskId}?code=${session.accessCode}`
+      return reply.send({ success: true, data: { session: { ...session, shareUrl } } })
+    },
+  )
+
   // ─── POST /tasks/:taskId/session ────────────────────────────────────────────
   app.post<{
     Params: { taskId: string }
