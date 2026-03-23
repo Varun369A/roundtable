@@ -42,7 +42,7 @@ export class GammaConnector extends BaseConnector {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-5',
       max_tokens: 4096,
       system: `You are a presentation designer. Create a structured, engaging presentation outline in JSON format.
 Format: {"title": "...", "slides": [{"title": "...", "type": "cover|content|data|quote|cta", "bullets": ["..."], "notes": "..."}]}

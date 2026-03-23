@@ -52,7 +52,7 @@ export async function parseIntent(userGoal: string): Promise<ParsedIntent> {
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const message = await client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1024,
         system: INTENT_SYSTEM_PROMPT,
         messages: [

@@ -33,7 +33,7 @@ export class ArivarangamConnector extends BaseConnector {
 
     const response = await this.withRetry(async () => {
       return this.client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: 'user', content: input.prompt }],

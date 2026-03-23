@@ -135,7 +135,7 @@ Be rigorous but fair. Return ONLY the JSON object.`
 
     // 5. Call Claude
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-5',
       max_tokens: 2000,
       messages: [{ role: 'user', content: verificationPrompt }],
     })

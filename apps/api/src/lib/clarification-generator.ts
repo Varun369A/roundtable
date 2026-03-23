@@ -76,7 +76,7 @@ Analyse this goal. Is clarification needed? If yes, what 1–3 questions would m
 
   try {
     const response = await anthropic.messages.create({
-      model:      'claude-3-5-sonnet-20241022',
+      model:      'claude-sonnet-4-5',
       max_tokens: 800,
       system:     systemPrompt,
       messages:   [{ role: 'user', content: userPrompt }],

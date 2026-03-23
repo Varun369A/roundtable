@@ -103,9 +103,9 @@ export const taskWorker = new Worker<{ taskId: string }>(
     await Promise.all(
       readySubtaskIds.map((subtaskId) =>
         subtaskQueue.add(
-          `subtask:${subtaskId}`,
+          `subtask_${subtaskId}`,
           { subtaskId, taskId },
-          { jobId: `subtask:${subtaskId}` } // idempotency
+          { jobId: `subtask_${subtaskId}` } // idempotency
         )
       )
     )
@@ -396,9 +396,9 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       // Enqueue auto-fix subtask immediately if created
       if (autoFixSubtaskId) {
         await subtaskQueue.add(
-          `subtask:${autoFixSubtaskId}`,
+          `subtask_${autoFixSubtaskId}`,
           { subtaskId: autoFixSubtaskId, taskId },
-          { jobId: `subtask:${autoFixSubtaskId}` }
+          { jobId: `subtask_${autoFixSubtaskId}` }
         )
       }
 
@@ -448,7 +448,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         attempts:     existingAttempts + 1,
         failedAt:     Date.now(),
       }, {
-        jobId: `dlq:${subtaskId}:${existingAttempts + 1}`,
+        jobId: `dlq_${subtaskId}_${existingAttempts + 1}`,
       })
 
       throw err
@@ -481,7 +481,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
           }))
           await Promise.all(
             reviewIds.map((id) =>
-              subtaskQueue.add(`subtask:${id}`, { subtaskId: id, taskId }, { jobId: `subtask:${id}` })
+              subtaskQueue.add(`subtask_${id}`, { subtaskId: id, taskId }, { jobId: `subtask_${id}` })
             )
           )
           return  // wait for reviews to complete
@@ -500,9 +500,9 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
             subtaskId: synthesisId,
           }))
           await subtaskQueue.add(
-            `subtask:${synthesisId}`,
+            `subtask_${synthesisId}`,
             { subtaskId: synthesisId, taskId },
-            { jobId: `subtask:${synthesisId}` }
+            { jobId: `subtask_${synthesisId}` }
           )
           return  // wait for synthesis
         }
@@ -669,9 +669,9 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
   await Promise.all(
     readyIds.map((subtaskId) =>
       subtaskQueue.add(
-        `subtask:${subtaskId}`,
+        `subtask_${subtaskId}`,
         { subtaskId, taskId },
-        { jobId: `subtask:${subtaskId}` }
+        { jobId: `subtask_${subtaskId}` }
       )
     )
   )
@@ -684,7 +684,7 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
  * Kicks off the execution pipeline.
  */
 export async function enqueueTask(taskId: string): Promise<void> {
-  await taskQueue.add(`task:${taskId}`, { taskId }, { jobId: `task:${taskId}` })
+  await taskQueue.add(`task_${taskId}`, { taskId }, { jobId: `task_${taskId}` })
 }
 
 export async function getQueueStats() {

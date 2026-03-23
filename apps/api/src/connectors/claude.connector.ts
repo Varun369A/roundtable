@@ -3,7 +3,7 @@ import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector
 import type { AIModel } from '@arivarangam/types'
 
 const MODEL_MAP: Partial<Record<AIModel, string>> = {
-  'claude-3-5-sonnet': 'claude-3-5-sonnet-20241022',
+  'claude-3-5-sonnet': 'claude-sonnet-4-5',
   'claude-3-opus':     'claude-opus-4-5',
 }
 
@@ -25,7 +25,7 @@ export class ClaudeConnector extends BaseConnector {
     }
 
     const start = Date.now()
-    const apiModel = MODEL_MAP[this.model] || 'claude-3-5-sonnet-20241022'
+    const apiModel = MODEL_MAP[this.model] || 'claude-sonnet-4-5'
     // Reuse the singleton client unless a user-provided key was given
     const client = input.userApiKey ? new Anthropic({ apiKey }) : this.client
 
