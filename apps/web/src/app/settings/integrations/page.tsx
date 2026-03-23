@@ -129,6 +129,7 @@ function ConnectModal({ providerKey, onClose, onConnected }: ConnectModalProps) 
       }),
     })
     if (res.success) {
+      setSaving(false)
       onConnected()
     } else {
       setError((res.error as any)?.message || 'Connection failed. Check your token and try again.')

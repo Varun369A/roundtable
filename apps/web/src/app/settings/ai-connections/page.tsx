@@ -41,9 +41,14 @@ export default function AIConnectionsPage() {
   const [saving, setSaving]       = useState(false)
 
   async function load() {
-    const res = await apiFetch<{ data: { providers: Provider[] } }>('/api/v1/ai-connections')
-    if (res.success && res.data) setProviders((res.data as any).data.providers)
-    setLoading(false)
+    try {
+      const res = await apiFetch<{ providers: Provider[] }>('/api/v1/ai-connections')
+      if (res.success && res.data) setProviders(res.data.providers ?? [])
+    } catch {
+      // network error — leave providers empty
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])

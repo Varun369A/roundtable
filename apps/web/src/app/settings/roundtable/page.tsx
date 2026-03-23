@@ -52,9 +52,14 @@ export default function RoundtableCustomizePage() {
   const [dragOver, setDragOver]   = useState<number | null>(null)
 
   async function load() {
-    const res = await apiFetch<{ data: { routing: RoutingRow[] } }>('/api/v1/routing-preferences')
-    if (res.success && res.data) setRows((res.data as any).data.routing)
-    setLoading(false)
+    try {
+      const res = await apiFetch<{ routing: RoutingRow[] }>('/api/v1/routing-preferences')
+      if (res.success && res.data) setRows(res.data.routing ?? [])
+    } catch {
+      // network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, [])

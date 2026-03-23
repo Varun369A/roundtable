@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -36,37 +36,10 @@ function PasswordStrength({ password }: { password: string }) {
 
 export default function SignupPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [form, setForm] = useState({ name: '', email: '', password: '', betaCode: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [codeStatus, setCodeStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
-  const [validatingCode, setValidatingCode] = useState(false)
-  const hasBetaCode = !!searchParams.get('code') || !!form.betaCode
-
-  useEffect(() => {
-    const code = searchParams.get('code')
-    if (code) setForm((f) => ({ ...f, betaCode: code.toUpperCase() }))
-  }, [searchParams])
-
-  const handleCodeBlur = async () => {
-    if (!form.betaCode) return
-    setValidatingCode(true)
-    try {
-      const res = await fetch(`${API_URL}/api/v1/beta/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: form.betaCode }),
-      })
-      const data = await res.json()
-      setCodeStatus(data.success && data.data?.valid ? 'valid' : 'invalid')
-    } catch {
-      setCodeStatus('idle')
-    } finally {
-      setValidatingCode(false)
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -82,22 +55,13 @@ export default function SignupPage() {
           name: form.name,
           email: form.email,
           password: form.password,
-          betaCode: form.betaCode || undefined,
         }),
       })
 
       const data = await res.json()
 
       if (!data.success) {
-        const code = data.error?.code
-        if (code === 'BETA_REQUIRED') {
-          setError('Early access requires an invite code. Join the waitlist for an invite.')
-        } else if (code === 'INVALID_BETA_CODE' || code === 'EXPIRED_BETA_CODE') {
-          setError('This invite code is invalid or has already been used.')
-          setCodeStatus('invalid')
-        } else {
-          setError(data.error?.message || 'Something went wrong. Please try again.')
-        }
+        setError(data.error?.message || 'Something went wrong. Please try again.')
         return
       }
 
@@ -124,14 +88,14 @@ export default function SignupPage() {
             Start orchestrating AI today.
           </h2>
           <p className="text-brand-200 text-lg leading-relaxed mb-10">
-            Join teams using Arivarangam to automate complex work with multiple AI models working together.
+            Coordinate Claude, GPT-4, Gemini and 10+ AI models on one platform — built for Indian professionals.
           </p>
 
           <div className="space-y-4">
             {[
               { icon: '🚀', title: 'Up and running in minutes', desc: 'No infrastructure to manage' },
               { icon: '🤖', title: '10+ AI models connected', desc: 'Claude, GPT-4, Gemini, Perplexity and more' },
-              { icon: '💳', title: 'Free to start', desc: 'No credit card required for early access' },
+              { icon: '💳', title: 'Free to start', desc: 'No credit card required' },
             ].map((f) => (
               <div key={f.title} className="flex gap-3 items-start">
                 <span className="text-2xl">{f.icon}</span>
@@ -159,9 +123,7 @@ export default function SignupPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
             <div className="mb-7">
               <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
-              <p className="mt-1 text-slate-500 text-sm">
-                {hasBetaCode ? 'You have an invite code — fill in your details below.' : 'Get started with early access.'}
-              </p>
+              <p className="mt-1 text-slate-500 text-sm">Get started for free. No credit card required.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -212,48 +174,6 @@ export default function SignupPage() {
                   </button>
                 </div>
                 <PasswordStrength password={form.password} />
-              </div>
-
-              {/* Invite code — shown always but optional */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Invite code
-                  <span className="text-slate-400 font-normal ml-1.5">(optional)</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={form.betaCode}
-                    onChange={(e) => {
-                      setForm({ ...form, betaCode: e.target.value.toUpperCase() })
-                      setCodeStatus('idle')
-                    }}
-                    onBlur={handleCodeBlur}
-                    className={`w-full px-3.5 py-2.5 rounded-lg bg-white border text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 transition text-sm font-mono tracking-wide ${
-                      codeStatus === 'valid'
-                        ? 'border-emerald-400 focus:ring-emerald-500/20'
-                        : codeStatus === 'invalid'
-                          ? 'border-red-400 focus:ring-red-500/20'
-                          : 'border-slate-300 focus:border-brand-500 focus:ring-brand-500/20'
-                    }`}
-                    placeholder="ARIVARANGAM-XXXXXXXX"
-                  />
-                  {validatingCode && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-slate-300 border-t-brand-500 rounded-full animate-spin" />
-                  )}
-                  {codeStatus === 'valid' && !validatingCode && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 text-xs font-medium">✓ Valid</span>
-                  )}
-                  {codeStatus === 'invalid' && !validatingCode && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-400 text-xs">Invalid</span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-400 mt-1">
-                  Have an invite? Enter it above to get full access.{' '}
-                  <Link href="/waitlist" className="text-brand-600 hover:text-brand-700 font-medium">
-                    Request invite →
-                  </Link>
-                </p>
               </div>
 
               {error && (
