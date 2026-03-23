@@ -7,7 +7,7 @@ import type { PlanId, UserTier } from '@sabha/types'
 
 async function ensureIdempotent(provider: string, eventId: string, eventType: string, payload: unknown): Promise<boolean> {
   try {
-    await (prisma as any).webhookEvent.create({
+    await prisma.webhookEvent.create({
       data: { provider, eventId, eventType, payload: payload as any }
     })
     return true  // first time processing

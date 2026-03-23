@@ -158,7 +158,7 @@ async function executeTool(name: string, input: Record<string, any>): Promise<un
     case 'get_daily_stats': {
       const days = input.days ?? 7
       const since = new Date(Date.now() - days * 86_400_000)
-      const tasks = await (prisma as any).task.groupBy({
+      const tasks = await prisma.task.groupBy({
         by: ['createdAt'],
         _count: { id: true },
         where: { createdAt: { gte: since } },
@@ -167,10 +167,10 @@ async function executeTool(name: string, input: Record<string, any>): Promise<un
     }
 
     case 'get_model_stats': {
-      const subtasks = await (prisma as any).subtask.groupBy({
+      const subtasks = await prisma.subtask.groupBy({
         by: ['assignedModel'],
         _count: { id: true },
-        where: { assignedModel: { not: null } },
+        where: { assignedModel: { not: null as any } },
       })
       return { modelStats: subtasks }
     }
@@ -201,7 +201,7 @@ async function executeTool(name: string, input: Record<string, any>): Promise<un
       const [total, bugs, aggRating] = await Promise.all([
         prisma.feedback.count(),
         prisma.feedback.count({ where: { type: 'bug' } }),
-        (prisma as any).feedback.aggregate({ _avg: { rating: true } }),
+        prisma.feedback.aggregate({ _avg: { rating: true } }),
       ])
       return { total, bugs, avgRating: aggRating._avg?.rating ?? null }
     }
@@ -254,7 +254,7 @@ async function executeTool(name: string, input: Record<string, any>): Promise<un
     }
 
     case 'get_template_insights': {
-      const analytics = await (prisma as any).templateAnalytics.findMany({
+      const analytics = await prisma.templateAnalytics.findMany({
         include: { template: { select: { name: true, category: true } } },
         orderBy: { performanceScore: 'desc' },
         take: 20,
@@ -276,7 +276,7 @@ async function executeTool(name: string, input: Record<string, any>): Promise<un
       const hours = input.hours ?? 1
       const limit = input.limit ?? 20
       const since = new Date(Date.now() - hours * 3_600_000)
-      const failed = await (prisma as any).subtask.findMany({
+      const failed = await prisma.subtask.findMany({
         where: { status: 'FAILED', updatedAt: { gte: since } },
         take: limit,
         orderBy: { updatedAt: 'desc' },

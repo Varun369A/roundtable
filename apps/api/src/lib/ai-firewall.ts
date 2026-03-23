@@ -469,7 +469,7 @@ export async function firewallPrompt(
 
   if (result.threats.length > 0) {
     try {
-      await (prisma as any).firewallLog.create({
+      await prisma.firewallLog.create({
         data: {
           taskId: taskId ?? null,
           userId: userId ?? null,

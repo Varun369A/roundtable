@@ -29,7 +29,7 @@ async function gatherPlatformContext() {
   const since1h  = new Date(Date.now() - 3_600_000)
 
   const [recentFailed, circuitBreakerFlags, feedbackBugs, errorRate1h] = await Promise.all([
-    (prisma as any).subtask.findMany({
+    prisma.subtask.findMany({
       where: { status: 'FAILED', updatedAt: { gte: since24h } },
       take: 50,
       orderBy: { updatedAt: 'desc' },
@@ -46,7 +46,7 @@ async function gatherPlatformContext() {
       take: 20,
       select: { id: true, message: true, createdAt: true },
     }),
-    (prisma as any).subtask.count({
+    prisma.subtask.count({
       where: { status: 'FAILED', updatedAt: { gte: since1h } },
     }),
   ])
@@ -63,7 +63,7 @@ export async function sandboxRoutes(app: FastifyInstance): Promise<void> {
   // GET /sessions — list sandbox sessions (admin only)
   app.get('/sessions', { preHandler: [requireAuth, requireAdmin] }, async (request, reply) => {
     try {
-      const sessions = await (prisma as any).sandboxSession.findMany({
+      const sessions = await prisma.sandboxSession.findMany({
         orderBy: { createdAt: 'desc' },
         take: 50,
         include: { _count: { select: { runs: true } } },
@@ -144,7 +144,7 @@ Respond with valid JSON in this exact format:
         focus:           focus ?? null,
       }
 
-      const session = await (prisma as any).sandboxSession.create({
+      const session = await prisma.sandboxSession.create({
         data: {
           title:       diagnosis.issueTitle    ?? 'Detected Issue',
           diagnosis:   diagnosis.issueSummary  ?? '',
@@ -167,7 +167,7 @@ Respond with valid JSON in this exact format:
   app.get('/sessions/:id', { preHandler: [requireAuth, requireAdmin] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
-      const session = await (prisma as any).sandboxSession.findUnique({
+      const session = await prisma.sandboxSession.findUnique({
         where: { id },
         include: { runs: { orderBy: { createdAt: 'desc' } } },
       })
@@ -185,7 +185,7 @@ Respond with valid JSON in this exact format:
   app.post('/sessions/:id/run', { preHandler: [requireAuth, requireAdmin] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
-      const session = await (prisma as any).sandboxSession.findUnique({ where: { id } })
+      const session = await prisma.sandboxSession.findUnique({ where: { id } })
       if (!session) {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Session not found' } })
       }
@@ -203,7 +203,7 @@ Respond with valid JSON in this exact format:
       try {
         switch (fixType) {
           case 'template_instruction': {
-            const template = await (prisma as any).roundtableTemplate.findFirst({
+            const template = await prisma.roundtableTemplate.findFirst({
               where: { OR: [{ id: fix.target }, { name: { equals: fix.target, mode: 'insensitive' } }] },
             })
             if (!template) throw new Error(`Template not found: ${fix.target}`)
@@ -232,7 +232,7 @@ Respond with valid JSON in this exact format:
             if (!knownModels.includes(proposedModel)) {
               throw new Error(`Unknown model: ${proposedModel}. Known: ${knownModels.join(', ')}`)
             }
-            const recentFailures = await (prisma as any).subtask.count({
+            const recentFailures = await prisma.subtask.count({
               where: { assignedModel: proposedModel, status: 'FAILED', updatedAt: { gte: new Date(Date.now() - 3_600_000) } },
             })
             if (recentFailures > 10) {
@@ -263,7 +263,7 @@ Respond with valid JSON in this exact format:
       const durationMs = Date.now() - runStart
       const runNumber  = session.runCount + 1
 
-      const run = await (prisma as any).sandboxRun.create({
+      const run = await prisma.sandboxRun.create({
         data: {
           sessionId:  session.id,
           runNumber,
@@ -274,7 +274,7 @@ Respond with valid JSON in this exact format:
         },
       })
 
-      await (prisma as any).sandboxSession.update({
+      await prisma.sandboxSession.update({
         where: { id: session.id },
         data: {
           runCount:     { increment: 1 },
@@ -294,7 +294,7 @@ Respond with valid JSON in this exact format:
   app.post('/sessions/:id/apply', { preHandler: [requireAuth, requireAdmin] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
-      const session = await (prisma as any).sandboxSession.findUnique({ where: { id } })
+      const session = await prisma.sandboxSession.findUnique({ where: { id } })
       if (!session) {
         return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Session not found' } })
       }
@@ -318,13 +318,13 @@ Respond with valid JSON in this exact format:
 
       switch (fixType) {
         case 'template_instruction': {
-          const template = await (prisma as any).roundtableTemplate.findFirst({
+          const template = await prisma.roundtableTemplate.findFirst({
             where: { OR: [{ id: fix.target }, { name: { equals: fix.target, mode: 'insensitive' } }] },
           })
           if (!template) throw new Error(`Template not found: ${fix.target}`)
-          await (prisma as any).roundtableTemplate.update({
+          await prisma.roundtableTemplate.update({
             where: { id: template.id },
-            data: { agentInstruction: fix.change },
+            data: { agentInstruction: fix.change } as any,
           })
           applyResult = { updated: 'template', id: template.id, name: template.name }
           break
@@ -381,7 +381,7 @@ Respond with valid JSON in this exact format:
         }
       }
 
-      await (prisma as any).sandboxSession.update({
+      await prisma.sandboxSession.update({
         where: { id: session.id },
         data: { status: 'APPLIED', appliedAt: new Date() },
       })
@@ -419,7 +419,7 @@ Respond with valid JSON in this exact format:
       const since1h = new Date(Date.now() - 3_600_000)
 
       const [failedLast1h, circuitBreakers, highErrorModels, recentBugs] = await Promise.all([
-        (prisma as any).subtask.findMany({
+        prisma.subtask.findMany({
           where: { status: 'FAILED', updatedAt: { gte: since1h } },
           select: { assignedModel: true, updatedAt: true },
           take: 50,
@@ -427,10 +427,10 @@ Respond with valid JSON in this exact format:
         prisma.featureFlag.findMany({
           where: { key: { startsWith: 'circuit_breaker' }, enabled: true },
         }),
-        (prisma as any).subtask.groupBy({
+        prisma.subtask.groupBy({
           by: ['assignedModel'],
           _count: { id: true },
-          where: { status: 'FAILED', updatedAt: { gte: since1h }, assignedModel: { not: null } },
+          where: { status: 'FAILED', updatedAt: { gte: since1h }, assignedModel: { not: null as any } },
           orderBy: { _count: { id: 'desc' } },
           take: 5,
         }),

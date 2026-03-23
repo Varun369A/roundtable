@@ -28,14 +28,14 @@ export interface CreateNotificationOptions {
 }
 
 export async function createNotification(opts: CreateNotificationOptions): Promise<void> {
-  const notification = await (prisma as any).notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId: opts.userId,
       type: opts.type,
       title: opts.title,
       body: opts.body,
       link: opts.link ?? null,
-      metadata: opts.metadata ?? {},
+      metadata: (opts.metadata ?? {}) as any,
       readAt: null,
       createdAt: new Date(),
     },
@@ -86,14 +86,14 @@ export async function broadcastAdminAlert(opts: {
 }
 
 export async function markNotificationRead(id: string, userId: string): Promise<void> {
-  await (prisma as any).notification.updateMany({
+  await prisma.notification.updateMany({
     where: { id, userId },
     data: { readAt: new Date() },
   })
 }
 
 export async function getUnreadCount(userId: string): Promise<number> {
-  const count = await (prisma as any).notification.count({
+  const count = await prisma.notification.count({
     where: { userId, readAt: null },
   })
   return count

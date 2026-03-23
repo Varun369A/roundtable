@@ -27,13 +27,13 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
       const userId = request.user!.id
 
       const [notifications, total] = await Promise.all([
-        (prisma as any).notification.findMany({
+        prisma.notification.findMany({
           where: { userId },
           orderBy: [{ readAt: 'asc' }, { createdAt: 'desc' }],
           skip,
           take: limit,
         }),
-        (prisma as any).notification.count({ where: { userId } }),
+        prisma.notification.count({ where: { userId } }),
       ])
 
       return reply.send({
@@ -134,7 +134,7 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
   // POST /read-all — mark all notifications read
   app.post('/read-all', async (request, reply) => {
     try {
-      await (prisma as any).notification.updateMany({
+      await prisma.notification.updateMany({
         where: { userId: request.user!.id, readAt: null },
         data:  { readAt: new Date() },
       })

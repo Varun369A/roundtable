@@ -103,7 +103,7 @@ export async function githubOAuthRoutes(app: FastifyInstance): Promise<void> {
       // Encrypt token before storage — never store plaintext GitHub tokens
       const encryptedToken = encryptGithubToken(token)
 
-      await (prisma as any).gitHubConnection.upsert({
+      await prisma.gitHubConnection.upsert({
         where:  { userId },
         update: {
           accessToken: encryptedToken,
@@ -130,7 +130,7 @@ export async function githubOAuthRoutes(app: FastifyInstance): Promise<void> {
 
   // GET /connection — get connected account info
   app.get('/connection', { preHandler: [requireAuth] }, async (request, reply) => {
-    const conn = await (prisma as any).gitHubConnection.findUnique({
+    const conn = await prisma.gitHubConnection.findUnique({
       where:  { userId: request.user!.id },
       // Never expose the encrypted token — select only metadata fields
       select: { login: true, avatarUrl: true, githubId: true, createdAt: true },
@@ -140,7 +140,7 @@ export async function githubOAuthRoutes(app: FastifyInstance): Promise<void> {
 
   // DELETE /connection — disconnect GitHub account
   app.delete('/connection', { preHandler: [requireAuth] }, async (request, reply) => {
-    await (prisma as any).gitHubConnection.deleteMany({ where: { userId: request.user!.id } })
+    await prisma.gitHubConnection.deleteMany({ where: { userId: request.user!.id } })
     return reply.send({ success: true })
   })
 }

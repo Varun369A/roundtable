@@ -101,7 +101,7 @@ async function sendUserDigestEmail(
 async function processStaleTaskScan(_job: Job): Promise<void> {
   const staleThreshold = new Date(Date.now() - 30 * 60_000) // 30 minutes
 
-  const stuckTasks = await (prisma as any).task.findMany({
+  const stuckTasks = await prisma.task.findMany({
     where: {
       status: 'IN_PROGRESS',
       updatedAt: { lt: staleThreshold },
@@ -128,7 +128,7 @@ async function processStaleTaskScan(_job: Job): Promise<void> {
     if (allTerminal) {
       // All subtasks done — task should be completed or failed, fix it
       const anyFailed = task.subtasks.some((st: any) => st.status === 'FAILED')
-      await (prisma as any).task.update({
+      await prisma.task.update({
         where: { id: task.id },
         data: {
           status: anyFailed ? 'FAILED' : 'COMPLETED',
@@ -151,7 +151,7 @@ async function processStaleTaskScan(_job: Job): Promise<void> {
     // Re-enqueue in-progress subtasks that appear stuck (no updates in 30+ min)
     for (const subtask of inProgressSubtasks) {
       if (new Date(subtask.updatedAt) < staleThreshold) {
-        await (prisma as any).subtask.update({
+        await prisma.subtask.update({
           where: { id: subtask.id },
           data: { status: 'PENDING', updatedAt: new Date() },
         })
@@ -214,7 +214,7 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
       // Permanently failed — escalate
       console.error(`[healing-worker] Permanently failed: subtaskId=${subtaskId} after ${attempts} heal attempts`)
 
-      await (prisma as any).subtask.update({
+      await prisma.subtask.update({
         where: { id: subtaskId },
         data: { status: 'FAILED', updatedAt: new Date() },
       })
@@ -232,7 +232,7 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
       case 'CIRCUIT_OPEN': {
         // Check if the circuit is now closed (flag disabled = circuit closed)
         const flagName = `circuit_breaker_open`
-        const flag = await (prisma as any).featureFlag.findFirst({ where: { key: flagName } })
+        const flag = await prisma.featureFlag.findFirst({ where: { key: flagName } })
         if (!flag || !flag.enabled) {
           // Circuit is closed — re-enqueue
           await subtaskQueue.add(
@@ -268,12 +268,12 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
 
       case 'TIMEOUT': {
         // Assign fallback model and re-enqueue
-        const fallbackFlag = await (prisma as any).featureFlag.findFirst({
+        const fallbackFlag = await prisma.featureFlag.findFirst({
           where: { key: 'fallback_model_timeout' },
         })
         const fallbackModel = (fallbackFlag?.config as any)?.model ?? 'claude-haiku-4-5'
 
-        await (prisma as any).subtask.update({
+        await prisma.subtask.update({
           where: { id: subtaskId },
           data: {
             assignedModel: fallbackModel,
@@ -293,13 +293,13 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
 
       case 'CONTENT_POLICY': {
         // Permanently fail — content policy violations are not retried
-        await (prisma as any).subtask.update({
+        await prisma.subtask.update({
           where: { id: subtaskId },
           data: { status: 'FAILED', updatedAt: new Date() },
         })
 
         // Find task owner and notify
-        const task = await (prisma as any).task.findUnique({
+        const task = await prisma.task.findUnique({
           where: { id: taskId },
           select: { userId: true, title: true },
         })
@@ -337,7 +337,7 @@ async function processTemplateAnalytics(_job: Job): Promise<void> {
   if (!acquired) { _job.log('Skipped — another instance running'); return }
   const since7d = new Date(Date.now() - 7 * 86_400_000)
 
-  const templates = await (prisma as any).roundtableTemplate.findMany({
+  const templates = await prisma.roundtableTemplate.findMany({
     where: { isBuiltIn: true, isPublic: true },
     select: { id: true, name: true },
   })
@@ -345,11 +345,11 @@ async function processTemplateAnalytics(_job: Job): Promise<void> {
   for (const template of templates) {
     try {
       const [tasks, completedTasks] = await Promise.all([
-        (prisma as any).task.findMany({
+        prisma.task.findMany({
           where: { templateId: template.id, createdAt: { gte: since7d } },
           select: { id: true, status: true, userId: true, createdAt: true, totalCostUsd: true, completedAt: true },
         }),
-        (prisma as any).task.findMany({
+        prisma.task.findMany({
           where: {
             templateId: template.id,
             status: 'COMPLETED',
@@ -383,7 +383,7 @@ async function processTemplateAnalytics(_job: Job): Promise<void> {
       const userIds = [...new Set(tasks.map((t: any) => t.userId))]
       let returningUsers = 0
       for (const userId of userIds) {
-        const laterTask = await (prisma as any).task.findFirst({
+        const laterTask = await prisma.task.findFirst({
           where: {
             userId,
             templateId: template.id,
@@ -406,7 +406,7 @@ async function processTemplateAnalytics(_job: Job): Promise<void> {
         costScore * 20 +
         recencyScore * 10
 
-      await (prisma as any).templateAnalytics.upsert({
+      await prisma.templateAnalytics.upsert({
         where: { templateId: template.id },
         update: {
           taskCount,
@@ -441,7 +441,7 @@ async function processTemplateAnalytics(_job: Job): Promise<void> {
 
 async function processUserDigest(_job: Job): Promise<void> {
   // Check if email_notifications flag is enabled
-  const emailFlag = await (prisma as any).featureFlag.findFirst({
+  const emailFlag = await prisma.featureFlag.findFirst({
     where: { key: 'email_notifications' },
   })
   if (emailFlag && !emailFlag.enabled) {
@@ -452,7 +452,7 @@ async function processUserDigest(_job: Job): Promise<void> {
   const since30d = new Date(Date.now() - 30 * 86_400_000)
   const since7d = new Date(Date.now() - 7 * 86_400_000)
 
-  const users = await (prisma as any).user.findMany({
+  const users = await prisma.user.findMany({
     where: {
       OR: [{ isBeta: true }, { tier: { not: 'FREE' } }],
       lastActiveAt: { gte: since30d },
@@ -466,13 +466,13 @@ async function processUserDigest(_job: Job): Promise<void> {
   for (const user of users) {
     try {
       const [tasks, completedTasks, billingEvents] = await Promise.all([
-        (prisma as any).task.count({
+        prisma.task.count({
           where: { userId: user.id, createdAt: { gte: since7d } },
         }),
-        (prisma as any).task.count({
+        prisma.task.count({
           where: { userId: user.id, status: 'COMPLETED', createdAt: { gte: since7d } },
         }),
-        (prisma as any).billingEvent.aggregate({
+        prisma.billingEvent.aggregate({
           where: { userId: user.id, createdAt: { gte: since7d } },
           _sum: { costUsd: true },
         }),
@@ -507,27 +507,27 @@ async function processAdminDigest(_job: Job): Promise<void> {
   }
 
   const [newSignups, revenue, topTemplates, errorCount, totalTasks] = await Promise.all([
-    (prisma as any).user.count({ where: { createdAt: { gte: since7d } } }),
-    (prisma as any).billingEvent.aggregate({
+    prisma.user.count({ where: { createdAt: { gte: since7d } } }),
+    prisma.billingEvent.aggregate({
       where: { createdAt: { gte: since7d } },
       _sum: { costUsd: true },
     }),
-    (prisma as any).task.groupBy({
+    prisma.task.groupBy({
       by: ['templateId'],
       _count: { id: true },
       where: { createdAt: { gte: since7d }, templateId: { not: null } },
       orderBy: { _count: { id: 'desc' } },
       take: 3,
     }),
-    (prisma as any).task.count({
+    prisma.task.count({
       where: { status: 'FAILED', createdAt: { gte: since7d } },
     }),
-    (prisma as any).task.count({ where: { createdAt: { gte: since7d } } }),
+    prisma.task.count({ where: { createdAt: { gte: since7d } } }),
   ])
 
   // Enrich top templates with names
   const topTemplateIds = topTemplates.map((t: any) => t.templateId).filter(Boolean)
-  const templateNames = await (prisma as any).roundtableTemplate.findMany({
+  const templateNames = await prisma.roundtableTemplate.findMany({
     where: { id: { in: topTemplateIds } },
     select: { id: true, name: true },
   })
@@ -606,9 +606,9 @@ async function processQueueMonitor(_job: Job): Promise<void> {
 async function processSabhaLearning(_job: Job): Promise<void> {
   const acquired = await acquireCronLock('sabha-learning', 840) // 14min lock (runs every 15min)
   if (!acquired) { _job.log('Skipped — another instance running'); return }
-  const knowledgeCount = await (prisma as any).sabhaKnowledge.count()
+  const knowledgeCount = await prisma.sabhaKnowledge.count()
 
-  const state = await (prisma as any).sabhaAIState.upsert({
+  const state = await prisma.sabhaAIState.upsert({
     where: { id: 'singleton' },
     update: { knowledgeCount, lastLearnedAt: new Date() },
     create: { id: 'singleton', knowledgeCount, lastLearnedAt: new Date() },
@@ -617,13 +617,13 @@ async function processSabhaLearning(_job: Job): Promise<void> {
 
   // Transition LEARNING → READY when threshold is met
   if (state.status === 'LEARNING' && knowledgeCount >= state.readyThreshold) {
-    await (prisma as any).sabhaAIState.update({
+    await prisma.sabhaAIState.update({
       where: { id: 'singleton' },
       data: { status: 'READY' },
     })
 
     // Notify all admin users
-    const admins = await (prisma as any).user.findMany({
+    const admins = await prisma.user.findMany({
       where: { isAdmin: true },
       select: { id: true },
     })
