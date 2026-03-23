@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 9 9 11;
-    --foreground: 250 250 250;
+    --background: 248 250 252;
+    --foreground: 15 23 42;
   }
 
   * {
@@ -14,6 +14,11 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 
   ::selection {
@@ -27,36 +32,30 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: theme('colors.zinc.900');
+    background: theme('colors.slate.100');
   }
 
   ::-webkit-scrollbar-thumb {
-    background: theme('colors.zinc.600');
+    background: theme('colors.slate.300');
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.zinc.500');
+    background: theme('colors.slate.400');
   }
 }
 
-/* Ensure visible focus indicators */
 *:focus-visible {
-  outline: 3px solid #6366f1;
+  outline: 3px solid #4f46e5;
   outline-offset: 2px;
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
-  .text-gray-400 {
-    color: #9ca3af;
-  }
-  .bg-gray-800 {
-    background-color: #1f2937;
+  .text-slate-400 {
+    color: #64748b;
   }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
