@@ -66,45 +66,8 @@ export async function authRoutes(app: FastifyInstance) {
 
     const { email, password, name, betaCode } = body.data
 
-    // Beta gate — if BETA_REQUIRED flag is on, validate invite code
-    const betaRequired = await isEnabled(FLAGS.BETA_REQUIRED)
-    let betaInvite: { id: string; code: string } | null = null
-
-    if (betaRequired) {
-      if (!betaCode) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'BETA_REQUIRED', message: 'An invite code is required to join the beta.' },
-        })
-      }
-
-      const invite = await prisma.betaInvite.findUnique({
-        where: { code: betaCode.toUpperCase() },
-      })
-
-      if (!invite || invite.usedById) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'INVALID_BETA_CODE', message: 'This invite code is invalid or has already been used.' },
-        })
-      }
-
-      if (invite.expiresAt && invite.expiresAt < new Date()) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'EXPIRED_BETA_CODE', message: 'This invite code has expired.' },
-        })
-      }
-
-      if (invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
-        return reply.status(403).send({
-          success: false,
-          error: { code: 'CODE_EMAIL_MISMATCH', message: 'This invite code was issued for a different email address.' },
-        })
-      }
-
-      betaInvite = invite
-    }
+    // Beta gate disabled — open signup
+    const betaInvite: { id: string; code: string } | null = null
 
     // Password strength check
     const strength = validatePasswordStrength(password)
