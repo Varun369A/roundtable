@@ -69,7 +69,7 @@ export async function streamRoutes(app: FastifyInstance) {
     '/task/:id',
     {
       preHandler: [streamAuth],
-      config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+      config: { rateLimit: { max: 60, timeWindow: '1 minute' } },
     },
     async (
       request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>,

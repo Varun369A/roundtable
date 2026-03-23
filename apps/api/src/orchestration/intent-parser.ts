@@ -66,7 +66,9 @@ export async function parseIntent(userGoal: string): Promise<ParsedIntent> {
       const content = message.content[0]
       if (content.type === 'text') {
         try {
-          const parsed = JSON.parse(content.text) as ParsedIntent
+          // Strip markdown code fences if Claude wraps the JSON
+          const rawText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+          const parsed = JSON.parse(rawText) as ParsedIntent
           return parsed
         } catch (parseErr) {
           console.warn('[IntentParser] JSON parse failed, using minimal fallback:', parseErr)

@@ -208,7 +208,7 @@ export async function taskRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { task } })
   })
 
-  // ─── DELETE /:id — Cancel a task ──────────────────────────────────────────────
+  // ─── DELETE /:id — Delete a task (hard delete for user) ───────────────────────
   app.delete('/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
     const userId = request.user!.id
@@ -224,18 +224,9 @@ export async function taskRoutes(app: FastifyInstance) {
       })
     }
 
-    if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(task.status)) {
-      return reply.status(409).send({
-        success: false,
-        error: { code: 'INVALID_STATE', message: 'Cannot cancel a task that is already finished' },
-      })
-    }
+    // Hard delete — cascade removes subtasks, outputs, clarifications
+    await prisma.task.delete({ where: { id } })
 
-    await prisma.task.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    })
-
-    return reply.send({ success: true, data: { message: 'Task cancelled' } })
+    return reply.send({ success: true, data: { message: 'Task deleted' } })
   })
 }
