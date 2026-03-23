@@ -39,16 +39,16 @@ export default function CreditBadge({ className = '' }: CreditBadgeProps) {
   const isEmpty = balance === 0
 
   const colorClass = isEmpty
-    ? 'bg-red-500/15 text-red-400 border-red-500/30'
+    ? 'bg-red-50 text-red-600 border-red-200'
     : isLow
-    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-    : 'bg-white/8 text-zinc-300 border-white/10'
+    ? 'bg-amber-50 text-amber-700 border-amber-200'
+    : 'bg-slate-50 text-slate-700 border-slate-200'
 
   const tooltip = isEmpty ? 'No credits' : isLow ? 'Low balance' : null
 
   if (loading) {
     return (
-      <div className={`w-16 h-7 rounded-lg bg-white/5 animate-pulse ${className}`} />
+      <div className={`w-16 h-7 rounded-lg bg-slate-200 animate-pulse ${className}`} />
     )
   }
 

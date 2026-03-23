@@ -46,12 +46,12 @@ interface Workspace {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:     'text-yellow-400 bg-yellow-400/10',
-  ROUTING:     'text-blue-400 bg-blue-400/10',
-  IN_PROGRESS: 'text-indigo-400 bg-indigo-400/10',
-  COMPLETED:   'text-emerald-400 bg-emerald-400/10',
-  FAILED:      'text-red-400 bg-red-400/10',
-  CANCELLED:   'text-zinc-500 bg-zinc-500/10',
+  PENDING:     'text-amber-700 bg-amber-50 border border-amber-200',
+  ROUTING:     'text-blue-700 bg-blue-50 border border-blue-200',
+  IN_PROGRESS: 'text-indigo-700 bg-indigo-50 border border-indigo-200',
+  COMPLETED:   'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  FAILED:      'text-red-700 bg-red-50 border border-red-200',
+  CANCELLED:   'text-slate-500 bg-slate-100 border border-slate-200',
 }
 
 const CAT_ICONS: Record<string, string> = {
@@ -74,7 +74,7 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-zinc-400">Or start with a template</p>
+        <p className="text-sm text-slate-500">Or start with a template</p>
         <Link href="/templates" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
           Browse all →
         </Link>
@@ -84,11 +84,11 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
           <button
             key={t.id}
             onClick={() => onSelect(t)}
-            className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/8 border border-white/5 hover:border-white/10 transition-all group"
+            className="text-left p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-200 hover:shadow-sm transition-all group"
           >
             <span className="text-xl block mb-1.5">{t.icon}</span>
-            <p className="text-xs font-medium text-white leading-tight line-clamp-1">{t.name}</p>
-            <p className="text-[10px] text-zinc-600 mt-0.5">{t.agents.length} AIs</p>
+            <p className="text-xs font-medium text-slate-800 leading-tight line-clamp-1">{t.name}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{t.agents.length} AIs</p>
           </button>
         ))}
       </div>
@@ -111,23 +111,23 @@ function WorkspaceBadge({ workspaces, active, onSwitch }: {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/8 border border-white/10 text-sm text-white transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-sm text-slate-700 transition-colors shadow-sm"
       >
         <span className="w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
           {active.name[0]}
         </span>
         <span className="text-xs max-w-32 truncate">{active.name}</span>
-        <span className="text-zinc-600 text-xs">{open ? '▲' : '▼'}</span>
+        <span className="text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 right-0 bg-[#111] border border-white/10 rounded-xl shadow-xl min-w-48 z-20 overflow-hidden">
+        <div className="absolute top-full mt-1 right-0 bg-white border border-slate-200 rounded-xl shadow-xl min-w-48 z-20 overflow-hidden">
           {workspaces.map((ws) => (
             <button
               key={ws.id}
               onClick={() => { onSwitch(ws); setOpen(false) }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 transition-colors ${
-                ws.id === active.id ? 'text-white' : 'text-zinc-400'
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 transition-colors ${
+                ws.id === active.id ? 'text-slate-900' : 'text-slate-500'
               }`}
             >
               <span className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
@@ -135,13 +135,13 @@ function WorkspaceBadge({ workspaces, active, onSwitch }: {
               </span>
               <div>
                 <p className="text-xs font-medium">{ws.name}</p>
-                <p className="text-[10px] text-zinc-600">{ws.type === 'PERSONAL' ? 'Personal' : `${ws.memberCount} members`}</p>
+                <p className="text-[10px] text-slate-400">{ws.type === 'PERSONAL' ? 'Personal' : `${ws.memberCount} members`}</p>
               </div>
-              {ws.id === active.id && <span className="ml-auto text-indigo-400 text-xs">✓</span>}
+              {ws.id === active.id && <span className="ml-auto text-indigo-500 text-xs">✓</span>}
             </button>
           ))}
-          <div className="border-t border-white/5 px-4 py-2">
-            <Link href="/workspace/settings" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="border-t border-slate-100 px-4 py-2">
+            <Link href="/workspace/settings" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
               Workspace settings →
             </Link>
           </div>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
     const [taskRes, wsRes, meRes, creditRes] = await Promise.allSettled([
       apiFetch('/api/v1/tasks'),
       apiFetch('/api/v1/workspaces/my'),
-      apiFetch<{ user: { isEmailVerified: boolean; email: string } }>('/api/v1/auth/me'),
+      apiFetch<{ user: { isEmailVerified: boolean; isAdmin: boolean; email: string } }>('/api/v1/auth/me'),
       apiFetch<{ wallet: { balance: number } }>('/api/v1/credits/wallet'),
     ])
 
@@ -279,34 +279,34 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
-      <header className="border-b border-white/5 sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between">
-        <span className="text-lg font-bold">Arivarangam<span className="text-indigo-500">.</span></span>
+      <header className="border-b border-slate-200 sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shadow-sm">
+        <span className="text-lg font-bold text-slate-900">Arivarangam<span className="text-indigo-600">.</span></span>
         <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-3">
           <WorkspaceBadge
             workspaces={workspaces}
             active={activeWorkspace}
             onSwitch={handleSwitchWorkspace}
           />
-          <Link href="/people" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">People</Link>
-          <Link href="/friends" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Friends</Link>
-          <Link href="/messages" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Messages</Link>
-          <Link href="/repos" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Repos</Link>
-          <Link href="/templates" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Templates</Link>
-          <Link href="/marketplace" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Marketplace</Link>
-          <Link href="/marketplace/experts" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Experts</Link>
-          <Link href="/packs" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">AI Packs</Link>
-          <Link href="/settings/ai-connections" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">AI Keys</Link>
-          <Link href="/settings/roundtable" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Roundtable</Link>
-          <Link href="/settings/language" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Language</Link>
-          <Link href="/settings/billing" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Billing</Link>
-          <Link href="/workflows" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Workflows</Link>
-          <Link href="/dashboard/scheduled" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Scheduled</Link>
-          <Link href="/credits" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Credits</Link>
+          <Link href="/people" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">People</Link>
+          <Link href="/friends" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Friends</Link>
+          <Link href="/messages" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Messages</Link>
+          <Link href="/repos" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Repos</Link>
+          <Link href="/templates" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Templates</Link>
+          <Link href="/marketplace" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Marketplace</Link>
+          <Link href="/marketplace/experts" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Experts</Link>
+          <Link href="/packs" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">AI Packs</Link>
+          <Link href="/settings/ai-connections" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">AI Keys</Link>
+          <Link href="/settings/roundtable" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Roundtable</Link>
+          <Link href="/settings/language" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Language</Link>
+          <Link href="/settings/billing" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Billing</Link>
+          <Link href="/workflows" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Workflows</Link>
+          <Link href="/dashboard/scheduled" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Scheduled</Link>
+          <Link href="/credits" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Credits</Link>
           {userProfile?.isAdmin && (
-            <Link href="/admin" className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors border border-purple-500/30 px-2 py-0.5 rounded-md">
-              Admin
+            <Link href="/admin" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors border border-indigo-200 bg-indigo-50 px-2.5 py-1 rounded-lg">
+              Admin Panel
             </Link>
           )}
           <CreditBadge />
@@ -345,10 +345,10 @@ export default function DashboardPage() {
         {activeWorkspace && (
           <div className="flex items-center gap-2 mb-6">
             <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0" />
-            <p className="text-sm text-zinc-500">
-              Working in <span className="text-zinc-300 font-medium">{activeWorkspace.name}</span>
+            <p className="text-sm text-slate-500">
+              Working in <span className="text-slate-800 font-medium">{activeWorkspace.name}</span>
               {activeWorkspace.type === 'PERSONAL' && (
-                <span className="ml-2 text-xs text-zinc-600">(private)</span>
+                <span className="ml-2 text-xs text-slate-400">(private)</span>
               )}
             </p>
           </div>
@@ -358,23 +358,23 @@ export default function DashboardPage() {
         <form onSubmit={createTask} aria-label="Create a new Roundtable task" className="mb-10">
           {/* Selected template indicator */}
           {selectedTemplate && (
-            <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+            <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl">
               <span className="text-lg">{selectedTemplate.icon}</span>
               <div className="flex-1">
-                <p className="text-xs font-medium text-indigo-300">{selectedTemplate.name} template</p>
-                <p className="text-[10px] text-zinc-500">{selectedTemplate.agents.length} AIs in sequence</p>
+                <p className="text-xs font-medium text-indigo-700">{selectedTemplate.name} template</p>
+                <p className="text-[10px] text-slate-500">{selectedTemplate.agents.length} AIs in sequence</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedTemplate(null)}
-                className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors"
+                className="text-slate-400 hover:text-slate-600 text-xs transition-colors"
               >
                 ✕
               </button>
             </div>
           )}
 
-          <label htmlFor="goal-input" className="block text-sm text-zinc-400 mb-3">
+          <label htmlFor="goal-input" className="block text-sm text-slate-600 font-medium mb-3">
             {selectedTemplate
               ? `Describe your ${selectedTemplate.name.toLowerCase()} goal`
               : 'What do you want to accomplish?'}
@@ -386,7 +386,7 @@ export default function DashboardPage() {
               aria-required="true"
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-white/20 focus:outline-none transition-colors text-white placeholder-zinc-600 resize-none text-sm"
+              className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 focus:outline-none transition-colors text-slate-900 placeholder-slate-400 resize-none text-sm shadow-sm"
               placeholder={
                 selectedTemplate
                   ? selectedTemplate.name === 'Web App Development'
@@ -424,17 +424,17 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setVisibility((v) => v === 'private' ? 'workspace' : 'private')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors border ${
                   visibility === 'workspace'
-                    ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'
-                    : 'bg-white/5 text-zinc-500 border border-white/5'
+                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                 }`}
               >
                 {visibility === 'private' ? '🔒 Private' : '👥 Workspace'}
               </button>
 
               {detectedLang && (
-                <span className="text-[11px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg">
+                <span className="text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
                   {detectedLang} detected
                 </span>
               )}
@@ -443,13 +443,13 @@ export default function DashboardPage() {
             <button
               type="submit"
               disabled={creating || !goal.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 rounded-xl text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 whitespace-nowrap shadow-sm"
             >
               {creating ? 'Starting…' : selectedTemplate ? `Start ${selectedTemplate.icon}` : 'Start Roundtable'}
             </button>
           </div>
 
-          {createError && <p role="alert" className="text-red-400 text-xs mt-2">{createError}</p>}
+          {createError && <p role="alert" className="text-red-600 text-xs mt-2">{createError}</p>}
         </form>
 
         {/* Template quick-pick */}
@@ -464,8 +464,8 @@ export default function DashboardPage() {
         {/* Task History */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-white">Recent tasks</h2>
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <h2 className="text-base font-semibold text-slate-800">Recent tasks</h2>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
               {activeWorkspace?.type === 'PERSONAL' ? (
                 <span className="flex items-center gap-1">🔒 Personal workspace — only you can see these</span>
               ) : (
@@ -481,14 +481,14 @@ export default function DashboardPage() {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 rounded-xl bg-white/5 animate-pulse" />
+                <div key={i} className="h-16 rounded-xl bg-slate-200 animate-pulse" />
               ))}
             </div>
           ) : tasks.length === 0 ? (
-            <div className="text-center py-16 text-zinc-600">
+            <div className="text-center py-16 text-slate-400">
               <p className="text-3xl mb-3">✨</p>
               <p className="text-sm">No tasks yet. Start your first Roundtable above.</p>
-              <Link href="/templates" className="inline-block mt-3 text-xs text-indigo-400 hover:text-indigo-300">
+              <Link href="/templates" className="inline-block mt-3 text-xs text-indigo-600 hover:text-indigo-700">
                 Browse templates →
               </Link>
             </div>
@@ -498,21 +498,20 @@ export default function DashboardPage() {
                 <div
                   key={task.id}
                   onClick={() => router.push(`/roundtable/${task.id}`)}
-                  className="flex items-center justify-between px-5 py-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/8 hover:border-white/10 cursor-pointer transition-all"
+                  className="flex items-center justify-between px-5 py-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Privacy indicator */}
                     <span className="text-xs flex-shrink-0" title={task.visibility === 'private' ? 'Private' : 'Shared in workspace'}>
                       {task.visibility === 'private' ? '🔒' : '👥'}
                     </span>
                     <div className="min-w-0">
-                      <p className="font-medium text-sm truncate">{task.title}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="font-medium text-sm text-slate-800 truncate">{task.title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {new Date(task.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
-                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-zinc-400 bg-zinc-400/10'}`}>
+                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-slate-500 bg-slate-100'}`}>
                     {task.status.toLowerCase().replace('_', ' ')}
                   </span>
                 </div>
