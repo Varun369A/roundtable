@@ -173,14 +173,14 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       const connectorModel = toConnectorModel(subtask.assignedModel)
       const userApiKey = await resolveUserApiKey(context.userId, connectorModel)
 
-      // Execute via connector — hard 500-token output ceiling (token governor)
+      // Execute via connector
       const output = await connectorRegistry.execute(connectorModel, {
         prompt: fullPrompt,
         model: connectorModel,
         taskId,
         subtaskId,
         userApiKey,
-        options: { maxTokens: 500 },
+        options: { maxTokens: 4096 },
       })
 
       // ── AI Output Firewall: scan for injected threats / PII in AI-generated text ──

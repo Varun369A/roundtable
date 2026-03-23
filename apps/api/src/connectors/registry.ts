@@ -46,10 +46,15 @@ const FALLBACK_CHAINS: Partial<Record<AIModel, AIModel[]>> = {
   // Audio / speech
   'elevenlabs':          [],
 
-  // Specialized — no cross-provider fallback available
-  'perplexity-sonar':    ['gemini-pro'],  // web search fallback to general
-  'sarvam-1':            ['claude-3-5-sonnet'],  // Indian language fallback
-  'gamma':               ['gpt-4o'],
+  // Specialized — fall back to Claude when no API key available
+  'perplexity-sonar':    ['gemini-pro', 'claude-3-5-sonnet'],
+  'sarvam-1':            ['claude-3-5-sonnet'],
+  'gamma':               ['gpt-4o', 'claude-3-5-sonnet'],
+  'midjourney-v6':       ['dalle-3', 'stability-xl'],
+  'runway-gen3':         ['claude-3-5-sonnet'],
+  'elevenlabs':          ['claude-3-5-sonnet'],
+  'groq':                ['claude-3-5-sonnet'],
+  'cohere':              ['claude-3-5-sonnet'],
 }
 
 // ─── Fallback depth limit ─────────────────────────────────────────────────────
@@ -68,13 +73,23 @@ function isFallbackableError(err: unknown): boolean {
   if (!err) return false
   const code = (err as NodeJS.ErrnoException).code || ''
   const msg  = (err instanceof Error ? err.message : String(err)).toLowerCase()
+  const status = (err as any).status || (err as any).statusCode || 0
   return (
     FALLBACK_ERROR_CODES.has(code) ||
     msg.includes('rate limit') ||
     msg.includes('overloaded') ||
     msg.includes('timeout') ||
     msg.includes('service unavailable') ||
-    msg.includes('circuit')
+    msg.includes('circuit') ||
+    // Missing or invalid API key — fall back to next model in chain
+    msg.includes('api key') ||
+    msg.includes('not set') ||
+    msg.includes('not configured') ||
+    msg.includes('no connector') ||
+    msg.includes('unauthorized') ||
+    msg.includes('invalid_api_key') ||
+    status === 401 ||
+    status === 403
   )
 }
 

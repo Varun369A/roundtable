@@ -84,9 +84,15 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const bottomRef  = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
 
-  // Auto-scroll to bottom whenever messages or typing indicators change
+  // Auto-scroll to bottom only when user is already near the bottom
+  const mainRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const main = mainRef.current
+    if (!main) return
+    const distFromBottom = main.scrollHeight - main.scrollTop - main.clientHeight
+    if (distFromBottom < 200) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages, activeSubtasks])
 
   const addSystemMessage = (text: string) => {
@@ -390,6 +396,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
         {/* Message Feed */}
         <main
+          ref={mainRef}
           className={`flex flex-col overflow-y-auto ${
             hasPreview && showPreview ? 'hidden md:flex md:w-[55%]' : 'flex-1'
           } ${hasPreview && activeTab !== 'feed' ? 'hidden md:flex' : ''}`}
