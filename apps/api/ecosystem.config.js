@@ -28,12 +28,25 @@ function parseEnvFile(filePath) {
 
 const envVars = parseEnvFile(path.join(__dirname, '.env'))
 
+// tsx is hoisted to monorepo root in Turborepo — check multiple locations
+function findTsx() {
+  const candidates = [
+    path.join(__dirname, 'node_modules', '.bin', 'tsx'),
+    path.join(__dirname, '..', '..', 'node_modules', '.bin', 'tsx'),
+    path.join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'tsx'),
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p
+  }
+  return 'tsx' // fallback to PATH
+}
+
 module.exports = {
   apps: [
     {
       name: 'arivarangam-api',
       script: 'src/server.ts',
-      interpreter: path.join(__dirname, 'node_modules', '.bin', 'tsx'),
+      interpreter: findTsx(),
       cwd: __dirname,
       env: {
         NODE_ENV: 'production',
