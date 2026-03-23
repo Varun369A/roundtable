@@ -128,7 +128,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
   // Manually add or subtract credits from a user's wallet
   app.post<{ Params: { id: string } }>('/:id/credits', async (request, reply) => {
     const body = z.object({
-      amount: z.number().int().nonzero(),
+      amount: z.number().int().refine((n) => n !== 0, { message: 'Amount cannot be zero' }),
       reason: z.string().min(1).max(200).default('Admin adjustment'),
     }).safeParse(request.body)
 
@@ -139,7 +139,8 @@ export async function adminUsersRoutes(app: FastifyInstance) {
       })
     }
 
-    const { amount, reason } = body.data
+    const amount: number = body.data.amount
+    const reason: string = body.data.reason
     const userId = request.params.id
 
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })
@@ -152,10 +153,10 @@ export async function adminUsersRoutes(app: FastifyInstance) {
 
     let newBalance: number
     if (amount > 0) {
-      const result = await creditWallet(userId, amount, 'PROMOTION', { reason })
+      const result = await creditWallet(userId, amount, 'PROMOTION', reason)
       newBalance = result.newBalance
     } else {
-      const result = await debitWallet(userId, Math.abs(amount), 'EXPIRY', { reason })
+      const result = await debitWallet(userId, Math.abs(amount), 'EXPIRY', reason)
       newBalance = result.newBalance
     }
 
