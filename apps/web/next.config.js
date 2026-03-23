@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@sabha/types'],
+  transpilePackages: ['@arivarangam/types'],
   images: {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
   },
@@ -31,7 +31,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://www.google-analytics.com https://api.razorpay.com wss: ws:",
+              "connect-src 'self' https://api.arivarangam.com https://www.google-analytics.com https://api.razorpay.com wss: ws:",
               "frame-src https://checkout.razorpay.com https://api.razorpay.com",
               "media-src 'self' blob:",
             ].join('; ')
