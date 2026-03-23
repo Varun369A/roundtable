@@ -9,6 +9,11 @@ import { generateClarifications, saveClarifications, buildClarificationContext }
 import { getMemoryContext } from '../lib/memory-manager'
 import { detectSkillsAndAwards } from '../jobs/skill-detector'
 
+// Prisma enum uses underscore identifiers (gpt_4o) but types use dash strings (gpt-4o)
+function toPrismaModel(model: string): string {
+  return model.replace(/-/g, '_').replace(/\./g, '_')
+}
+
 /**
  * Entry point — called when user triggers a task.
  *
@@ -154,7 +159,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
             taskId: task.id,
             title: def.title,
             category: def.category,
-            assignedModel: def.assignedModel as any,
+            assignedModel: toPrismaModel(def.assignedModel) as any,
             status: 'PENDING',
             executionOrder: def.executionOrder,
             dependsOn: [], // resolved below

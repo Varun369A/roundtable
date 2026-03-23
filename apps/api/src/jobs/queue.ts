@@ -18,6 +18,11 @@ import { resolveUserApiKey } from '../lib/key-resolver'
 import { inferMemoryFromTask } from '../lib/memory-manager'
 import { onWorkflowStepComplete } from '../lib/workflow-executor'
 import { verifyTaskOutputs } from '../lib/quality-verifier'
+
+// Prisma stores enum identifiers (gpt_4o) but connectors expect dash strings (gpt-4o)
+function toConnectorModel(prismaModel: string): AIModel {
+  return prismaModel.replace(/_/g, '-') as AIModel
+}
 import { forwardTaskEventToSession } from '../lib/session-manager'
 import {
   checkRound1Complete,
@@ -165,12 +170,13 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       const fullPrompt = firewallResult.sanitized
 
       // Resolve user's own API key (BYOAI — free usage if user provides their key)
-      const userApiKey = await resolveUserApiKey(context.userId, subtask.assignedModel as AIModel)
+      const connectorModel = toConnectorModel(subtask.assignedModel)
+      const userApiKey = await resolveUserApiKey(context.userId, connectorModel)
 
       // Execute via connector — hard 500-token output ceiling (token governor)
-      const output = await connectorRegistry.execute(subtask.assignedModel as AIModel, {
+      const output = await connectorRegistry.execute(connectorModel, {
         prompt: fullPrompt,
-        model: subtask.assignedModel as AIModel,
+        model: connectorModel,
         taskId,
         subtaskId,
         userApiKey,
@@ -240,7 +246,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         taskId,
         subtaskId,
         title: subtask.title,
-        executor: subtask.assignedModel as AIModel,
+        executor: connectorModel,
         outputContent: output.content || output.fileUrl || '',
       })
 
@@ -362,7 +368,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         event: 'subtask_completed',
         subtaskId,
         title: subtask.title,
-        model: subtask.assignedModel,
+        model: connectorModel,
         role: subtask.role,
         roundNumber: subtask.roundNumber,
         reviewsSubtaskId: subtask.reviewsSubtaskId,
@@ -382,7 +388,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         event: 'subtask_completed',
         subtaskId,
         title: subtask.title,
-        model: subtask.assignedModel,
+        model: connectorModel,
         role:  subtask.role,
         roundNumber: subtask.roundNumber,
       })).catch(() => {})

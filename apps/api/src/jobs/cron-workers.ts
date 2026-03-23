@@ -267,7 +267,8 @@ async function processDeadLetterHealing(_job: Job): Promise<void> {
         const fallbackFlag = await prisma.featureFlag.findFirst({
           where: { key: 'fallback_model_timeout' },
         })
-        const fallbackModel = (fallbackFlag?.config as any)?.model ?? 'claude-haiku-4-5'
+        const fallbackModelRaw = (fallbackFlag?.config as any)?.model ?? 'claude-haiku-4-5'
+        const fallbackModel = fallbackModelRaw.replace(/-/g, '_')
 
         await prisma.subtask.update({
           where: { id: subtaskId },

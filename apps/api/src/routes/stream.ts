@@ -136,7 +136,7 @@ export async function streamRoutes(app: FastifyInstance) {
           send('subtask_completed', {
             subtaskId: subtask.id,
             title:     subtask.title,
-            model:     subtask.assignedModel,
+            model:     subtask.assignedModel?.replace(/_/g, '-'),
             output: {
               type:    subtask.output.type,
               content: subtask.output.content,
@@ -147,7 +147,7 @@ export async function streamRoutes(app: FastifyInstance) {
           send('subtask_started', {
             subtaskId: subtask.id,
             title:     subtask.title,
-            model:     subtask.assignedModel,
+            model:     subtask.assignedModel?.replace(/_/g, '-'),
           })
         } else if (subtask.status === 'FAILED') {
           send('subtask_failed', {
