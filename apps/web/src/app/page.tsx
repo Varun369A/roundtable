@@ -21,10 +21,10 @@ export default function LandingPage() {
               Sign in
             </Link>
             <Link
-              href="/waitlist"
+              href="/signup"
               className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors shadow-sm"
             >
-              Get early access
+              Get started free
             </Link>
           </div>
         </div>
@@ -32,9 +32,9 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-32 pb-24">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-200 bg-brand-50 text-brand-700 text-xs font-medium mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse-slow" />
-          Early access — limited spots available
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-slow" />
+          Now open — create your account for free
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight max-w-4xl leading-[1.1] text-slate-900">
@@ -51,10 +51,10 @@ export default function LandingPage() {
 
         <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
           <Link
-            href="/waitlist"
+            href="/signup"
             className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-lg transition-all hover:scale-105 shadow-md shadow-brand-600/20"
           >
-            Request early access
+            Create free account
           </Link>
           <Link
             href="/login"
@@ -157,13 +157,13 @@ export default function LandingPage() {
       <section className="py-20 px-6 bg-brand-600 text-center">
         <h2 className="text-3xl font-bold text-white mb-4">Ready to orchestrate AI?</h2>
         <p className="text-brand-200 mb-8 max-w-xl mx-auto">
-          Join the waitlist and get early access when a spot opens. Free to start.
+          Create your free account and start using Claude, GPT-4, Gemini and 10+ AIs together in minutes.
         </p>
         <Link
-          href="/waitlist"
+          href="/signup"
           className="inline-block px-8 py-4 bg-white text-brand-700 hover:bg-brand-50 rounded-xl font-semibold text-lg transition-colors shadow-sm"
         >
-          Request early access
+          Get started free
         </Link>
       </section>
 
@@ -179,7 +179,7 @@ export default function LandingPage() {
             <Link href="/pricing" className="hover:text-slate-600 transition-colors">Pricing</Link>
             <a href="mailto:support@arivarangam.com" className="hover:text-slate-600 transition-colors">Support</a>
           </div>
-          <p className="text-slate-400 text-sm">© 2025 Arivarangam</p>
+          <p className="text-slate-400 text-sm">© 2026 Arivarangam</p>
         </div>
       </footer>
     </main>
