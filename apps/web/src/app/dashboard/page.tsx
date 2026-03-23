@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import NotificationBell from '@/components/NotificationBell'
@@ -54,9 +54,121 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:   'text-slate-500 bg-slate-100 border border-slate-200',
 }
 
-const CAT_ICONS: Record<string, string> = {
-  development: '💻', design: '🎨', learning: '🎓', marketing: '📣',
-  business: '💼', content: '✍️', research: '📊', personal: '🌱',
+// ─── Sidebar Nav ──────────────────────────────────────────────────────────────
+
+const NAV_SECTIONS = [
+  {
+    label: 'Work',
+    items: [
+      { href: '/dashboard', icon: '📋', label: 'Tasks' },
+      { href: '/templates', icon: '📐', label: 'Templates' },
+      { href: '/workflows', icon: '⚡', label: 'Workflows' },
+      { href: '/dashboard/scheduled', icon: '🗓', label: 'Scheduled' },
+    ],
+  },
+  {
+    label: 'Discover',
+    items: [
+      { href: '/marketplace', icon: '🤖', label: 'Marketplace' },
+      { href: '/packs', icon: '📦', label: 'AI Packs' },
+      { href: '/marketplace/experts', icon: '⭐', label: 'Experts' },
+    ],
+  },
+  {
+    label: 'Social',
+    items: [
+      { href: '/people', icon: '👥', label: 'People' },
+      { href: '/friends', icon: '👋', label: 'Friends' },
+      { href: '/messages', icon: '💬', label: 'Messages' },
+      { href: '/repos', icon: '📁', label: 'Repos' },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
+      { href: '/settings/ai-connections', icon: '🔑', label: 'AI Keys' },
+      { href: '/credits', icon: '💳', label: 'Credits' },
+      { href: '/settings/billing', icon: '📊', label: 'Billing' },
+      { href: '/settings/language', icon: '🌐', label: 'Language' },
+      { href: '/settings', icon: '⚙', label: 'Settings' },
+    ],
+  },
+]
+
+function Sidebar({ userProfile }: { userProfile: UserProfile | null }) {
+  const pathname = usePathname()
+
+  return (
+    <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
+      {/* Logo */}
+      <div className="px-5 py-4 border-b border-slate-100">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <span className="text-lg font-bold text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
+          </span>
+        </Link>
+      </div>
+
+      {/* Nav sections */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label}>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold px-2 mb-1">
+              {section.label}
+            </p>
+            <ul className="space-y-0.5">
+              {section.items.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive
+                          ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500 font-medium'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="text-base leading-none">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
+
+        {/* Admin */}
+        {userProfile?.isAdmin && (
+          <div>
+            <ul>
+              <li>
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors border border-indigo-200 bg-indigo-50/50"
+                >
+                  <span className="text-base leading-none">🛡</span>
+                  <span>Admin Panel</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        )}
+      </nav>
+
+      {/* Bottom user area */}
+      <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <CreditBadge />
+          <NotificationBell />
+        </div>
+        {userProfile?.email && (
+          <p className="text-xs text-slate-400 truncate">{userProfile.email}</p>
+        )}
+      </div>
+    </aside>
+  )
 }
 
 // ─── Template Quick-Pick ──────────────────────────────────────────────────────
@@ -75,7 +187,7 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-slate-500">Or start with a template</p>
-        <Link href="/templates" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+        <Link href="/templates" className="text-xs text-indigo-500 hover:text-indigo-600 transition-colors">
           Browse all →
         </Link>
       </div>
@@ -121,7 +233,7 @@ function WorkspaceBadge({ workspaces, active, onSwitch }: {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 right-0 bg-white border border-slate-200 rounded-xl shadow-xl min-w-48 z-20 overflow-hidden">
+        <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 rounded-xl shadow-xl min-w-48 z-20 overflow-hidden">
           {workspaces.map((ws) => (
             <button
               key={ws.id}
@@ -243,7 +355,6 @@ export default function DashboardPage() {
       method: 'PUT',
       body: JSON.stringify({ workspaceId: ws.id }),
     })
-    // Re-fetch tasks for this workspace
     const res = await apiFetch('/api/v1/tasks')
     if (res.success) setTasks((res.data as any).tasks || res.data || [])
   }
@@ -279,247 +390,240 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shadow-sm">
-        <span className="text-lg font-bold text-slate-900">Arivarangam<span className="text-indigo-600">.</span></span>
-        <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-3">
+    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900">
+      {/* Sidebar */}
+      <Sidebar userProfile={userProfile} />
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* Header bar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0">
           <WorkspaceBadge
             workspaces={workspaces}
             active={activeWorkspace}
             onSwitch={handleSwitchWorkspace}
           />
-          <Link href="/people" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">People</Link>
-          <Link href="/friends" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Friends</Link>
-          <Link href="/messages" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Messages</Link>
-          <Link href="/repos" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Repos</Link>
-          <Link href="/templates" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Templates</Link>
-          <Link href="/marketplace" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Marketplace</Link>
-          <Link href="/marketplace/experts" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Experts</Link>
-          <Link href="/packs" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">AI Packs</Link>
-          <Link href="/settings/ai-connections" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">AI Keys</Link>
-          <Link href="/settings/roundtable" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Roundtable</Link>
-          <Link href="/settings/language" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Language</Link>
-          <Link href="/settings/billing" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Billing</Link>
-          <Link href="/workflows" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Workflows</Link>
-          <Link href="/dashboard/scheduled" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Scheduled</Link>
-          <Link href="/credits" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Credits</Link>
-          {userProfile?.isAdmin && (
-            <Link href="/admin" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors border border-indigo-200 bg-indigo-50 px-2.5 py-1 rounded-lg">
-              Admin Panel
-            </Link>
-          )}
-          <CreditBadge />
-          <NotificationBell />
-        </nav>
-      </header>
-
-      <main id="main-content" className="max-w-3xl mx-auto px-6 py-10">
-
-        {/* Email verification banner */}
-        {userProfile && !userProfile.isEmailVerified && !verificationResent && (
-          <div className="flex items-center justify-between gap-4 px-4 py-3 mb-6 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-            <div className="flex items-center gap-3">
-              <span className="text-yellow-400 flex-shrink-0">⚠</span>
-              <p className="text-sm text-yellow-300">
-                Please verify your email address to unlock all Arivarangam features.
-              </p>
-            </div>
-            <button
-              onClick={handleResendVerification}
-              disabled={resendingVerification}
-              className="flex-shrink-0 text-xs text-yellow-400 hover:text-yellow-300 underline underline-offset-2 transition-colors disabled:opacity-50"
-            >
-              {resendingVerification ? 'Sending…' : 'Resend verification email'}
-            </button>
-          </div>
-        )}
-        {verificationResent && (
-          <div className="flex items-center gap-3 px-4 py-3 mb-6 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-            <span className="text-emerald-400">✓</span>
-            <p className="text-sm text-emerald-300">Verification email sent — check your inbox.</p>
-          </div>
-        )}
-
-        {/* Active workspace context */}
-        {activeWorkspace && (
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0" />
-            <p className="text-sm text-slate-500">
-              Working in <span className="text-slate-800 font-medium">{activeWorkspace.name}</span>
-              {activeWorkspace.type === 'PERSONAL' && (
-                <span className="ml-2 text-xs text-slate-400">(private)</span>
-              )}
-            </p>
-          </div>
-        )}
-
-        {/* Task creation */}
-        <form onSubmit={createTask} aria-label="Create a new Roundtable task" className="mb-10">
-          {/* Selected template indicator */}
-          {selectedTemplate && (
-            <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl">
-              <span className="text-lg">{selectedTemplate.icon}</span>
-              <div className="flex-1">
-                <p className="text-xs font-medium text-indigo-700">{selectedTemplate.name} template</p>
-                <p className="text-[10px] text-slate-500">{selectedTemplate.agents.length} AIs in sequence</p>
+          <div className="flex items-center gap-3">
+            <CreditBadge />
+            <NotificationBell />
+            {userProfile?.email && (
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0" title={userProfile.email}>
+                {userProfile.email[0].toUpperCase()}
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedTemplate(null)}
-                className="text-slate-400 hover:text-slate-600 text-xs transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          <label htmlFor="goal-input" className="block text-sm text-slate-600 font-medium mb-3">
-            {selectedTemplate
-              ? `Describe your ${selectedTemplate.name.toLowerCase()} goal`
-              : 'What do you want to accomplish?'}
-          </label>
-
-          <div className="flex gap-3 mb-3">
-            <textarea
-              id="goal-input"
-              aria-required="true"
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 focus:outline-none transition-colors text-slate-900 placeholder-slate-400 resize-none text-sm shadow-sm"
-              placeholder={
-                selectedTemplate
-                  ? selectedTemplate.name === 'Web App Development'
-                    ? 'Build a SaaS expense tracker with team collaboration…'
-                    : `Describe your ${selectedTemplate.name.toLowerCase()} goal…`
-                  : 'Create a marketing campaign for my chai brand targeting college students…'
-              }
-              rows={3}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  e.preventDefault()
-                  if (goal.trim()) createTask(e as unknown as React.FormEvent)
-                }
-              }}
-            />
+            )}
           </div>
+        </header>
 
-          {/* Low-credit warning — hidden for admin */}
-          {creditBalance !== null && creditBalance < 50 && !userProfile?.isAdmin && (
-            <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/8 text-sm">
-              <span className="text-amber-300 flex items-center gap-2">
-                <span aria-hidden="true">⚠</span>
-                <span>Low credits (<strong>{creditBalance}</strong> remaining). This task may cost 10–30 credits.</span>
-              </span>
-              <Link href="/credits" className="text-xs text-amber-400 hover:text-amber-300 font-medium transition-colors whitespace-nowrap">
-                Buy credits →
-              </Link>
-            </div>
-          )}
+        {/* Scrollable content */}
+        <main id="main-content" className="flex-1 overflow-auto bg-slate-50">
+          <div className="max-w-3xl mx-auto px-6 py-10">
 
-          {/* Controls row */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              {/* Visibility toggle */}
-              <button
-                type="button"
-                onClick={() => setVisibility((v) => v === 'private' ? 'workspace' : 'private')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors border ${
-                  visibility === 'workspace'
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                }`}
-              >
-                {visibility === 'private' ? '🔒 Private' : '👥 Workspace'}
-              </button>
-
-              {detectedLang && (
-                <span className="text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
-                  {detectedLang} detected
-                </span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={creating || !goal.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 whitespace-nowrap shadow-sm"
-            >
-              {creating ? 'Starting…' : selectedTemplate ? `Start ${selectedTemplate.icon}` : 'Start Roundtable'}
-            </button>
-          </div>
-
-          {createError && <p role="alert" className="text-red-600 text-xs mt-2">{createError}</p>}
-        </form>
-
-        {/* Template quick-pick */}
-        <TemplatePicker onSelect={(t) => {
-          setSelectedTemplate(t)
-          // Auto-set a relevant example prompt if goal is empty
-          if (!goal.trim() && t.examplePrompts.length > 0) {
-            setGoal(t.examplePrompts[0])
-          }
-        }} />
-
-        {/* Task History */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-slate-800">Recent tasks</h2>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              {activeWorkspace?.type === 'PERSONAL' ? (
-                <span className="flex items-center gap-1">🔒 Personal workspace — only you can see these</span>
-              ) : (
-                <span className="flex items-center gap-1">
-                  <span>🔒 private</span>
-                  <span className="text-zinc-700">·</span>
-                  <span>👥 shared</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 rounded-xl bg-slate-200 animate-pulse" />
-              ))}
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="text-center py-16 text-slate-400">
-              <p className="text-3xl mb-3">✨</p>
-              <p className="text-sm">No tasks yet. Start your first Roundtable above.</p>
-              <Link href="/templates" className="inline-block mt-3 text-xs text-indigo-600 hover:text-indigo-700">
-                Browse templates →
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => router.push(`/roundtable/${task.id}`)}
-                  className="flex items-center justify-between px-5 py-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs flex-shrink-0" title={task.visibility === 'private' ? 'Private' : 'Shared in workspace'}>
-                      {task.visibility === 'private' ? '🔒' : '👥'}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-medium text-sm text-slate-800 truncate">{task.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {new Date(task.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-slate-500 bg-slate-100'}`}>
-                    {task.status.toLowerCase().replace('_', ' ')}
-                  </span>
+            {/* Email verification banner */}
+            {userProfile && !userProfile.isEmailVerified && !verificationResent && (
+              <div className="flex items-center justify-between gap-4 px-4 py-3 mb-6 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="flex items-center gap-3">
+                  <span className="text-amber-600 flex-shrink-0">⚠</span>
+                  <p className="text-sm text-amber-700">
+                    Please verify your email address to unlock all Arivarangam features.
+                  </p>
                 </div>
-              ))}
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification}
+                  className="flex-shrink-0 text-xs text-amber-600 hover:text-amber-700 underline underline-offset-2 transition-colors disabled:opacity-50"
+                >
+                  {resendingVerification ? 'Sending…' : 'Resend verification email'}
+                </button>
+              </div>
+            )}
+            {verificationResent && (
+              <div className="flex items-center gap-3 px-4 py-3 mb-6 rounded-xl bg-emerald-50 border border-emerald-200">
+                <span className="text-emerald-600">✓</span>
+                <p className="text-sm text-emerald-700">Verification email sent — check your inbox.</p>
+              </div>
+            )}
+
+            {/* Active workspace context */}
+            {activeWorkspace && (
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0" />
+                <p className="text-sm text-slate-500">
+                  Working in <span className="text-slate-800 font-medium">{activeWorkspace.name}</span>
+                  {activeWorkspace.type === 'PERSONAL' && (
+                    <span className="ml-2 text-xs text-slate-400">(private)</span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* Task creation */}
+            <form onSubmit={createTask} aria-label="Create a new Roundtable task" className="mb-10">
+              {/* Selected template indicator */}
+              {selectedTemplate && (
+                <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl">
+                  <span className="text-lg">{selectedTemplate.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-indigo-700">{selectedTemplate.name} template</p>
+                    <p className="text-[10px] text-slate-500">{selectedTemplate.agents.length} AIs in sequence</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplate(null)}
+                    className="text-slate-400 hover:text-slate-600 text-xs transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <label htmlFor="goal-input" className="block text-sm text-slate-600 font-medium mb-3">
+                {selectedTemplate
+                  ? `Describe your ${selectedTemplate.name.toLowerCase()} goal`
+                  : 'What do you want to accomplish?'}
+              </label>
+
+              <div className="flex gap-3 mb-3">
+                <textarea
+                  id="goal-input"
+                  aria-required="true"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 focus:outline-none transition-colors text-slate-900 placeholder-slate-400 resize-none text-sm shadow-sm"
+                  placeholder={
+                    selectedTemplate
+                      ? selectedTemplate.name === 'Web App Development'
+                        ? 'Build a SaaS expense tracker with team collaboration…'
+                        : `Describe your ${selectedTemplate.name.toLowerCase()} goal…`
+                      : 'Create a marketing campaign for my chai brand targeting college students…'
+                  }
+                  rows={3}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      e.preventDefault()
+                      if (goal.trim()) createTask(e as unknown as React.FormEvent)
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Low-credit warning — hidden for admin */}
+              {creditBalance !== null && creditBalance < 50 && !userProfile?.isAdmin && (
+                <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-sm">
+                  <span className="text-amber-700 flex items-center gap-2">
+                    <span aria-hidden="true">⚠</span>
+                    <span>Low credits (<strong>{creditBalance}</strong> remaining). This task may cost 10–30 credits.</span>
+                  </span>
+                  <Link href="/credits" className="text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors whitespace-nowrap">
+                    Buy credits →
+                  </Link>
+                </div>
+              )}
+
+              {/* Controls row */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  {/* Visibility toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setVisibility((v) => v === 'private' ? 'workspace' : 'private')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors border ${
+                      visibility === 'workspace'
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                    }`}
+                  >
+                    {visibility === 'private' ? '🔒 Private' : '👥 Workspace'}
+                  </button>
+
+                  {detectedLang && (
+                    <span className="text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                      {detectedLang} detected
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={creating || !goal.trim()}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 whitespace-nowrap shadow-sm"
+                >
+                  {creating ? 'Starting…' : selectedTemplate ? `Start ${selectedTemplate.icon}` : 'Start Roundtable'}
+                </button>
+              </div>
+
+              {createError && <p role="alert" className="text-red-600 text-xs mt-2">{createError}</p>}
+            </form>
+
+            {/* Template quick-pick */}
+            <TemplatePicker onSelect={(t) => {
+              setSelectedTemplate(t)
+              if (!goal.trim() && t.examplePrompts.length > 0) {
+                setGoal(t.examplePrompts[0])
+              }
+            }} />
+
+            {/* Task History */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-slate-800">Recent tasks</h2>
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  {activeWorkspace?.type === 'PERSONAL' ? (
+                    <span className="flex items-center gap-1">🔒 Personal workspace — only you can see these</span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <span>🔒 private</span>
+                      <span className="text-slate-300">·</span>
+                      <span>👥 shared</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-16 rounded-xl bg-slate-200 animate-pulse" />
+                  ))}
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-16 text-slate-400">
+                  <p className="text-3xl mb-3">✨</p>
+                  <p className="text-sm">No tasks yet. Start your first Roundtable above.</p>
+                  <Link href="/templates" className="inline-block mt-3 text-xs text-indigo-600 hover:text-indigo-700">
+                    Browse templates →
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      onClick={() => router.push(`/roundtable/${task.id}`)}
+                      className="flex items-center justify-between px-5 py-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xs flex-shrink-0" title={task.visibility === 'private' ? 'Private' : 'Shared in workspace'}>
+                          {task.visibility === 'private' ? '🔒' : '👥'}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-slate-800 truncate">{task.title}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {new Date(task.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[task.status] || 'text-slate-500 bg-slate-100'}`}>
+                        {task.status.toLowerCase().replace('_', ' ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
 
       <SessionExpiryWarning />
     </div>

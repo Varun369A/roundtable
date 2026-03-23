@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
@@ -161,7 +161,8 @@ function StepTimelineItem({ stepRun, isLast }: { stepRun: StepRun; isLast: boole
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function WorkflowRunPage({ params }: { params: { id: string; runId: string } }) {
+export default function WorkflowRunPage({ params }: { params: Promise<{ id: string; runId: string }> }) {
+  const { id, runId } = use(params)
   const router                      = useRouter()
   const [run, setRun]               = useState<WorkflowRun | null>(null)
   const [loading, setLoading]       = useState(true)
@@ -169,15 +170,15 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
 
   const load = useCallback(async () => {
     const res = await apiFetch<{ run: WorkflowRun }>(
-      `/api/v1/workflows/${params.id}/runs/${params.runId}`,
+      `/api/v1/workflows/${id}/runs/${runId}`,
     )
     if (res.success && res.data?.run) {
       setRun(res.data.run)
     } else {
-      router.push(`/workflows/${params.id}`)
+      router.push(`/workflows/${id}`)
     }
     setLoading(false)
-  }, [params.id, params.runId, router])
+  }, [id, runId, router])
 
   useEffect(() => { load() }, [load])
 
@@ -191,12 +192,12 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
   async function handleRerun() {
     setRerunning(true)
     const res = await apiFetch<{ run: { id: string } }>(
-      `/api/v1/workflows/${params.id}/run`,
+      `/api/v1/workflows/${id}/run`,
       { method: 'POST' },
     )
     setRerunning(false)
     if (res.success && res.data?.run) {
-      router.push(`/workflows/${params.id}/runs/${res.data.run.id}`)
+      router.push(`/workflows/${id}/runs/${res.data.run.id}`)
     }
   }
 
@@ -221,7 +222,7 @@ export default function WorkflowRunPage({ params }: { params: { id: string; runI
       {/* Header */}
       <header className="border-b border-slate-200 bg-white sticky top-0 z-10 px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <Link href={`/workflows/${params.id}`} className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0">
+          <Link href={`/workflows/${id}`} className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0">
             ← {run.workflowName}
           </Link>
           <div className="h-4 w-px bg-slate-200 shrink-0" />

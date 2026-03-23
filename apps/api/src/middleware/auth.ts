@@ -5,6 +5,11 @@ import { isAccessTokenBlacklisted } from '../lib/tokens'
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
+    const queryToken = (request.query as Record<string, string>)?.token
+    if (queryToken && !request.headers.authorization && !request.cookies?.accessToken) {
+      request.headers['authorization'] = `Bearer ${queryToken}`
+    }
+
     const payload = await request.jwtVerify<JWTPayload>()
 
     // Check blacklist (logout case)

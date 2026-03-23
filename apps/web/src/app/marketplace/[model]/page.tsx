@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
@@ -24,20 +24,21 @@ interface ModelDetail {
   planAccess: Array<{ planId: string; planName: string; hasAccess: boolean }>
 }
 
-export default function ModelDetailPage({ params }: { params: { model: string } }) {
+export default function ModelDetailPage({ params }: { params: Promise<{ model: string }> }) {
+  const { model: modelSlug } = use(params)
   const router = useRouter()
   const [model, setModel]     = useState<ModelDetail | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    apiFetch<{ model: ModelDetail }>(`/api/v1/marketplace/models/${encodeURIComponent(params.model)}`)
+    apiFetch<{ model: ModelDetail }>(`/api/v1/marketplace/models/${encodeURIComponent(modelSlug)}`)
       .then((res) => {
         if (!res.success) { router.push('/marketplace'); return }
         // The API returns the data flat (not nested under 'model')
         setModel(res.data as unknown as ModelDetail)
       })
       .finally(() => setLoading(false))
-  }, [params.model, router])
+  }, [modelSlug, router])
 
   if (loading) {
     return (

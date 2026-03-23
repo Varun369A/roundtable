@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
@@ -362,7 +362,8 @@ function RunHistoryItem({ run, workflowId }: { run: WorkflowRun; workflowId: str
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function WorkflowDetailPage({ params }: { params: { id: string } }) {
+export default function WorkflowDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router                            = useRouter()
   const [workflow, setWorkflow]           = useState<Workflow | null>(null)
   const [steps, setSteps]                 = useState<WorkflowStep[]>([])
@@ -381,8 +382,8 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
   const load = useCallback(async () => {
     setLoading(true)
     const [wfRes, runsRes] = await Promise.allSettled([
-      apiFetch<{ workflow: Workflow }>(`/api/v1/workflows/${params.id}`),
-      apiFetch<{ runs: WorkflowRun[] }>(`/api/v1/workflows/${params.id}/runs`),
+      apiFetch<{ workflow: Workflow }>(`/api/v1/workflows/${id}`),
+      apiFetch<{ runs: WorkflowRun[] }>(`/api/v1/workflows/${id}/runs`),
     ])
     if (wfRes.status === 'fulfilled' && wfRes.value.success && wfRes.value.data?.workflow) {
       const wf = wfRes.value.data.workflow
@@ -395,7 +396,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
       setRuns(runsRes.value.data.runs || [])
     }
     setLoading(false)
-  }, [params.id, router])
+  }, [id, router])
 
   useEffect(() => { load() }, [load])
 
@@ -403,7 +404,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
     if (!workflow) return
     setSaving(true)
     setSaveError('')
-    const res = await apiFetch<{ workflow: Workflow }>(`/api/v1/workflows/${params.id}`, {
+    const res = await apiFetch<{ workflow: Workflow }>(`/api/v1/workflows/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         name:            workflow.name,
@@ -425,17 +426,17 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
   async function handleRunNow() {
     if (!workflow) return
     setRunning(true)
-    const res = await apiFetch<{ run: { id: string } }>(`/api/v1/workflows/${params.id}/run`, {
+    const res = await apiFetch<{ run: { id: string } }>(`/api/v1/workflows/${id}/run`, {
       method: 'POST',
     })
     setRunning(false)
     if (res.success && res.data?.run) {
-      router.push(`/workflows/${params.id}/runs/${res.data.run.id}`)
+      router.push(`/workflows/${id}/runs/${res.data.run.id}`)
     }
   }
 
   async function handleDelete() {
-    await apiFetch(`/api/v1/workflows/${params.id}`, { method: 'DELETE' })
+    await apiFetch(`/api/v1/workflows/${id}`, { method: 'DELETE' })
     router.push('/workflows')
   }
 
@@ -717,7 +718,7 @@ export default function WorkflowDetailPage({ params }: { params: { id: string } 
           ) : (
             <div className="space-y-2">
               {runs.map((run) => (
-                <RunHistoryItem key={run.id} run={run} workflowId={params.id} />
+                <RunHistoryItem key={run.id} run={run} workflowId={id} />
               ))}
             </div>
           )}

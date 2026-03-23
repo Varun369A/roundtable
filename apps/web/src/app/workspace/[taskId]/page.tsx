@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
@@ -29,9 +29,9 @@ interface GitHubConnection {
   avatarUrl: string | null
 }
 
-export default function WorkspacePage({ params }: { params: { taskId: string } }) {
+export default function WorkspacePage({ params }: { params: Promise<{ taskId: string }> }) {
+  const { taskId } = use(params)
   const router  = useRouter()
-  const taskId  = params.taskId
 
   const [project,    setProject]    = useState<CodeProject | null>(null)
   const [loading,    setLoading]    = useState(true)

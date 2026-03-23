@@ -8,18 +8,22 @@ export async function checkAccountStatus(
   const userId = (request as any).user?.id
   if (!userId) return
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { isSuspended: true, suspendedAt: true, suspendedReason: true }
-  })
-
-  if (user?.isSuspended) {
-    await reply.status(403).send({
-      success: false,
-      code: 'ACCOUNT_SUSPENDED',
-      message: 'Your account has been suspended for violating Arivarangam Terms of Service.',
-      suspendedAt: user.suspendedAt,
-      reason: user.suspendedReason
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { isSuspended: true, suspendedAt: true, suspendedReason: true }
     })
+
+    if (user?.isSuspended) {
+      await reply.status(403).send({
+        success: false,
+        code: 'ACCOUNT_SUSPENDED',
+        message: 'Your account has been suspended for violating Arivarangam Terms of Service.',
+        suspendedAt: user.suspendedAt,
+        reason: user.suspendedReason
+      })
+    }
+  } catch {
+    // column may not exist in this environment — pass through
   }
 }

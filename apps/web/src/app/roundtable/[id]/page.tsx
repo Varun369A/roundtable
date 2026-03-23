@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTaskStream, StreamEvent } from '@/hooks/useTaskStream'
@@ -59,7 +59,8 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-amber-600' },
 }
 
-export default function RoundtablePage({ params }: { params: { id: string } }) {
+export default function RoundtablePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [task, setTask]                     = useState<TaskInfo | null>(null)
   const [messages, setMessages]             = useState<Message[]>([])
@@ -103,7 +104,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
   // Load task metadata and auto-start if PENDING
   useEffect(() => {
     async function init() {
-      const result = await apiFetch<{ task: TaskInfo }>(`/api/v1/tasks/${params.id}`)
+      const result = await apiFetch<{ task: TaskInfo }>(`/api/v1/tasks/${id}`)
       if (!result.success || !result.data) {
         router.push('/dashboard')
         return
@@ -115,13 +116,13 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
 
       if (t.status === 'PENDING' && !hasStarted.current) {
         hasStarted.current = true
-        await apiFetch(`/api/v1/tasks/${params.id}/start`, { method: 'POST' })
+        await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
         addSystemMessage('Analysing your goal and assembling the team…')
       }
     }
     init()
-  }, [params.id, router])
+  }, [id, router])
 
   const handleStreamEvent = useCallback((event: StreamEvent) => {
     switch (event.event) {
@@ -221,9 +222,9 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
         ;(async () => {
           const [verRes, actRes] = await Promise.all([
             apiFetch<{ verifications: Array<{ subtaskId: string } & VerificationData> }>(
-              `/api/v1/tasks/${params.id}/verifications`,
+              `/api/v1/tasks/${id}/verifications`,
             ),
-            apiFetch<{ actions: ActionData[] }>(`/api/v1/tasks/${params.id}/actions`),
+            apiFetch<{ actions: ActionData[] }>(`/api/v1/tasks/${id}/actions`),
           ])
           if (verRes.success && verRes.data?.verifications) {
             const map: Record<string, VerificationData> = {}
@@ -277,7 +278,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
   }, [])
 
   const { connected } = useTaskStream({
-    taskId:  params.id,
+    taskId:  id,
     onEvent: handleStreamEvent,
     enabled: !!task,
   })
@@ -332,7 +333,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
 
             {/* Multiplayer session */}
             <SessionPanel
-              taskId={params.id}
+              taskId={id}
               taskStatus={taskStatus}
               isOwner={true}
             />
@@ -456,7 +457,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                     )}
                     {sessionId && msg.type === 'ai' && !msg.isError && (
                       <ReactionBar
-                        taskId={params.id}
+                        taskId={id}
                         subtaskId={msg.id}
                         sessionId={sessionId}
                       />
@@ -498,7 +499,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
                 <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
                   {hasCodeWorkspace && (
                     <Link
-                      href={`/workspace/${params.id}`}
+                      href={`/workspace/${id}`}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
                     >
                       💻 Open Workspace
@@ -537,7 +538,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
       {/* ── Steering input + Voice input ─────────────────────────────────────── */}
       <div className="relative">
         <SteeringInput
-          taskId={params.id}
+          taskId={id}
           isVisible={taskStatus === 'IN_PROGRESS'}
           initialText={steeringText}
           onTextChange={setSteeringText}
@@ -563,7 +564,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
       {/* ── Clarification modal ──────────────────────────────────────────────── */}
       {showClarification && clarifications.length > 0 && (
         <ClarificationModal
-          taskId={params.id}
+          taskId={id}
           questions={clarifications}
           onComplete={() => {
             setShowClarification(false)
@@ -576,7 +577,7 @@ export default function RoundtablePage({ params }: { params: { id: string } }) {
       {/* ── Expert review modal ──────────────────────────────────────────────── */}
       {showReviewModal && task && (
         <RequestReviewModal
-          taskId={params.id}
+          taskId={id}
           taskTitle={task.originalGoal}
           isOpen={showReviewModal}
           onClose={() => setShowReviewModal(false)}
