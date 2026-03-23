@@ -11,7 +11,7 @@ export async function apiFetch<T = any>(
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
