@@ -79,7 +79,7 @@ export async function verticalPacksRoutes(app: FastifyInstance) {
     return reply.send({
       success: true,
       data: {
-        packs: packs.map((p) => ({
+        packs: packs.map((p: any) => ({
           ...p,
           isSubscribed: false,
           isIncludedInPlan: false,

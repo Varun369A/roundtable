@@ -65,7 +65,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
 
     return reply.send({
       success: true,
-      data: memberships.map((m) => ({
+      data: memberships.map((m: any) => ({
         ...m.workspace,
         role: m.role,
         memberCount: m.workspace._count.members,

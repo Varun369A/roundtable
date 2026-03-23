@@ -141,7 +141,7 @@ export async function workflowsRoutes(app: FastifyInstance) {
         }),
       ])
 
-      const result = workflows.map(({ _count, runs, ...wf }) => ({
+      const result = workflows.map(({ _count, runs, ...wf }: any) => ({
         ...wf,
         stepCount: _count.steps,
         lastRun: runs[0] ?? null,
@@ -227,7 +227,7 @@ export async function workflowsRoutes(app: FastifyInstance) {
       const webhookSecret =
         body.triggerType === 'webhook' ? await generateWebhookSecret() : null
 
-      const workflow = await prisma.$transaction(async (tx) => {
+      const workflow = await prisma.$transaction(async (tx: any) => {
         const wf = await tx.workflow.create({
           data: {
             userId,
@@ -409,7 +409,7 @@ export async function workflowsRoutes(app: FastifyInstance) {
         webhookSecret = await generateWebhookSecret()
       }
 
-      const workflow = await prisma.$transaction(async (tx) => {
+      const workflow = await prisma.$transaction(async (tx: any) => {
         const updateData: Record<string, unknown> = {}
         if (body.name !== undefined)        updateData.name = body.name!.trim()
         if (body.description !== undefined) updateData.description = body.description?.trim() ?? null
