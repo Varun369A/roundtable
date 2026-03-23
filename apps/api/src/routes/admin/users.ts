@@ -4,6 +4,7 @@ import { prisma } from '@arivarangam/db'
 import { requireAuth } from '../../middleware/auth'
 import { requireAdmin } from '../../middleware/require-admin'
 import { revokeAllUserTokens } from '../../lib/tokens'
+import { creditWallet, debitWallet } from '../../lib/credit-manager'
 
 export async function adminUsersRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
@@ -90,9 +91,10 @@ export async function adminUsersRoutes(app: FastifyInstance) {
   // Override tier, suspend/unsuspend, make admin
   app.patch<{ Params: { id: string } }>('/:id', async (request, reply) => {
     const body = z.object({
-      tier:   z.enum(['FREE', 'BUILDER', 'STUDIO', 'ENTERPRISE']).optional(),
-      status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
-      isAdmin: z.boolean().optional(),
+      tier:             z.enum(['FREE', 'BUILDER', 'STUDIO', 'ENTERPRISE']).optional(),
+      status:           z.enum(['ACTIVE', 'SUSPENDED']).optional(),
+      isAdmin:          z.boolean().optional(),
+      isEmailVerified:  z.boolean().optional(),
     }).safeParse(request.body)
 
     if (!body.success) {
@@ -120,5 +122,43 @@ export async function adminUsersRoutes(app: FastifyInstance) {
   app.delete<{ Params: { id: string } }>('/:id/sessions', async (request, reply) => {
     await revokeAllUserTokens(request.params.id)
     return reply.send({ success: true, data: { message: 'All sessions revoked' } })
+  })
+
+  // ─── POST /admin/users/:id/credits ───────────────────────────────────────────
+  // Manually add or subtract credits from a user's wallet
+  app.post<{ Params: { id: string } }>('/:id/credits', async (request, reply) => {
+    const body = z.object({
+      amount: z.number().int().nonzero(),
+      reason: z.string().min(1).max(200).default('Admin adjustment'),
+    }).safeParse(request.body)
+
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+      })
+    }
+
+    const { amount, reason } = body.data
+    const userId = request.params.id
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })
+    if (!user) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'User not found' },
+      })
+    }
+
+    let newBalance: number
+    if (amount > 0) {
+      const result = await creditWallet(userId, amount, 'PROMOTION', { reason })
+      newBalance = result.newBalance
+    } else {
+      const result = await debitWallet(userId, Math.abs(amount), 'EXPIRY', { reason })
+      newBalance = result.newBalance
+    }
+
+    return reply.send({ success: true, data: { newBalance, adjustment: amount } })
   })
 }
