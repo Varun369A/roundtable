@@ -30,17 +30,10 @@ export async function memoryRoutes(app: FastifyInstance) {
         orderBy: [{ category: 'asc' }, { usageCount: 'desc' }],
       })
 
-      // Group by category
-      const grouped: Record<string, typeof memories> = {}
-      for (const m of memories) {
-        if (!grouped[m.category]) grouped[m.category] = []
-        grouped[m.category].push(m)
-      }
-
       return reply.send({
         success: true,
         data: {
-          memories: grouped,
+          memories,
           totalCount: memories.length,
         },
       })

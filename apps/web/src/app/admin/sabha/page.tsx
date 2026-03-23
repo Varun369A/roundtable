@@ -26,8 +26,8 @@ export default function ArivarangamAIAdminPage() {
   const [actionLoading, setActionLoading] = useState(false)
 
   async function load() {
-    const res = await apiFetch<{ data: ArivarangamStatus }>('/api/v1/admin/sabha-ai/status')
-    if (res.success && res.data) setStatus((res.data as any).data)
+    const res = await apiFetch<ArivarangamStatus>('/api/v1/admin/sabha-ai/status')
+    if (res.success && res.data) setStatus(res.data)
     setLoading(false)
   }
 
