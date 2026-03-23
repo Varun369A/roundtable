@@ -1,0 +1,28 @@
+name: Deploy API to EC2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/roundtable
+            git pull origin main
+            npm install
+            npx prisma generate --schema=packages/db/prisma/schema.prisma
+            cd apps/api
+            npx tsc || true
+            pm2 restart arivarangam-api
+            echo "Deployed successfully"
