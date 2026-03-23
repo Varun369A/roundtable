@@ -30,7 +30,7 @@ export function LanguageSelector({ value, onChange, showAuto = true, className =
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm focus:border-brand-500 focus:outline-none transition-colors ${className}`}
+      className={`px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:border-brand-500 focus:outline-none transition-colors ${className}`}
     >
       {showAuto && (
         <option value="auto">Auto-detect language</option>

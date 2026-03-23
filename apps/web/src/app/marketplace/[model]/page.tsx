@@ -41,8 +41,8 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-zinc-500">Loading…</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-400">Loading…</div>
       </div>
     )
   }
@@ -50,13 +50,13 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
   if (!model) return null
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-md">
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-slate-200 sticky top-0 z-10 bg-white/90 backdrop-blur-md">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center gap-3">
-          <Link href="/marketplace" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
+          <Link href="/marketplace" className="text-slate-400 hover:text-slate-700 text-sm transition-colors">
             ← Marketplace
           </Link>
-          <div className="h-4 w-px bg-zinc-800" />
+          <div className="h-4 w-px bg-slate-200" />
           <span className="font-medium text-sm" style={{ color: model.logoColor }}>
             {model.displayName}
           </span>
@@ -72,31 +72,31 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
             <div>
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <p className="text-sm text-zinc-500 mb-1">{model.provider}</p>
+                  <p className="text-sm text-slate-400 mb-1">{model.provider}</p>
                   <h1 className="text-3xl font-bold" style={{ color: model.logoColor }}>
                     {model.displayName}
                   </h1>
                 </div>
                 {model.isAvailable ? (
-                  <span className="flex items-center gap-1.5 text-sm text-green-400 shrink-0 mt-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400" />
+                  <span className="flex items-center gap-1.5 text-sm text-green-600 shrink-0 mt-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500" />
                     Available
                   </span>
                 ) : (
-                  <span className="text-sm text-zinc-600 shrink-0 mt-2">Needs API key</span>
+                  <span className="text-sm text-slate-400 shrink-0 mt-2">Needs API key</span>
                 )}
               </div>
-              <p className="text-zinc-300 text-lg leading-relaxed">{model.description}</p>
+              <p className="text-slate-700 text-lg leading-relaxed">{model.description}</p>
             </div>
 
             {/* Long description */}
-            <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800">
-              <p className="text-zinc-300 leading-relaxed">{model.longDescription}</p>
+            <div className="p-5 rounded-2xl bg-white border border-slate-200">
+              <p className="text-slate-700 leading-relaxed">{model.longDescription}</p>
             </div>
 
             {/* Capabilities */}
             <div>
-              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Capabilities</h3>
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Capabilities</h3>
               <div className="flex flex-wrap gap-2">
                 {model.capabilities.map((cap) => (
                   <span
@@ -112,10 +112,10 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
 
             {/* Use cases */}
             <div>
-              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Best for</h3>
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Best for</h3>
               <ul className="space-y-2">
                 {model.useCases.map((uc) => (
-                  <li key={uc} className="flex items-center gap-2 text-sm text-zinc-300">
+                  <li key={uc} className="flex items-center gap-2 text-sm text-slate-700">
                     <span style={{ color: model.logoColor }}>✓</span>
                     {uc}
                   </li>
@@ -125,10 +125,10 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
 
             {/* Limitations */}
             <div>
-              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Limitations</h3>
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Limitations</h3>
               <ul className="space-y-2">
                 {model.limitations.map((lim) => (
-                  <li key={lim} className="flex items-center gap-2 text-sm text-zinc-500">
+                  <li key={lim} className="flex items-center gap-2 text-sm text-slate-400">
                     <span>—</span>
                     {lim}
                   </li>
@@ -140,16 +140,16 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
           {/* Right — sidebar */}
           <div className="space-y-4">
             {/* Plan access */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-              <h3 className="font-semibold mb-3 text-sm">Plan access</h3>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h3 className="font-semibold mb-3 text-sm text-slate-900">Plan access</h3>
               <div className="space-y-2">
                 {model.planAccess.map((p) => (
                   <div key={p.planId} className="flex items-center justify-between">
-                    <span className="text-sm capitalize text-zinc-400">{p.planName}</span>
+                    <span className="text-sm capitalize text-slate-500">{p.planName}</span>
                     {p.hasAccess ? (
-                      <span className="text-green-400 text-sm">✓</span>
+                      <span className="text-green-600 text-sm">✓</span>
                     ) : (
-                      <span className="text-zinc-600 text-sm">—</span>
+                      <span className="text-slate-300 text-sm">—</span>
                     )}
                   </div>
                 ))}
@@ -158,19 +158,19 @@ export default function ModelDetailPage({ params }: { params: { model: string } 
 
             {/* Pricing */}
             {(model.inputCostPer1M > 0 || model.outputCostPer1M > 0) && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-                <h3 className="font-semibold mb-3 text-sm">API pricing</h3>
+              <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                <h3 className="font-semibold mb-3 text-sm text-slate-900">API pricing</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Input</span>
-                    <span className="font-mono">${model.inputCostPer1M}/1M tokens</span>
+                    <span className="text-slate-400">Input</span>
+                    <span className="font-mono text-slate-700">${model.inputCostPer1M}/1M tokens</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Output</span>
-                    <span className="font-mono">${model.outputCostPer1M}/1M tokens</span>
+                    <span className="text-slate-400">Output</span>
+                    <span className="font-mono text-slate-700">${model.outputCostPer1M}/1M tokens</span>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-600 mt-3">Arivarangam absorbs API costs within plan limits.</p>
+                <p className="text-xs text-slate-400 mt-3">Arivarangam absorbs API costs within plan limits.</p>
               </div>
             )}
 

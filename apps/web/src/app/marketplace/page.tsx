@@ -35,11 +35,11 @@ interface MarketplaceStats {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  free:       'bg-zinc-800 text-zinc-400',
-  starter:    'bg-blue-500/10 text-blue-400',
-  pro:        'bg-brand-500/10 text-brand-400',
-  power:      'bg-yellow-500/10 text-yellow-400',
-  enterprise: 'bg-green-500/10 text-green-400',
+  free:       'bg-slate-100 text-slate-500',
+  starter:    'bg-blue-500/10 text-blue-600',
+  pro:        'bg-brand-500/10 text-brand-600',
+  power:      'bg-yellow-500/10 text-yellow-600',
+  enterprise: 'bg-green-500/10 text-green-600',
 }
 
 export default function MarketplacePage() {
@@ -72,20 +72,20 @@ export default function MarketplacePage() {
   })
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-10">
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
+            <Link href="/dashboard" className="text-slate-400 hover:text-slate-700 text-sm transition-colors">
               ← Dashboard
             </Link>
-            <div className="h-4 w-px bg-zinc-800" />
-            <span className="font-semibold">AI Marketplace</span>
+            <div className="h-4 w-px bg-slate-200" />
+            <span className="font-semibold text-slate-900">AI Marketplace</span>
           </div>
           <Link
             href="/dashboard"
-            className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg transition-colors"
+            className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors"
           >
             Start a task
           </Link>
@@ -99,25 +99,25 @@ export default function MarketplacePage() {
           <div className="mb-10 rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold mb-1">
+                <h1 className="text-2xl font-bold mb-1 text-slate-900">
                   {stats.totalModels} AIs. One subscription.
                 </h1>
-                <p className="text-zinc-400">
+                <p className="text-slate-500">
                   Buying these separately costs{' '}
-                  <span className="text-white font-semibold line-through">
+                  <span className="text-slate-900 font-semibold line-through">
                     ₹{stats.retailTotalInr.toLocaleString('en-IN')}/month
                   </span>
                   {' '}— Arivarangam Pro is{' '}
-                  <span className="text-brand-400 font-bold text-lg">
+                  <span className="text-brand-600 font-bold text-lg">
                     ₹1,299/month
                   </span>
                 </p>
               </div>
               <div className="text-center shrink-0">
-                <div className="text-4xl font-bold text-green-400">
+                <div className="text-4xl font-bold text-green-600">
                   {stats.savingsPercent}%
                 </div>
-                <div className="text-zinc-500 text-sm">cheaper than separate</div>
+                <div className="text-slate-400 text-sm">cheaper than separate</div>
               </div>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function MarketplacePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search AIs by name, capability, or use case…"
-            className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-brand-500 focus:outline-none transition-colors text-sm"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-brand-500 focus:outline-none transition-colors text-sm text-slate-900 placeholder-slate-400"
           />
         </div>
 
@@ -141,7 +141,7 @@ export default function MarketplacePage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeCategory === 'all'
                 ? 'bg-brand-600 text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                : 'bg-white text-slate-500 hover:text-slate-900 border border-slate-200'
             }`}
           >
             All ({models.length})
@@ -155,7 +155,7 @@ export default function MarketplacePage() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                   activeCategory === cat.id
                     ? 'bg-brand-600 text-white'
-                    : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                    : 'bg-white text-slate-500 hover:text-slate-900 border border-slate-200'
                 }`}
               >
                 <span>{cat.emoji}</span>
@@ -170,11 +170,11 @@ export default function MarketplacePage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="h-48 rounded-2xl bg-zinc-900 animate-pulse" />
+              <div key={i} className="h-48 rounded-2xl bg-slate-100 animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-24 text-zinc-500">
+          <div className="text-center py-24 text-slate-400">
             No AIs found for this filter.
           </div>
         ) : (
@@ -195,19 +195,19 @@ function ModelCard({ model }: { model: ModelData }) {
   return (
     <Link
       href={`/marketplace/${model.model}`}
-      className="group block rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900 transition-all p-5"
+      className="group block rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 transition-all p-5"
     >
       {/* Provider + availability */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-zinc-500">{model.provider}</span>
+        <span className="text-xs text-slate-400">{model.provider}</span>
         <div className="flex items-center gap-2">
           {model.isAvailable ? (
-            <span className="flex items-center gap-1 text-xs text-green-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            <span className="flex items-center gap-1 text-xs text-green-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
               Live
             </span>
           ) : (
-            <span className="text-xs text-zinc-600">API key needed</span>
+            <span className="text-xs text-slate-400">API key needed</span>
           )}
         </div>
       </div>
@@ -221,7 +221,7 @@ function ModelCard({ model }: { model: ModelData }) {
       </h3>
 
       {/* Description */}
-      <p className="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-2">
+      <p className="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-2">
         {model.description}
       </p>
 
@@ -230,13 +230,13 @@ function ModelCard({ model }: { model: ModelData }) {
         {model.capabilities.slice(0, 4).map((cap) => (
           <span
             key={cap}
-            className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400"
+            className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500"
           >
             {cap}
           </span>
         ))}
         {model.capabilities.length > 4 && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-400">
             +{model.capabilities.length - 4}
           </span>
         )}
@@ -247,7 +247,7 @@ function ModelCard({ model }: { model: ModelData }) {
         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${PLAN_COLORS[lowestPlan] || PLAN_COLORS.free}`}>
           From {lowestPlan}
         </span>
-        <span className="text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors">
+        <span className="text-xs text-slate-400 group-hover:text-slate-600 transition-colors">
           View details →
         </span>
       </div>

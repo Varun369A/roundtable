@@ -19,15 +19,15 @@ export default function GlobalError({ error, reset }: Props) {
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+      <body className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-6">⚠</div>
-          <h1 className="text-2xl font-bold text-white mb-3">Something went wrong</h1>
-          <p className="text-zinc-400 mb-2 text-sm">
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Something went wrong</h1>
+          <p className="text-slate-500 mb-2 text-sm">
             An unexpected error occurred. Our team has been notified.
           </p>
           {error.digest && (
-            <p className="text-xs text-zinc-600 mb-6 font-mono">
+            <p className="text-xs text-slate-400 mb-6 font-mono">
               Error ID: {error.digest}
             </p>
           )}
@@ -40,7 +40,7 @@ export default function GlobalError({ error, reset }: Props) {
             </button>
             <a
               href="/"
-              className="px-5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+              className="px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors"
             >
               Go home
             </a>

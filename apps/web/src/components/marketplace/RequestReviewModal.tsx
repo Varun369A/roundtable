@@ -109,30 +109,30 @@ export default function RequestReviewModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-          <h2 className="text-base font-bold">Request Expert Review</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors text-xl leading-none">&times;</button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 className="text-base font-bold text-slate-900">Request Expert Review</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors text-xl leading-none">&times;</button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
           {/* Task title */}
-          <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/8">
-            <p className="text-xs text-zinc-500 mb-0.5">Task</p>
-            <p className="text-sm font-medium text-white truncate">{taskTitle}</p>
+          <div className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
+            <p className="text-xs text-slate-400 mb-0.5">Task</p>
+            <p className="text-sm font-medium text-slate-900 truncate">{taskTitle}</p>
           </div>
 
           {/* Specialization */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Specialization
             </label>
             <select
               value={specialization}
               onChange={(e) => handleSpecChange(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 focus:border-indigo-500 focus:outline-none text-sm text-white transition-colors"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-900 transition-colors"
             >
               {SPECIALIZATIONS.map((s) => (
                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -142,27 +142,27 @@ export default function RequestReviewModal({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Focus areas <span className="text-zinc-600 font-normal">(optional)</span>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Focus areas <span className="text-slate-400 font-normal">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What specifically should the expert focus on?"
               rows={3}
-              className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 focus:border-indigo-500 focus:outline-none text-sm text-white placeholder-zinc-600 resize-none transition-colors"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400 resize-none transition-colors"
             />
           </div>
 
           {/* Cost display */}
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-500/8 border border-indigo-500/20">
-            <span className="text-sm text-zinc-300">Estimated cost</span>
+          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-50 border border-indigo-200">
+            <span className="text-sm text-slate-700">Estimated cost</span>
             {rateLoading ? (
-              <div className="w-16 h-5 rounded bg-white/10 animate-pulse" />
+              <div className="w-16 h-5 rounded bg-slate-200 animate-pulse" />
             ) : noExperts ? (
-              <span className="text-xs text-zinc-500">—</span>
+              <span className="text-xs text-slate-400">—</span>
             ) : lowestRate !== null ? (
-              <span className="text-sm font-bold text-indigo-300">
+              <span className="text-sm font-bold text-indigo-600">
                 from {lowestRate} credits
               </span>
             ) : null}
@@ -170,32 +170,32 @@ export default function RequestReviewModal({
 
           {/* Errors */}
           {error === 'no_experts' || noExperts ? (
-            <div className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+            <div className="px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm">
               No experts are currently available for <strong>{SPECIALIZATIONS.find((s) => s.value === specialization)?.label}</strong>. Try a different specialization.
             </div>
           ) : error === 'insufficient_credits' ? (
-            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-between">
+            <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center justify-between">
               <span>Not enough credits for this review.</span>
               <Link
                 href="/credits"
                 onClick={onClose}
-                className="ml-3 text-xs underline text-red-300 hover:text-red-200 whitespace-nowrap"
+                className="ml-3 text-xs underline text-red-500 hover:text-red-700 whitespace-nowrap"
               >
                 Buy credits →
               </Link>
             </div>
           ) : error ? (
-            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
               {error}
             </div>
           ) : null}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/8">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm text-zinc-400 hover:text-white transition-colors"
+            className="px-4 py-2 rounded-xl text-sm text-slate-500 hover:text-slate-800 transition-colors"
           >
             Cancel
           </button>

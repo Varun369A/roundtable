@@ -69,11 +69,11 @@ export function generateStaticParams() {
 }
 
 const CATEGORY_STYLES: Record<string, string> = {
-  Product:  'bg-indigo-500/15 text-indigo-300 border-indigo-500/20',
-  Guide:    'bg-amber-500/15 text-amber-300 border-amber-500/20',
-  Feature:  'bg-blue-500/15 text-blue-300 border-blue-500/20',
-  Insight:  'bg-purple-500/15 text-purple-300 border-purple-500/20',
-  Security: 'bg-green-500/15 text-green-300 border-green-500/20',
+  Product:  'bg-indigo-500/10 text-indigo-600 border-indigo-200',
+  Guide:    'bg-amber-500/10 text-amber-600 border-amber-200',
+  Feature:  'bg-blue-500/10 text-blue-600 border-blue-200',
+  Insight:  'bg-purple-500/10 text-purple-600 border-purple-200',
+  Security: 'bg-green-500/10 text-green-600 border-green-200',
 }
 
 export default async function BlogPostPage({
@@ -89,17 +89,17 @@ export default async function BlogPostPage({
     : null
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Arivarangam<span className="text-indigo-400">.</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/blog" className="hover:text-zinc-100 transition-colors">← Blog</Link>
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/blog" className="hover:text-slate-900 transition-colors">← Blog</Link>
+            <Link href="/features" className="hover:text-slate-900 transition-colors">Features</Link>
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
             <Link
               href="/signup"
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
@@ -116,28 +116,28 @@ export default async function BlogPostPage({
             {/* Post header */}
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
-                <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[post.category] || 'bg-zinc-700 text-zinc-300'}`}>
+                <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[post.category] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                   {post.category}
                 </span>
-                <time className="text-sm text-zinc-500">{formattedDate}</time>
-                <span className="text-sm text-zinc-600">{post.readTime} read</span>
+                <time className="text-sm text-slate-400">{formattedDate}</time>
+                <span className="text-sm text-slate-400">{post.readTime} read</span>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight leading-tight mb-4">{post.title}</h1>
-              <p className="text-lg text-zinc-400 leading-relaxed">{post.excerpt}</p>
+              <h1 className="text-3xl font-bold tracking-tight leading-tight mb-4 text-slate-900">{post.title}</h1>
+              <p className="text-lg text-slate-500 leading-relaxed">{post.excerpt}</p>
             </div>
 
             {/* Coming soon notice */}
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-8 text-center">
+            <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-8 text-center">
               <div className="text-4xl mb-4">✍️</div>
-              <h2 className="text-xl font-bold text-white mb-3">Full article coming soon</h2>
-              <p className="text-zinc-400 leading-relaxed mb-6">
+              <h2 className="text-xl font-bold text-slate-900 mb-3">Full article coming soon</h2>
+              <p className="text-slate-500 leading-relaxed mb-6">
                 This article is being written. Subscribe to be notified when it publishes — along with all future Arivarangam blog posts.
               </p>
               <div className="flex gap-2 max-w-sm mx-auto">
                 <input
                   type="email"
                   placeholder="you@example.com"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700 focus:border-indigo-500 focus:outline-none text-sm text-white placeholder-zinc-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400 transition-colors"
                 />
                 <button className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-semibold text-white transition-colors whitespace-nowrap">
                   Notify me
@@ -147,7 +147,7 @@ export default async function BlogPostPage({
 
             {/* Other posts */}
             <div className="mt-12">
-              <p className="text-sm font-semibold text-zinc-400 mb-4">Other articles</p>
+              <p className="text-sm font-semibold text-slate-500 mb-4">Other articles</p>
               <div className="space-y-3">
                 {Object.entries(BLOG_POSTS)
                   .filter(([s]) => s !== slug)
@@ -156,18 +156,18 @@ export default async function BlogPostPage({
                     <Link
                       key={s}
                       href={`/blog/${s}`}
-                      className="flex items-start gap-3 p-4 rounded-xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-colors group"
+                      className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors group"
                     >
-                      <span className={`shrink-0 mt-0.5 text-xs px-2 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[p.category] || 'bg-zinc-700 text-zinc-300'}`}>
+                      <span className={`shrink-0 mt-0.5 text-xs px-2 py-0.5 rounded-full border font-medium ${CATEGORY_STYLES[p.category] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                         {p.category}
                       </span>
-                      <span className="text-sm text-zinc-300 group-hover:text-white transition-colors leading-snug">
+                      <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors leading-snug">
                         {p.title}
                       </span>
                     </Link>
                   ))}
               </div>
-              <Link href="/blog" className="inline-block mt-4 text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link href="/blog" className="inline-block mt-4 text-sm text-indigo-600 hover:text-indigo-500 transition-colors">
                 View all articles →
               </Link>
             </div>
@@ -176,17 +176,17 @@ export default async function BlogPostPage({
           /* 404-style fallback for unknown slugs */
           <div className="text-center py-20">
             <div className="text-5xl mb-6">📝</div>
-            <h1 className="text-2xl font-bold mb-3">Article not found</h1>
-            <p className="text-zinc-400 mb-8">This article doesn't exist or may have been moved.</p>
-            <Link href="/blog" className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors">
+            <h1 className="text-2xl font-bold mb-3 text-slate-900">Article not found</h1>
+            <p className="text-slate-500 mb-8">This article doesn't exist or may have been moved.</p>
+            <Link href="/blog" className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold transition-colors">
               Back to blog
             </Link>
           </div>
         )}
       </main>
 
-      <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
-        <p>© {new Date().getFullYear()} Arivarangam. <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link> · <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link> · <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link></p>
+      <footer className="py-10 px-6 border-t border-slate-200 text-center text-sm text-slate-400">
+        <p>© {new Date().getFullYear()} Arivarangam. <Link href="/blog" className="hover:text-slate-600 transition-colors">Blog</Link> · <Link href="/terms" className="hover:text-slate-600 transition-colors">Terms</Link> · <Link href="/privacy" className="hover:text-slate-600 transition-colors">Privacy</Link></p>
       </footer>
     </div>
   )

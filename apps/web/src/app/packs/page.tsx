@@ -58,21 +58,21 @@ const SAMPLE_USE_CASES: Record<string, string[]> = {
 // ─── Category gradient colours ─────────────────────────────────────────────────
 
 const CAT_GRADIENT: Record<string, string> = {
-  legal:       'from-blue-900/60 via-blue-800/40 to-transparent',
-  medical:     'from-red-900/60 via-red-800/40 to-transparent',
-  finance:     'from-emerald-900/60 via-emerald-800/40 to-transparent',
-  engineering: 'from-orange-900/60 via-orange-800/40 to-transparent',
-  hr:          'from-pink-900/60 via-pink-800/40 to-transparent',
-  content:     'from-purple-900/60 via-purple-800/40 to-transparent',
-  default:     'from-indigo-900/60 via-indigo-800/40 to-transparent',
+  legal:       'from-blue-50 via-blue-50/60 to-transparent',
+  medical:     'from-red-50 via-red-50/60 to-transparent',
+  finance:     'from-emerald-50 via-emerald-50/60 to-transparent',
+  engineering: 'from-orange-50 via-orange-50/60 to-transparent',
+  hr:          'from-pink-50 via-pink-50/60 to-transparent',
+  content:     'from-purple-50 via-purple-50/60 to-transparent',
+  default:     'from-indigo-50 via-indigo-50/60 to-transparent',
 }
 
 const MODEL_BADGE_COLORS = [
-  'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+  'bg-purple-500/10 text-purple-600 border-purple-500/20',
+  'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  'bg-amber-500/10 text-amber-600 border-amber-500/20',
 ]
 
 // ─── Pack detail modal ────────────────────────────────────────────────────────
@@ -92,56 +92,56 @@ function PackDetailModal({
   const useCases = SAMPLE_USE_CASES[pack.category?.toLowerCase()] || []
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b border-white/8">
+        <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-4">
             <span className="text-4xl">{pack.icon}</span>
             <div>
-              <h2 className="text-lg font-bold">{pack.name}</h2>
-              <span className="text-xs text-zinc-500 capitalize">{pack.category}</span>
+              <h2 className="text-lg font-bold text-slate-900">{pack.name}</h2>
+              <span className="text-xs text-slate-400 capitalize">{pack.category}</span>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors text-xl leading-none mt-1">&times;</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors text-xl leading-none mt-1">&times;</button>
         </div>
 
         <div className="px-6 py-5 space-y-6">
           {/* Description */}
-          <p className="text-zinc-300 text-sm leading-relaxed">{pack.description}</p>
+          <p className="text-slate-700 text-sm leading-relaxed">{pack.description}</p>
 
           {/* Disclaimer */}
           {pack.disclaimer && (
-            <div className="flex gap-3 px-4 py-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
-              <span className="text-amber-400 flex-shrink-0 mt-0.5">⚠️</span>
-              <p className="text-amber-300 text-xs leading-relaxed">{pack.disclaimer}</p>
+            <div className="flex gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+              <span className="text-amber-500 flex-shrink-0 mt-0.5">⚠️</span>
+              <p className="text-amber-700 text-xs leading-relaxed">{pack.disclaimer}</p>
             </div>
           )}
 
           {/* Agents */}
           {pack.agents.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-zinc-300 mb-3">Agent Roles</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Agent Roles</h3>
               <div className="space-y-2">
                 {pack.agents.map((agent, idx) => (
-                  <div key={idx} className="rounded-xl bg-white/5 border border-white/8 overflow-hidden">
+                  <div key={idx} className="rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
                     <button
                       onClick={() => setExpandedAgents((prev) => ({ ...prev, [idx]: !prev[idx] }))}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-100 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${MODEL_BADGE_COLORS[idx % MODEL_BADGE_COLORS.length]}`}>
                           {agent.model}
                         </span>
-                        <span className="text-sm text-white">{agent.role}</span>
+                        <span className="text-sm text-slate-900">{agent.role}</span>
                       </div>
                       {agent.systemPrompt && (
-                        <span className="text-zinc-600 text-xs">{expandedAgents[idx] ? '▲' : '▼'}</span>
+                        <span className="text-slate-400 text-xs">{expandedAgents[idx] ? '▲' : '▼'}</span>
                       )}
                     </button>
                     {expandedAgents[idx] && agent.systemPrompt && (
-                      <div className="px-4 pb-3 border-t border-white/5">
-                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed font-mono bg-zinc-950 rounded-lg p-3 line-clamp-6">
+                      <div className="px-4 pb-3 border-t border-slate-100">
+                        <p className="text-xs text-slate-500 mt-2 leading-relaxed font-mono bg-slate-100 rounded-lg p-3 line-clamp-6">
                           {agent.systemPrompt}
                         </p>
                       </div>
@@ -155,11 +155,11 @@ function PackDetailModal({
           {/* Sample use cases */}
           {useCases.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-zinc-300 mb-3">Sample Use Cases</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Sample Use Cases</h3>
               <div className="space-y-2">
                 {useCases.map((uc, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-sm text-zinc-400">
-                    <span className="text-indigo-400 font-bold flex-shrink-0 mt-0.5">→</span>
+                  <div key={i} className="flex items-start gap-2.5 text-sm text-slate-500">
+                    <span className="text-indigo-600 font-bold flex-shrink-0 mt-0.5">→</span>
                     <span>{uc}</span>
                   </div>
                 ))}
@@ -171,7 +171,7 @@ function PackDetailModal({
           <div className="pt-2">
             {pack.includedInPlan ? (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+                <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
                   Included in {pack.includedInPlan}
                 </span>
                 <button
@@ -179,7 +179,7 @@ function PackDetailModal({
                   disabled={toggling}
                   className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40 ${
                     pack.isSubscribed
-                      ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                      ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                   }`}
                 >
@@ -188,12 +188,12 @@ function PackDetailModal({
               </div>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-400">
+                <span className="text-sm text-slate-500">
                   {pack.creditsPerTask ? `${pack.creditsPerTask} credits per task` : ''}
                 </span>
                 <div className="flex items-center gap-3">
                   {!pack.isSubscribed && (
-                    <Link href="/pricing" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                    <Link href="/pricing" className="text-xs text-indigo-600 hover:text-indigo-500 transition-colors">
                       Upgrade to Power →
                     </Link>
                   )}
@@ -202,7 +202,7 @@ function PackDetailModal({
                     disabled={toggling}
                     className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40 ${
                       pack.isSubscribed
-                        ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                         : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                     }`}
                   >
@@ -253,30 +253,30 @@ export default function PacksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
-      <header className="border-b border-white/5 sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm px-6 py-3 flex items-center gap-3">
-        <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">← Dashboard</Link>
-        <div className="h-4 w-px bg-zinc-800" />
-        <span className="font-semibold text-sm">Vertical AI Packs</span>
+      <header className="border-b border-slate-200 sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-3 flex items-center gap-3">
+        <Link href="/dashboard" className="text-slate-400 hover:text-slate-700 text-sm transition-colors">← Dashboard</Link>
+        <div className="h-4 w-px bg-slate-200" />
+        <span className="font-semibold text-sm text-slate-900">Vertical AI Packs</span>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* Hero */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold mb-2">Vertical AI Packs</h1>
-          <p className="text-zinc-400">Specialist AI configurations for your industry</p>
+          <h1 className="text-3xl font-bold mb-2 text-slate-900">Vertical AI Packs</h1>
+          <p className="text-slate-500">Specialist AI configurations for your industry</p>
         </div>
 
         {/* Packs grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-56 rounded-2xl bg-white/5 animate-pulse" />
+              <div key={i} className="h-56 rounded-2xl bg-slate-100 animate-pulse" />
             ))}
           </div>
         ) : packs.length === 0 ? (
-          <div className="text-center py-24 text-zinc-600">
+          <div className="text-center py-24 text-slate-400">
             <p className="text-3xl mb-2">📦</p>
             <p className="text-sm">No packs available yet — check back soon!</p>
           </div>
@@ -288,7 +288,7 @@ export default function PacksPage() {
               return (
                 <div
                   key={pack.id}
-                  className="group relative rounded-2xl border border-white/10 bg-zinc-900 overflow-hidden hover:border-white/20 transition-all cursor-pointer"
+                  className="group relative rounded-2xl border border-slate-200 bg-white overflow-hidden hover:border-slate-300 transition-all cursor-pointer"
                   onClick={() => setSelectedPack(pack)}
                 >
                   {/* Gradient bg */}
@@ -298,12 +298,12 @@ export default function PacksPage() {
                     {/* Icon + name */}
                     <div>
                       <span className="text-4xl block mb-2">{pack.icon}</span>
-                      <h3 className="font-bold text-white">{pack.name}</h3>
-                      <span className="text-xs text-zinc-500 capitalize">{pack.category}</span>
+                      <h3 className="font-bold text-slate-900">{pack.name}</h3>
+                      <span className="text-xs text-slate-400 capitalize">{pack.category}</span>
                     </div>
 
                     {/* Description */}
-                    <p className="text-zinc-400 text-xs leading-relaxed line-clamp-2">{pack.description}</p>
+                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">{pack.description}</p>
 
                     {/* Agent model badges */}
                     {pack.agents.length > 0 && (
@@ -317,7 +317,7 @@ export default function PacksPage() {
                           </span>
                         ))}
                         {pack.agents.length > 4 && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded border border-zinc-700 text-zinc-500">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded border border-slate-200 text-slate-400">
                             +{pack.agents.length - 4}
                           </span>
                         )}
@@ -327,11 +327,11 @@ export default function PacksPage() {
                     {/* Plan / credits + subscribe */}
                     <div className="flex items-center justify-between mt-auto pt-2">
                       {pack.includedInPlan ? (
-                        <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                           Included in {pack.includedInPlan}
                         </span>
                       ) : pack.creditsPerTask ? (
-                        <span className="text-[10px] text-zinc-500">{pack.creditsPerTask} credits/task</span>
+                        <span className="text-[10px] text-slate-400">{pack.creditsPerTask} credits/task</span>
                       ) : (
                         <span />
                       )}
@@ -341,7 +341,7 @@ export default function PacksPage() {
                         disabled={isTogglingThis}
                         className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all active:scale-95 disabled:opacity-40 ${
                           pack.isSubscribed
-                            ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300'
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                         }`}
                       >
@@ -354,7 +354,7 @@ export default function PacksPage() {
                       <Link
                         href="/pricing"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                        className="text-[10px] text-indigo-600 hover:text-indigo-500 transition-colors"
                       >
                         Upgrade to Power to unlock →
                       </Link>

@@ -374,16 +374,16 @@ export default async function UseCasesPage({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Arivarangam<span className="text-indigo-400">.</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-zinc-400">
-            <Link href="/features" className="hover:text-zinc-100 transition-colors">Features</Link>
-            <Link href="/pricing" className="hover:text-zinc-100 transition-colors">Pricing</Link>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/features" className="hover:text-slate-900 transition-colors">Features</Link>
+            <Link href="/pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
             <Link
               href="/signup"
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
@@ -395,7 +395,7 @@ export default async function UseCasesPage({
       </nav>
 
       {/* Category nav */}
-      <div className="pt-24 px-6 border-b border-zinc-800">
+      <div className="pt-24 px-6 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
             {ALL_CATEGORIES.map((cat) => {
@@ -408,7 +408,7 @@ export default async function UseCasesPage({
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
                     isActive
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-zinc-800 text-zinc-400 hover:text-zinc-100'
+                      : 'bg-slate-100 text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   <span>{catData.icon}</span>
@@ -424,11 +424,11 @@ export default async function UseCasesPage({
       <section className="py-16 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-5xl mb-4">{data.icon}</div>
-          <div className="text-sm text-indigo-400 font-medium mb-2">{data.subtitle}</div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
+          <div className="text-sm text-indigo-600 font-medium mb-2">{data.subtitle}</div>
+          <h1 className="text-4xl font-bold tracking-tight mb-4 text-slate-900">
             Arivarangam for {data.title}
           </h1>
-          <p className="text-lg text-zinc-400 leading-relaxed max-w-2xl">{data.description}</p>
+          <p className="text-lg text-slate-500 leading-relaxed max-w-2xl">{data.description}</p>
           <div className="flex gap-4 mt-8">
             <Link
               href="/signup"
@@ -438,7 +438,7 @@ export default async function UseCasesPage({
             </Link>
             <Link
               href="/pricing"
-              className="px-6 py-2.5 border border-zinc-700 hover:border-zinc-500 text-zinc-300 rounded-xl font-semibold transition-colors text-sm"
+              className="px-6 py-2.5 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl font-semibold transition-colors text-sm"
             >
               See pricing
             </Link>
@@ -449,22 +449,22 @@ export default async function UseCasesPage({
       {/* Use Cases Grid */}
       <section className="pb-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-xl font-semibold text-zinc-300 mb-6">
+          <h2 className="text-xl font-semibold text-slate-700 mb-6">
             {data.useCases.length} use cases for {data.title.toLowerCase()} teams
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {data.useCases.map((useCase, idx) => (
               <div
                 key={useCase.title}
-                className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors"
+                className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors"
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-indigo-400 font-mono text-sm font-bold mt-0.5 shrink-0">
+                  <span className="text-indigo-600 font-mono text-sm font-bold mt-0.5 shrink-0">
                     {String(idx + 1).padStart(2, '0')}
                   </span>
                   <div>
-                    <h3 className="text-base font-semibold text-zinc-100 mb-2">{useCase.title}</h3>
-                    <p className="text-sm text-zinc-400 leading-relaxed">{useCase.description}</p>
+                    <h3 className="text-base font-semibold text-slate-900 mb-2">{useCase.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{useCase.description}</p>
                   </div>
                 </div>
               </div>
@@ -474,12 +474,12 @@ export default async function UseCasesPage({
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6 border-t border-zinc-800 text-center">
+      <section className="py-16 px-6 border-t border-slate-200 text-center bg-white">
         <div className="max-w-xl mx-auto">
-          <h2 className="text-2xl font-bold mb-3">
+          <h2 className="text-2xl font-bold mb-3 text-slate-900">
             Ready to use Arivarangam for {data.title.toLowerCase()}?
           </h2>
-          <p className="text-zinc-400 text-sm mb-6">
+          <p className="text-slate-500 text-sm mb-6">
             Start free — no credit card required. The {data.title} Pack is available on Pro.
           </p>
           <Link
@@ -492,7 +492,7 @@ export default async function UseCasesPage({
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-zinc-800 text-center text-sm text-zinc-500">
+      <footer className="py-10 px-6 border-t border-slate-200 text-center text-sm text-slate-400">
         <p>© {new Date().getFullYear()} Arivarangam. Made for India.</p>
       </footer>
     </div>

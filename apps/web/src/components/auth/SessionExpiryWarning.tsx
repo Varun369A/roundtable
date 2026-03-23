@@ -107,15 +107,15 @@ export default function SessionExpiryWarning() {
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
-      className="fixed bottom-6 right-6 z-50 flex items-start gap-3 max-w-sm w-full p-4 rounded-2xl border border-amber-500/30 bg-zinc-900/95 backdrop-blur-sm shadow-2xl shadow-black/30 animate-fade-in"
+      className="fixed bottom-6 right-6 z-50 flex items-start gap-3 max-w-sm w-full p-4 rounded-2xl border border-amber-300 bg-white shadow-2xl shadow-slate-200/60 animate-fade-in"
     >
-      <span className="text-amber-400 mt-0.5 text-lg shrink-0" aria-hidden="true">⚠</span>
+      <span className="text-amber-500 mt-0.5 text-lg shrink-0" aria-hidden="true">⚠</span>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-amber-300">
+        <p className="text-sm font-semibold text-amber-700">
           Your session expires in {timeLabel}
         </p>
-        <p className="text-xs text-zinc-400 mt-0.5">
+        <p className="text-xs text-slate-500 mt-0.5">
           Save your work and stay logged in.
         </p>
       </div>
@@ -125,14 +125,14 @@ export default function SessionExpiryWarning() {
           onClick={handleRefresh}
           disabled={refreshing}
           aria-label="Stay logged in — refresh session"
-          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 rounded-lg text-xs font-semibold text-zinc-900 transition-colors whitespace-nowrap"
+          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 rounded-lg text-xs font-semibold text-white transition-colors whitespace-nowrap"
         >
           {refreshing ? 'Refreshing…' : 'Stay logged in'}
         </button>
         <button
           onClick={() => setDismissed(true)}
           aria-label="Dismiss session expiry warning"
-          className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 rounded-lg hover:bg-zinc-800"
+          className="text-slate-400 hover:text-slate-700 transition-colors p-1 rounded-lg hover:bg-slate-100"
         >
           <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
             <path d="M4.293 4.293a1 1 0 011.414 0L8 6.586l2.293-2.293a1 1 0 111.414 1.414L9.414 8l2.293 2.293a1 1 0 01-1.414 1.414L8 9.414l-2.293 2.293a1 1 0 01-1.414-1.414L6.586 8 4.293 5.707a1 1 0 010-1.414z" />
