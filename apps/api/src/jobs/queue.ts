@@ -174,9 +174,21 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       }
       const fullPrompt = firewallResult.sanitized
 
-      // Resolve user's own API key (BYOAI — free usage if user provides their key)
+      // Resolve API key: user's own key first, then platform key for FREE users
       const connectorModel = toConnectorModel(subtask.assignedModel)
-      const userApiKey = await resolveUserApiKey(context.userId, connectorModel)
+      const { getProviderForModel } = await import('../lib/key-resolver')
+      const provider = getProviderForModel(connectorModel)
+      let userApiKey: string | undefined
+      if (provider) {
+        try {
+          const { resolveApiKey } = await import('../lib/key-vault')
+          const resolved = await resolveApiKey(context.userId, provider)
+          userApiKey = resolved.key
+        } catch {
+          // No key available — connectors will use their env-var fallback or throw
+          userApiKey = undefined
+        }
+      }
 
       // Execute via connector
       const output = await connectorRegistry.execute(connectorModel, {

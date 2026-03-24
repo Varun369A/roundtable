@@ -175,7 +175,9 @@ class ConnectorRegistry {
 
       // Try fallback if error is transient and depth limit not exceeded
       if (isFallbackableError(err) && fallbackDepth < MAX_FALLBACK_DEPTH) {
-        const chain = FALLBACK_CHAINS[model] || []
+        // Always walk the ORIGINAL model's chain so we don't switch to a
+        // different model's fallback list mid-chain (which broke Claude reaching)
+        const chain = FALLBACK_CHAINS[originalModel] || []
         const nextModel = chain[fallbackDepth] as AIModel | undefined
 
         if (nextModel && this.connectors.has(nextModel)) {

@@ -20,7 +20,8 @@ export class PerplexityConnector extends BaseConnector {
   readonly provider = 'perplexity'
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
-    if (!process.env.PERPLEXITY_API_KEY) throw new Error('PERPLEXITY_API_KEY not set')
+    const apiKey = input.userApiKey || process.env.PERPLEXITY_API_KEY
+    if (!apiKey) throw new Error('PERPLEXITY_API_KEY not set')
 
     const start = Date.now()
 
@@ -28,7 +29,7 @@ export class PerplexityConnector extends BaseConnector {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
