@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 const TECH_FEATURES = [
   {
-    title: 'Discussion Engine',
-    description: 'Arivarangam\'s proprietary 3-round peer review system. Each AI model produces an initial response, critiques the others\' work, and a synthesis AI produces a final, battle-tested output. This isn\'t just "ask multiple AIs" — it\'s structured intellectual adversarialism.',
+    title: 'Synthesis Engine',
+    description: 'Arivarangam AI internally consults 8 world-class specialist AIs — Claude for coding, GPT-4o for reasoning, Gemini 2.5 Pro for analysis, Perplexity for research, Sarvam for Indian languages, ElevenLabs for voice, Whisper for transcription, GPT Image 1 for visuals. Specialists run in parallel. Arivarangam AI reads all their outputs and builds one complete, polished deliverable. You never see the internal consultations — only the finished result.',
     icon: '⚡',
     color: 'from-indigo-500 to-purple-600',
   },

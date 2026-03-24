@@ -184,7 +184,7 @@ const FEATURES = [
     title: 'Credit Economy',
     tagline: 'Fair usage pricing with referral bonuses.',
     description:
-      'Arivarangam\'s credit system provides transparent, usage-based pricing on top of your subscription. Credit costs reflect actual AI compute — a quick single-model task costs fewer credits than a full Discussion Engine session with 8 models. Earn credits by referring users, completing onboarding, and contributing to the community. Credits never expire.',
+      'Arivarangam uses credit-based pay-per-use pricing — no subscriptions, ever. Buy a credit pack once, use it for any task. Credit costs reflect actual AI compute — a quick task costs ~10 credits; a full 8-specialist synthesis costs ~30 credits. Earn credits by referring users and completing onboarding. Credits never expire.',
     highlights: [
       'Transparent credit cost shown before task submission',
       'Credit warning if balance is below 50 before submitting',
@@ -308,7 +308,7 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4 text-slate-900">Ready to try Arivarangam?</h2>
           <p className="text-slate-500 mb-8">
-            Start free — no credit card required. Run your first AI Roundtable in 60 seconds.
+            Start free — 100 credits on signup, no card required. Run your first task in 60 seconds.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
