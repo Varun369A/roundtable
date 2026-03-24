@@ -11,12 +11,13 @@ const PLANS = [
     name: 'Free',
     monthlyInr: 0,
     annualInr: 0,
-    description: 'Try Arivarangam with no commitment.',
+    description: 'Run your first Roundtable. No credit card needed.',
     features: [
-      '2 AI models (Claude + GPT-4o)',
-      '5 tasks/month',
-      '2 Roundtable tasks/month',
-      'Basic support',
+      'Claude + GPT-4o (2 models)',
+      '5 Roundtable tasks/month',
+      '50 credits to start',
+      'Arivarangam Passport (forever free)',
+      'Community support',
     ],
     cta: 'Start free',
     href: '/signup',
@@ -27,12 +28,14 @@ const PLANS = [
     name: 'Builder',
     monthlyInr: 799,
     annualInr: 638,   // 20% off
-    description: 'For individuals who bring their own API keys.',
+    description: 'For makers who bring their own API keys — zero API markup.',
     features: [
       'Bring your own API keys (BYOAI)',
       'All 16 AI models',
       'Unlimited Roundtable tasks',
-      'Sarvam (Indian languages)',
+      'Workflow builder & scheduling',
+      'Arivarangam Passport Pro',
+      'Sarvam — Indian language support',
       'Priority support',
     ],
     cta: 'Get Builder',
@@ -44,14 +47,16 @@ const PLANS = [
     monthlyInr: 1999,
     annualInr: 1599,  // 20% off
     originalComboInr: 8526,
-    description: 'The full Arivarangam experience — Arivarangam absorbs API costs.',
+    description: 'The full Arivarangam experience — we absorb every API bill.',
     features: [
       'All 16 AI models (Arivarangam pays)',
       'Unlimited Roundtable tasks',
-      'Claude Opus synthesis',
+      'Claude Opus synthesis round',
       'Team workspace (up to 5 seats)',
+      'Social media automation',
+      'Arivarangam Passport Business',
+      'Midjourney, Runway, Stability AI',
       'API access + priority routing',
-      'Midjourney, Runway, Stability',
     ],
     cta: 'Get Studio',
     highlight: true,
@@ -62,27 +67,35 @@ const PLANS = [
 const FAQS = [
   {
     q: 'Do I pay separately for each AI?',
-    a: 'No. On Studio, Arivarangam absorbs the API costs within your plan. On Builder, you bring your own API keys — you pay the AI providers directly at their rates.',
+    a: 'No. On Studio, Arivarangam absorbs all API costs — Claude, GPT-4o, Perplexity, Gemini, and more. On Builder, you connect your own API keys and pay providers at their rates with zero markup from us.',
+  },
+  {
+    q: 'What is Arivarangam Passport?',
+    a: 'Your Passport is a public AI-verified skill profile built automatically from your completed tasks. It shows what you\'ve built, which AI models you used, and your areas of expertise — shareable as a link. Free plan gets a basic Passport; Builder and Studio get Pro/Business tiers with more visibility.',
+  },
+  {
+    q: 'What are credits?',
+    a: 'Credits are the in-platform currency for running tasks on Free plan. You get 50 credits on signup. Each Roundtable task uses credits based on how many AI models ran and how complex the task was. Builder and Studio plans run on API keys directly — no credits needed.',
   },
   {
     q: 'Which payment methods are accepted?',
-    a: 'UPI, all major credit/debit cards, net banking, and EMI. Powered by Razorpay.',
+    a: 'UPI, all major credit/debit cards, net banking, and EMI. Powered by Razorpay. All prices are in Indian Rupees (₹) inclusive of GST.',
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel anytime from your billing settings. You keep access until the end of the current billing period.',
+    a: 'Yes. Cancel anytime from Settings → Billing. You keep full access until the end of your current billing period. No questions asked.',
   },
   {
-    q: 'What counts as a "task"?',
-    a: 'One Roundtable session (e.g., "Create a marketing campaign") counts as one task, regardless of how many AIs collaborate inside it.',
+    q: 'What counts as a Roundtable task?',
+    a: 'One Roundtable session counts as one task — regardless of how many AI models collaborate inside it or how many subtasks run. For example, "Build a marketing plan" is 1 task even if Claude, Perplexity, and GPT-4o all contribute.',
   },
   {
-    q: 'Is there a free trial?',
-    a: "The Free plan lets you run 5 tasks permanently with no credit card. That's your trial.",
+    q: 'Is there a free trial for Builder or Studio?',
+    a: 'Yes. Every account starts on Free with 5 tasks included — no credit card required. Upgrade anytime and your existing tasks and Passport carry over.',
   },
   {
     q: 'What about enterprise pricing?',
-    a: 'Custom contracts for teams of 10+. Includes SLA, role-based access, admin dashboard, and on-prem routing options.',
+    a: 'Custom contracts for teams of 10+. Includes SLA guarantees, role-based access control, dedicated admin dashboard, on-prem routing options, and a dedicated account manager. Email admin@arivarangam.com.',
   },
 ]
 
@@ -192,10 +205,11 @@ export default function PricingPage() {
             Simple, honest pricing
           </h1>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto">
-            ChatGPT + Claude + Midjourney + ElevenLabs + Perplexity = ₹8,526/month separately.
+            ChatGPT Plus + Claude Pro + Midjourney + ElevenLabs + Perplexity Pro = <span className="line-through">₹8,526/month</span> separately.
             <br />
             Arivarangam Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
           </p>
+          <p className="text-sm text-slate-400 mt-3">Built in Coimbatore, Tamil Nadu. India-first pricing.</p>
         </div>
 
         {/* Annual / Monthly toggle — annual is the default */}
