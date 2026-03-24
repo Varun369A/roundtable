@@ -14,33 +14,50 @@ export async function sabhaAIRoutes(app: FastifyInstance) {
     '/status',
     { preHandler: [requireAuth, requireAdmin] },
     async (_req: FastifyRequest, reply: FastifyReply) => {
-      const [state, knowledgeCount, categoryBreakdown] = await Promise.all([
-        prisma.arivarangamAIState.upsert({
-          where: { id: 'singleton' },
-          update: {},
-          create: { id: 'singleton' },
-          select: { status: true, knowledgeCount: true, readyThreshold: true, enabledAt: true, lastLearnedAt: true },
-        }),
-        prisma.arivarangamKnowledge.count(),
-        prisma.arivarangamKnowledge.groupBy({
-          by: ['category'],
-          _count: { id: true },
-          orderBy: { _count: { id: 'desc' } },
-        }),
-      ])
+      try {
+        const [state, knowledgeCount, categoryBreakdown] = await Promise.all([
+          prisma.arivarangamAIState.upsert({
+            where: { id: 'singleton' },
+            update: {},
+            create: { id: 'singleton' },
+            select: { status: true, knowledgeCount: true, readyThreshold: true, enabledAt: true, lastLearnedAt: true },
+          }),
+          prisma.arivarangamKnowledge.count(),
+          prisma.arivarangamKnowledge.groupBy({
+            by: ['category'],
+            _count: { id: true },
+            orderBy: { _count: { id: 'desc' } },
+          }),
+        ])
 
-      return reply.send({
-        success: true,
-        data: {
-          status: state.status,
-          knowledgeCount,
-          readyThreshold: state.readyThreshold,
-          progressPercent: Math.min(100, Math.round((knowledgeCount / state.readyThreshold) * 100)),
-          enabledAt: state.enabledAt,
-          lastLearnedAt: state.lastLearnedAt,
-          categoryBreakdown: categoryBreakdown.map((c) => ({ category: c.category, count: c._count.id })),
-        },
-      })
+        return reply.send({
+          success: true,
+          data: {
+            status: state.status,
+            knowledgeCount,
+            readyThreshold: state.readyThreshold,
+            progressPercent: Math.min(100, Math.round((knowledgeCount / state.readyThreshold) * 100)),
+            enabledAt: state.enabledAt,
+            lastLearnedAt: state.lastLearnedAt,
+            categoryBreakdown: categoryBreakdown.map((c) => ({ category: c.category, count: c._count.id })),
+          },
+        })
+      } catch (err: any) {
+        _req.log.error({ err }, '[sabha-ai] GET /status error — returning safe defaults')
+        // Return a default "not yet initialized" state instead of crashing the page
+        return reply.send({
+          success: true,
+          data: {
+            status: 'LEARNING',
+            knowledgeCount: 0,
+            readyThreshold: 50,
+            progressPercent: 0,
+            enabledAt: null,
+            lastLearnedAt: null,
+            categoryBreakdown: [],
+          },
+        })
+      }
     }
   )
 

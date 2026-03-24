@@ -448,6 +448,42 @@ Respond with valid JSON in this exact format:
         recentBugReports:     recentBugs.length,
       }
 
+      // If no Anthropic API key, return rule-based issues from the signals we gathered
+      if (!process.env.ANTHROPIC_API_KEY) {
+        const issues: any[] = []
+        if (failedLast1h.length > 10) {
+          issues.push({
+            title: 'High subtask failure rate',
+            severity: failedLast1h.length > 30 ? 'critical' : 'high',
+            description: `${failedLast1h.length} subtasks failed in the last hour`,
+            suggestedAction: 'Check AI API keys and connector configuration',
+            affectedComponent: 'Task Orchestration',
+          })
+        }
+        if (circuitBreakers.length > 0) {
+          issues.push({
+            title: `${circuitBreakers.length} circuit breaker(s) open`,
+            severity: 'high',
+            description: 'Some AI connectors are circuit-broken due to repeated failures',
+            suggestedAction: 'Review connector API keys and rate limits',
+            affectedComponent: 'AI Connectors',
+          })
+        }
+        if (recentBugs.length > 3) {
+          issues.push({
+            title: 'Elevated bug reports',
+            severity: 'medium',
+            description: `${recentBugs.length} bug reports in the last hour`,
+            suggestedAction: 'Review user feedback for common patterns',
+            affectedComponent: 'User Experience',
+          })
+        }
+        return reply.send({
+          success: true,
+          data: { issues, signals: contextSummary, analyzedAt: new Date().toISOString() },
+        })
+      }
+
       const analysisPrompt = `You are Arivarangam's reliability assistant. Analyze these platform health signals and list the top issues.
 
 Platform signals:

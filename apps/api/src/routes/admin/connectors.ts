@@ -10,56 +10,72 @@ export async function adminConnectorsRoutes(app: FastifyInstance) {
 
   // ─── GET /admin/connectors ───────────────────────────────────────────────────
   app.get('/', async (_request, reply) => {
-    const allModels = connectorRegistry.listAll()
-    const availableModels = await connectorRegistry.getAvailableModels()
-    const availableSet = new Set(availableModels)
+    try {
+      const allModels = connectorRegistry.listAll()
 
-    // Get performance stats from billing events (last 7 days)
-    const since = new Date(Date.now() - 7 * 86400000)
-    const stats = await prisma.$queryRaw<Array<{
-      model: string
-      calls: bigint
-      total_cost: number
-      avg_latency: number
-    }>>`
-      SELECT
-        ai_model::text as model,
-        COUNT(*) as calls,
-        SUM(cost_usd)::float as total_cost,
-        AVG((metadata->>'latencyMs')::float) as avg_latency
-      FROM billing_events
-      WHERE created_at >= ${since}
-        AND ai_model IS NOT NULL
-        AND event_type = 'api_call'
-      GROUP BY ai_model
-    `
-
-    const statsMap = new Map(stats.map((s) => [s.model, s]))
-
-    const connectors = allModels.map((model) => {
-      const s = statsMap.get(model)
-      return {
-        model,
-        isAvailable: availableSet.has(model),
-        stats7d: s ? {
-          calls: Number(s.calls),
-          totalCostUsd: Number(s.total_cost || 0),
-          avgLatencyMs: Math.round(Number(s.avg_latency || 0)),
-        } : null,
+      // getAvailableModels checks each connector's isAvailable() — safe if it throws
+      let availableModels: string[] = []
+      try {
+        availableModels = await connectorRegistry.getAvailableModels()
+      } catch {
+        // If availability check fails, treat all as unavailable
       }
-    })
+      const availableSet = new Set(availableModels)
 
-    return reply.send({
-      success: true,
-      data: {
-        connectors,
-        summary: {
-          total: allModels.length,
-          available: availableModels.length,
-          unavailable: allModels.length - availableModels.length,
+      // Get performance stats from billing events (last 7 days)
+      const since = new Date(Date.now() - 7 * 86400000)
+      let statsMap = new Map<string, any>()
+      try {
+        const stats = await prisma.$queryRaw<Array<{
+          model: string
+          calls: bigint
+          total_cost: number
+          avg_latency: number
+        }>>`
+          SELECT
+            ai_model::text as model,
+            COUNT(*) as calls,
+            SUM(cost_usd)::float as total_cost,
+            AVG((metadata->>'latencyMs')::float) as avg_latency
+          FROM billing_events
+          WHERE created_at >= ${since}
+            AND ai_model IS NOT NULL
+            AND event_type = 'api_call'
+          GROUP BY ai_model
+        `
+        statsMap = new Map(stats.map((s) => [s.model, s]))
+      } catch {
+        // billing_events may be empty or missing columns — skip stats
+      }
+
+      const connectors = allModels.map((model) => {
+        const s = statsMap.get(model)
+        return {
+          model,
+          isAvailable: availableSet.has(model),
+          stats7d: s ? {
+            calls: Number(s.calls),
+            totalCostUsd: Number(s.total_cost || 0),
+            avgLatencyMs: Math.round(Number(s.avg_latency || 0)),
+          } : null,
+        }
+      })
+
+      return reply.send({
+        success: true,
+        data: {
+          connectors,
+          summary: {
+            total: allModels.length,
+            available: availableModels.length,
+            unavailable: allModels.length - availableModels.length,
+          },
         },
-      },
-    })
+      })
+    } catch (err: any) {
+      _request.log.error({ err }, '[connectors] GET / error')
+      return reply.status(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message } })
+    }
   })
 
   // ─── POST /admin/connectors/:model/health ────────────────────────────────────

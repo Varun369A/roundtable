@@ -45,31 +45,36 @@ export async function adminTasksRoutes(app: FastifyInstance) {
 
   // ─── GET /admin/tasks/live — currently running tasks ────────────────────────
   app.get('/live', async (_request, reply) => {
-    const liveTasks = await prisma.task.findMany({
-      where: { status: { in: ['ROUTING', 'IN_PROGRESS'] } },
-      orderBy: { createdAt: 'asc' },
-      take: 50,
-      include: {
-        user: { select: { email: true, tier: true } },
-        subtasks: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            assignedModel: true,
-            startedAt: true,
+    try {
+      const liveTasks = await prisma.task.findMany({
+        where: { status: { in: ['ROUTING', 'IN_PROGRESS'] } },
+        orderBy: { createdAt: 'asc' },
+        take: 50,
+        include: {
+          user: { select: { email: true, tier: true } },
+          subtasks: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              assignedModel: true,
+              startedAt: true,
+            },
           },
         },
-      },
-    })
+      })
 
-    return reply.send({
-      success: true,
-      data: {
-        live: liveTasks,
-        count: liveTasks.length,
-      },
-    })
+      return reply.send({
+        success: true,
+        data: {
+          live: liveTasks,
+          count: liveTasks.length,
+        },
+      })
+    } catch (err: any) {
+      _request.log.error({ err }, '[tasks] GET /live error')
+      return reply.send({ success: true, data: { live: [], count: 0 } })
+    }
   })
 
   // ─── GET /admin/tasks/:id — full task detail ─────────────────────────────────

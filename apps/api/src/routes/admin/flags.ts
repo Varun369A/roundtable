@@ -11,6 +11,8 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@arivarangam/db'
 import { invalidateFlag } from '../../lib/feature-flags'
+import { requireAuth } from '../../middleware/auth'
+import { requireAdmin } from '../../middleware/require-admin'
 
 const flagSchema = z.object({
   key: z.string().min(1).max(100).regex(/^[a-z0-9_]+$/),
@@ -23,6 +25,8 @@ const flagSchema = z.object({
 })
 
 export async function adminFlagRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth)
+  app.addHook('preHandler', requireAdmin)
 
   app.get('/', async (_request, reply) => {
     const flags = await prisma.featureFlag.findMany({ orderBy: { key: 'asc' } })

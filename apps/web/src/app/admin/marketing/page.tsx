@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { apiFetch } from '@/lib/api'
 
 type Tab = 'today' | 'engagement' | 'calendar' | 'analytics' | 'credentials'
 
@@ -73,71 +74,66 @@ export default function MarketingDashboard() {
   const [replyText, setReplyText] = useState<Record<string, string>>({})
   const [connectForm, setConnectForm] = useState({ platform: 'LINKEDIN', accessToken: '', refreshToken: '', accountHandle: '', accountName: '' })
 
-  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
-
   const fetchTab = useCallback(async (t: Tab) => {
     setLoading(true)
     try {
       if (t === 'today') {
-        const r = await fetch(`${API}/admin/marketing/today`, { credentials: 'include' })
-        if (r.ok) { const d = await r.json(); setTodayItems(d.items || []) }
+        const res = await apiFetch('/api/v1/admin/marketing/today')
+        if (res.success) setTodayItems((res.data as any)?.items || [])
       } else if (t === 'engagement') {
-        const r = await fetch(`${API}/admin/marketing/engagement`, { credentials: 'include' })
-        if (r.ok) { const d = await r.json(); setEngagementItems(d.items || []) }
+        const res = await apiFetch('/api/v1/admin/marketing/engagement')
+        if (res.success) setEngagementItems((res.data as any)?.items || [])
       } else if (t === 'calendar') {
-        const r = await fetch(`${API}/admin/marketing/calendar`, { credentials: 'include' })
-        if (r.ok) { const d = await r.json(); setCalendarItems(d.items || []) }
+        const res = await apiFetch('/api/v1/admin/marketing/calendar')
+        if (res.success) setCalendarItems((res.data as any)?.items || [])
       } else if (t === 'analytics') {
-        const r = await fetch(`${API}/admin/marketing/analytics`, { credentials: 'include' })
-        if (r.ok) { const d = await r.json(); setAnalyticsItems(d.items || []) }
+        const res = await apiFetch('/api/v1/admin/marketing/analytics')
+        if (res.success) setAnalyticsItems((res.data as any)?.items || [])
       } else if (t === 'credentials') {
-        const r = await fetch(`${API}/admin/marketing/credentials`, { credentials: 'include' })
-        if (r.ok) { const d = await r.json(); setCredentials(d.credentials || []) }
+        const res = await apiFetch('/api/v1/admin/marketing/credentials')
+        if (res.success) setCredentials((res.data as any)?.credentials || [])
       }
     } finally {
       setLoading(false)
     }
-  }, [API])
+  }, [])
 
   useEffect(() => { fetchTab(tab) }, [tab, fetchTab])
 
   const approveContent = async (id: string, text?: string) => {
-    const body: Record<string, string> = {}
-    if (text) body.editedText = text
-    const endpoint = text ? `${API}/admin/marketing/content/${id}/edit` : `${API}/admin/marketing/content/${id}/approve`
-    await fetch(endpoint, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    const path = text
+      ? `/api/v1/admin/marketing/content/${id}/edit`
+      : `/api/v1/admin/marketing/content/${id}/approve`
+    await apiFetch(path, { method: 'PATCH', body: JSON.stringify(text ? { editedText: text } : {}) })
     setEditingId(null)
     fetchTab('today')
   }
 
   const skipContent = async (id: string) => {
-    await fetch(`${API}/admin/marketing/content/${id}/skip`, {
-      method: 'PATCH', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason: skipReason[id] || 'Skipped by admin' })
+    await apiFetch(`/api/v1/admin/marketing/content/${id}/skip`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason: skipReason[id] || 'Skipped by admin' }),
     })
     fetchTab('today')
   }
 
   const approveAll = async () => {
-    await fetch(`${API}/admin/marketing/content/approve-all`, { method: 'POST', credentials: 'include' })
+    await apiFetch('/api/v1/admin/marketing/content/approve-all', { method: 'POST' })
     fetchTab('today')
   }
 
   const sendReply = async (id: string) => {
-    await fetch(`${API}/admin/marketing/engagement/${id}/reply`, {
-      method: 'PATCH', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ replyText: replyText[id] })
+    await apiFetch(`/api/v1/admin/marketing/engagement/${id}/reply`, {
+      method: 'PATCH',
+      body: JSON.stringify({ replyText: replyText[id] }),
     })
     fetchTab('engagement')
   }
 
   const connectCredential = async () => {
-    await fetch(`${API}/admin/marketing/credentials/connect`, {
-      method: 'POST', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(connectForm)
+    await apiFetch('/api/v1/admin/marketing/credentials/connect', {
+      method: 'POST',
+      body: JSON.stringify(connectForm),
     })
     fetchTab('credentials')
   }
