@@ -473,9 +473,10 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
   },
   {
     connection,
-    concurrency: 5,          // reduced from 20 — Upstash free tier has 500k cmd/day limit
-    stalledInterval: 60_000, // check stalled jobs every 60s (default: 30s)
-    drainDelay: 5_000,       // wait 5s before polling empty queue again (default: 5ms)
+    concurrency: 5,           // reduced from 20 — Upstash free tier has 500k cmd/day limit
+    lockDuration: 300_000,    // 5 min — AI calls can take 60-120s; default 30s causes abort+retry
+    stalledInterval: 60_000,  // check stalled jobs every 60s (default: 30s)
+    drainDelay: 5_000,        // wait 5s before polling empty queue again (default: 5ms)
   }
 )
 
