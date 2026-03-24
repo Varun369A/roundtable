@@ -171,6 +171,20 @@ function Sidebar({ userProfile }: { userProfile: UserProfile | null }) {
         {userProfile?.email && (
           <p className="text-xs text-slate-400 truncate">{userProfile.email}</p>
         )}
+        <button
+          onClick={async () => {
+            try {
+              await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
+            } catch {}
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            window.location.href = '/login'
+          }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
+          <span className="text-base leading-none">↩</span>
+          <span>Sign out</span>
+        </button>
       </div>
     </aside>
   )

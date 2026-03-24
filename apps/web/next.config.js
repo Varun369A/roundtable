@@ -5,6 +5,22 @@ const nextConfig = {
   images: {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
   },
+  async redirects() {
+    return [
+      // Old email links used /auth/verify-email — redirect to actual Next.js route
+      {
+        source: '/auth/verify-email',
+        destination: '/verify-email',
+        permanent: false,
+      },
+      // Old email links used /auth/reset-password
+      {
+        source: '/auth/reset-password',
+        destination: '/reset-password',
+        permanent: false,
+      },
+    ]
+  },
   async rewrites() {
     return [
       {
