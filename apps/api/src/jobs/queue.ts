@@ -19,9 +19,22 @@ import { inferMemoryFromTask } from '../lib/memory-manager'
 import { onWorkflowStepComplete } from '../lib/workflow-executor'
 import { verifyTaskOutputs } from '../lib/quality-verifier'
 
-// Prisma stores enum identifiers (gpt_4o) but connectors expect dash strings (gpt-4o)
+// Prisma stores enum keys (gemini_2_5_pro) but connectors expect the @map value (gemini-2.5-pro)
+// Simple underscore→hyphen works for most models, but version numbers with dots need explicit mapping
+const PRISMA_TO_CONNECTOR: Record<string, AIModel> = {
+  claude_3_5_sonnet: 'claude-3-5-sonnet',
+  claude_3_opus:     'claude-3-opus',
+  gpt_4o:            'gpt-4o',
+  gemini_2_5_pro:    'gemini-2.5-pro',
+  perplexity_sonar:  'perplexity-sonar',
+  sarvam_1:          'sarvam-1',
+  elevenlabs:        'elevenlabs',
+  whisper:           'whisper',
+  gpt_image_1:       'gpt-image-1',
+  sabha_ai:          'sabha-ai',
+}
 function toConnectorModel(prismaModel: string): AIModel {
-  return prismaModel.replace(/_/g, '-') as AIModel
+  return (PRISMA_TO_CONNECTOR[prismaModel] ?? prismaModel.replace(/_/g, '-')) as AIModel
 }
 import { forwardTaskEventToSession } from '../lib/session-manager'
 import {
