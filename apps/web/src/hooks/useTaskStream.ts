@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 
 export type StreamEventType =
   | 'connected'
+  | 'routing_decided'
   | 'subtask_started'
   | 'subtask_completed'
   | 'subtask_failed'
@@ -19,6 +20,14 @@ export type StreamEventType =
   | 'steering_applied'
   | 'session_created'
 
+export interface TeamMember {
+  subtaskId:      string
+  title:          string
+  model:          string
+  category:       string
+  executionOrder: number
+}
+
 export interface StreamEvent {
   event: StreamEventType
   taskId?: string
@@ -28,6 +37,9 @@ export interface StreamEvent {
   model?: string
   status?: string
   originalGoal?: string
+  // routing_decided fields
+  team?: TeamMember[]
+  intentCategories?: string[]
   // Discussion Engine fields
   role?: 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
   roundNumber?: number
@@ -79,6 +91,7 @@ export function useTaskStream({ taskId, onEvent, enabled = true }: UseTaskStream
 
     const eventTypes: StreamEventType[] = [
       'connected',
+      'routing_decided',
       'subtask_started',
       'subtask_completed',
       'subtask_failed',

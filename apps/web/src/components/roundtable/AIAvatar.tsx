@@ -6,6 +6,9 @@ interface ModelConfig {
 }
 
 const MODEL_CONFIG: Record<string, ModelConfig> = {
+  'arivarangam-ai':  { label: 'Arivarangam AI', color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
+  'arivarangam_ai':  { label: 'Arivarangam AI', color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
+  'sabha-ai':        { label: 'Sabha AI',        color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
   'claude-3-5-sonnet': { label: 'Claude',      color: '#F97316', bg: '#7C2D12', emoji: '🟠' },
   'claude-3-opus':     { label: 'Claude Opus', color: '#F97316', bg: '#7C2D12', emoji: '🟠' },
   'gpt-4o':            { label: 'GPT-4o',      color: '#22C55E', bg: '#14532D', emoji: '🟢' },

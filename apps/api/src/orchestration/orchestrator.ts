@@ -8,6 +8,7 @@ import { processInputLanguage, getUserLanguagePreference } from './language-laye
 import { generateClarifications, saveClarifications, buildClarificationContext } from '../lib/clarification-generator'
 import { getMemoryContext } from '../lib/memory-manager'
 import { detectSkillsAndAwards } from '../jobs/skill-detector'
+import { redis } from '../lib/redis'
 
 // Prisma enum uses underscore identifiers (gpt_4o) but types use dash strings (gpt-4o)
 function toPrismaModel(model: string): string {
@@ -184,7 +185,21 @@ export async function orchestrateTask(taskId: string): Promise<void> {
       })
     )
 
-    // Step 5: Update task to IN_PROGRESS
+    // Step 5: Publish routing_decided — lets the frontend show the Sabha AI team card
+    redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+      event: 'routing_decided',
+      taskId,
+      team: createdSubtasks.map((s, i) => ({
+        subtaskId:      s.id,
+        title:          subtaskDefinitions[i]?.title ?? s.title,
+        model:          (subtaskDefinitions[i]?.assignedModel ?? (s.assignedModel as string)).replace(/_/g, '-'),
+        category:       subtaskDefinitions[i]?.category ?? s.category,
+        executionOrder: s.executionOrder,
+      })),
+      intentCategories: intent?.categories ?? [],
+    })).catch(() => {})
+
+    // Step 6: Update task to IN_PROGRESS
     await prisma.task.update({
       where: { id: taskId },
       data: {

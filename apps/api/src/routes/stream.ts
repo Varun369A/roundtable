@@ -130,13 +130,29 @@ export async function streamRoutes(app: FastifyInstance) {
         originalGoal: task.originalGoal,
       })
 
-      // Replay already-completed / active subtasks
+      // Replay routing_decided so the Sabha AI team card shows on reconnect
+      if (task.subtasks.length > 0) {
+        send('routing_decided', {
+          taskId: task.id,
+          team: task.subtasks.map((s) => ({
+            subtaskId:      s.id,
+            title:          s.title,
+            model:          s.assignedModel?.replace(/_/g, '-'),
+            category:       s.category,
+            executionOrder: s.executionOrder,
+          })),
+        })
+      }
+
+      // Replay already-completed / active subtasks (include role + roundNumber for Discussion Engine)
       for (const subtask of task.subtasks) {
         if (subtask.status === 'COMPLETED' && subtask.output) {
           send('subtask_completed', {
-            subtaskId: subtask.id,
-            title:     subtask.title,
-            model:     subtask.assignedModel?.replace(/_/g, '-'),
+            subtaskId:   subtask.id,
+            title:       subtask.title,
+            model:       subtask.assignedModel?.replace(/_/g, '-'),
+            role:        subtask.role,
+            roundNumber: subtask.roundNumber,
             output: {
               type:    subtask.output.type,
               content: subtask.output.content,
@@ -145,9 +161,11 @@ export async function streamRoutes(app: FastifyInstance) {
           })
         } else if (subtask.status === 'IN_PROGRESS') {
           send('subtask_started', {
-            subtaskId: subtask.id,
-            title:     subtask.title,
-            model:     subtask.assignedModel?.replace(/_/g, '-'),
+            subtaskId:   subtask.id,
+            title:       subtask.title,
+            model:       subtask.assignedModel?.replace(/_/g, '-'),
+            role:        subtask.role,
+            roundNumber: subtask.roundNumber,
           })
         } else if (subtask.status === 'FAILED') {
           send('subtask_failed', {

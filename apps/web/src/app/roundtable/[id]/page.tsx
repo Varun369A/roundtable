@@ -12,7 +12,7 @@ import { SessionPanel } from '@/components/roundtable/SessionPanel'
 import { ReactionBar } from '@/components/roundtable/ReactionBar'
 import { VerificationBadge } from '@/components/roundtable/VerificationBadge'
 import { VoiceInputButton } from '@/components/roundtable/VoiceInputButton'
-import type { Message } from '@/components/roundtable'
+import type { Message, TeamMember } from '@/components/roundtable'
 import { apiFetch } from '@/lib/api'
 import RequestReviewModal from '@/components/marketplace/RequestReviewModal'
 
@@ -136,7 +136,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
         await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
-        addSystemMessage('Analysing your goal and assembling the team…')
+        addSystemMessage('Arivarangam AI is analysing your goal and selecting the best team…')
       } else if (t.status === 'WAITING_CLARIFICATION') {
         // Task is paused waiting for user input — load and show questions
         const clRes = await apiFetch<{ clarifications: any[] }>(`/api/v1/tasks/${id}/clarifications`)
@@ -155,6 +155,24 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
     switch (event.event) {
       case 'connected':
         if (event.status) setTaskStatus(event.status)
+        break
+
+      case 'routing_decided':
+        if (event.team && event.team.length > 0) {
+          setMessages((prev) => {
+            // Don't add duplicate routing card on reconnect
+            if (prev.some((m) => m.id === 'routing-decision')) return prev
+            return [
+              ...prev,
+              {
+                id:        'routing-decision',
+                type:      'routing_card',
+                team:      event.team,
+                timestamp: new Date(),
+              },
+            ]
+          })
+        }
         break
 
       case 'subtask_started':
@@ -228,12 +246,12 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       case 'discussion_round_started':
         setDiscussionRound(2)
-        addSystemMessage('Round 2 — Peer Review: AIs are critiquing and enriching each other\'s work…')
+        addSystemMessage('Round 2 — Peer Review: each AI critiques and enriches the others\' work…')
         break
 
       case 'synthesis_started':
         setDiscussionRound(3)
-        addSystemMessage('Round 3 — Synthesis: Integrating all outputs into the final result…')
+        addSystemMessage('Round 3 — Arivarangam AI is synthesising all outputs into the final result…')
         break
 
       case 'synthesis_complete':
@@ -437,7 +455,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                 </div>
                 <p className="text-slate-500 text-sm max-w-xs">
                   {taskStatus === 'ROUTING'
-                    ? 'Analysing your goal and assembling the AI team…'
+                    ? 'Arivarangam AI is analysing your goal and selecting the best team…'
                     : 'Preparing your roundtable…'}
                 </p>
               </div>
@@ -682,7 +700,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           onComplete={() => {
             setShowClarification(false)
             setTaskStatus('ROUTING')
-            addSystemMessage('Answers saved — assembling your AI team…')
+            addSystemMessage('Answers saved — Arivarangam AI is assembling your team…')
           }}
         />
       )}
