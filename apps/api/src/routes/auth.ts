@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@arivarangam/db'
-import { env } from '@arivarangam/config'
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../lib/password'
 import {
   generateRefreshToken,
@@ -64,10 +63,9 @@ export async function authRoutes(app: FastifyInstance) {
       })
     }
 
-    const { email, password, name, betaCode } = body.data
+    const { email, password, name } = body.data
 
-    // Beta gate disabled — open signup
-    const betaInvite: { id: string; code: string } | null = null
+    // Beta gate disabled — open signup. When re-enabled, look up betaCode in BetaInvite table here.
 
     // Password strength check
     const strength = validatePasswordStrength(password)
@@ -94,20 +92,12 @@ export async function authRoutes(app: FastifyInstance) {
         email: email.toLowerCase(),
         name,
         passwordHash,
-        isBeta: betaInvite !== null,
-        betaCode: betaInvite?.code || null,
+        isBeta: false,
+        betaCode: null,
         usageStats: { create: {} },
       },
       select: { id: true, email: true, name: true, tier: true, createdAt: true },
     })
-
-    // Mark invite as used
-    if (betaInvite) {
-      await prisma.betaInvite.update({
-        where: { id: betaInvite.id },
-        data: { usedById: user.id, usedAt: new Date() },
-      })
-    }
 
     // Auto-create personal workspace for every new user
     const workspaceSlug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)}-${user.id.slice(-6)}`
@@ -178,7 +168,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     // Send welcome email (non-blocking)
     if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
-      sendWelcomeEmail({ to: email, name, betaCode: betaInvite?.code }).catch(() => {})
+      sendWelcomeEmail({ to: email, name }).catch(() => {})
     }
 
     // Issue tokens
@@ -402,8 +392,8 @@ export async function authRoutes(app: FastifyInstance) {
         name: true,
         tier: true,
         status: true,
-        emailVerified: true,
         isEmailVerified: true,
+        emailVerifiedAt: true,
         isAdmin: true,
         avatarUrl: true,
         createdAt: true,

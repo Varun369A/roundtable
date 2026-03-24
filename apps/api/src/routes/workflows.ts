@@ -715,7 +715,7 @@ export async function workflowsRoutes(app: FastifyInstance) {
 
       // Validate HMAC signature
       const rawBody = JSON.stringify(request.body ?? {})
-      const isValid = await validateWebhookSignature(signature, rawBody, workflow.webhookSecret)
+      const isValid = await validateWebhookSignature(rawBody, signature, workflow.webhookSecret)
       if (!isValid) {
         return reply.status(401).send({
           success: false,

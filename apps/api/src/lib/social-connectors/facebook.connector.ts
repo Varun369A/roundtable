@@ -61,9 +61,16 @@ export class FacebookConnector implements ISocialConnector {
     return data.id ?? ''
   }
 
-  async postVideo(_content: string, _videoUrl: string): Promise<string> {
-    // TODO: Upload video via https://graph.facebook.com/v18.0/{page-id}/videos
-    return ''
+  async postVideo(content: string, videoUrl: string): Promise<string> {
+    // POST https://graph.facebook.com/v18.0/{page-id}/videos
+    const res = await fetch('https://graph.facebook.com/v18.0/me/videos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: content, file_url: videoUrl, access_token: this.accessToken }),
+    })
+    const data = await res.json() as any
+    if (!res.ok) throw new Error(`Facebook postVideo failed: ${data.error?.message ?? res.statusText}`)
+    return data.id ?? ''
   }
 
   async postThread(tweets: string[]): Promise<string> {
@@ -83,9 +90,21 @@ export class FacebookConnector implements ISocialConnector {
     }))
   }
 
-  async getMentions(_since: Date): Promise<EngagementItemData[]> {
-    // TODO: GET https://graph.facebook.com/v18.0/me/tagged
-    return []
+  async getMentions(since: Date): Promise<EngagementItemData[]> {
+    // GET https://graph.facebook.com/v18.0/me/tagged
+    const sinceTs = Math.floor(since.getTime() / 1000)
+    const res = await fetch(
+      `https://graph.facebook.com/v18.0/me/tagged?fields=id,message,from,created_time&since=${sinceTs}&access_token=${this.accessToken}`
+    )
+    const data = await res.json() as any
+    if (!res.ok) return []
+    return (data.data ?? []).map((p: any) => ({
+      id: p.id,
+      authorName: p.from?.name ?? '',
+      authorHandle: p.from?.id ?? '',
+      content: p.message ?? '',
+      createdAt: new Date(p.created_time),
+    }))
   }
 
   async replyToComment(commentId: string, reply: string): Promise<void> {
@@ -110,8 +129,28 @@ export class FacebookConnector implements ISocialConnector {
     return { impressions: metrics.post_impressions ?? 0, engagements: metrics.post_engaged_users ?? 0, clicks: metrics.post_clicks ?? 0, likes: 0, shares: 0, comments: 0 }
   }
 
-  async getAccountAnalytics(_period: string): Promise<AccountAnalytics> {
-    // TODO: GET https://graph.facebook.com/v18.0/{page-id}/insights
-    return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 }
+  async getAccountAnalytics(period: string): Promise<AccountAnalytics> {
+    // GET https://graph.facebook.com/v18.0/{page-id}/insights
+    const periodMap: Record<string, string> = { day: 'day', week: 'week', month: 'days_28' }
+    const rzPeriod = periodMap[period] ?? 'days_28'
+    const res = await fetch(
+      `https://graph.facebook.com/v18.0/me/insights?metric=page_impressions,page_engaged_users,page_post_engagements&period=${rzPeriod}&access_token=${this.accessToken}`
+    )
+    const data = await res.json() as any
+    if (!res.ok) return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 }
+
+    const metrics: Record<string, number> = {}
+    for (const m of data.data ?? []) {
+      const latest = m.values?.[m.values.length - 1]?.value
+      metrics[m.name] = typeof latest === 'number' ? latest : 0
+    }
+
+    return {
+      impressions: metrics.page_impressions ?? 0,
+      engagements: metrics.page_engaged_users ?? 0,
+      clicks: metrics.page_post_engagements ?? 0,
+      signups: 0,
+      conversions: 0,
+    }
   }
 }

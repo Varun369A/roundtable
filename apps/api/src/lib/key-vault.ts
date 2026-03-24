@@ -192,7 +192,7 @@ export async function resolveApiKey(
           return decryptByoai(conn.encryptedKey, conn.iv, conn.authTag) as string
         })()
 
-    prisma.userAIConnection.update({
+    void prisma.userAIConnection.update({
       where: { userId_provider: { userId, provider } },
       data:  { lastUsedAt: new Date() },
     }).catch(() => {})

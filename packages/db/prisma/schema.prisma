@@ -132,6 +132,7 @@ model User {
   tier          UserTier    @default(FREE)
   status        UserStatus  @default(ACTIVE)
   isAdmin       Boolean     @default(false)
+  // @deprecated — use isEmailVerified + emailVerifiedAt (lines below). Remove in next migration.
   emailVerified Boolean     @default(false)
   avatarUrl     String?
 

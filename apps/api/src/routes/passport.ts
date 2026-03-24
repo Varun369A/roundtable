@@ -11,7 +11,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // GET /u/:username — public passport data
   app.get<{ Params: { username: string } }>('/u/:username', async (req, reply) => {
     const { username } = req.params
-    const passport = await (db as any).sabhaPassport.findUnique({
+    const passport = await (db as any).arivarangamPassport.findUnique({
       where: { username },
       include: {
         skills: { where: { isVisible: true }, orderBy: { evidenceCount: 'desc' } },
@@ -29,7 +29,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
 
     // Task count (anonymized)
     const taskCount = await db.task.count({ where: { userId: passport.userId, status: 'COMPLETED' } })
-    const reposCount = await (db as any).sabhaRepo.count({ where: { ownerId: passport.userId, isArchived: false } })
+    const reposCount = await (db as any).arivarangamRepo.count({ where: { ownerId: passport.userId, isArchived: false } })
     const friendsCount = await db.friendship.count({ where: { OR: [{ userAId: passport.userId }, { userBId: passport.userId }] } })
 
     // Get showcase tasks
@@ -56,7 +56,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // GET /passport/me
   app.get('/passport/me', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
-    const passport = await (db as any).sabhaPassport.findUnique({
+    const passport = await (db as any).arivarangamPassport.findUnique({
       where: { userId },
       include: { skills: true, achievements: true, showcases: true }
     })
@@ -67,12 +67,12 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // POST /passport — create or ensure passport exists
   app.post('/passport', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
-    const existing = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const existing = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (existing) return reply.send({ success: true, data: existing })
     const user = await db.user.findUnique({ where: { id: userId }, select: { email: true, name: true } })
     const { createPassportOnSignup } = await import('../jobs/skill-detector')
     await createPassportOnSignup(userId, user?.email ?? '', user?.name ?? undefined)
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     return reply.status(201).send({ success: true, data: passport })
   })
 
@@ -87,7 +87,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
     if (typeof location === 'string') data.location = location.slice(0, 100)
     if (typeof website === 'string') data.website = website.slice(0, 200)
     if (typeof avatarUrl === 'string') data.avatarUrl = avatarUrl
-    const passport = await (db as any).sabhaPassport.update({ where: { userId }, data })
+    const passport = await (db as any).arivarangamPassport.update({ where: { userId }, data })
     return reply.send({ success: true, data: passport })
   })
 
@@ -98,7 +98,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
     const data: any = {}
     if (typeof isPublic === 'boolean') data.isPublic = isPublic
     if (typeof showWatermark === 'boolean') data.showWatermark = showWatermark
-    const passport = await (db as any).sabhaPassport.update({ where: { userId }, data })
+    const passport = await (db as any).arivarangamPassport.update({ where: { userId }, data })
     return reply.send({ success: true, data: passport })
   })
 
@@ -107,7 +107,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
     const { skillId } = req.params
     const { isVisible } = req.body as any
     const userId = req.user.id
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (!passport) return reply.status(404).send({ success: false, message: 'No passport' })
     const skill = await (db as any).passportSkill.findFirst({ where: { id: skillId, passportId: passport.id } })
     if (!skill) return reply.status(404).send({ success: false, message: 'Skill not found' })
@@ -119,7 +119,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   app.post('/passport/showcase', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
     const { taskId, order } = req.body as any
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (!passport) return reply.status(404).send({ success: false, message: 'No passport' })
     const task = await db.task.findFirst({ where: { id: taskId, userId, status: 'COMPLETED' } })
     if (!task) return reply.status(400).send({ success: false, message: 'Task not found or not completed' })
@@ -136,7 +136,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /passport/showcase/:taskId
   app.delete<{ Params: { taskId: string } }>('/passport/showcase/:taskId', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (!passport) return reply.status(404).send({ success: false, message: 'No passport' })
     await (db as any).passportShowcase.deleteMany({ where: { passportId: passport.id, taskId: req.params.taskId } })
     return reply.send({ success: true })
@@ -145,7 +145,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // GET /u/:username/og-image — 1200×630 OG image for social sharing (public, no auth)
   app.get<{ Params: { username: string } }>('/u/:username/og-image', async (req, reply) => {
     const { username } = req.params
-    const passport = await (db as any).sabhaPassport.findUnique({
+    const passport = await (db as any).arivarangamPassport.findUnique({
       where: { username },
       include: {
         skills: { where: { isVisible: true }, orderBy: { evidenceCount: 'desc' }, take: 5 },
@@ -158,11 +158,11 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
 
     const user = await db.user.findUnique({ where: { id: passport.userId }, select: { name: true } })
     const name = passport.displayName || user?.name || username
-    const headline = (passport.title || passport.headline || 'Arivarangam User').slice(0, 60)
+    const headline = (passport.title || 'Arivarangam User').slice(0, 60)
     const taskCount = await db.task.count({ where: { userId: passport.userId, status: 'COMPLETED' } })
-    const reputationScore = passport.reputationScore ?? 0
-    const topSkills = passport.skills.slice(0, 3).map((s: any) => s.skillName).join(' · ')
-    const topAchievements = passport.achievements.slice(0, 3).map((a: any) => a.badgeIcon).join(' ')
+    const reputationScore = 0
+    const topSkills = passport.skills.slice(0, 3).map((s: any) => s.skill).join(' · ')
+    const topAchievements = passport.achievements.slice(0, 3).map((a: any) => a.achievement).join(' ')
 
     const avatar = passport.avatarUrl
       ? `<image href="${passport.avatarUrl}" x="60" y="60" width="100" height="100" clip-path="url(#avatarClip)" />`
@@ -224,7 +224,7 @@ export async function passportRoutes(app: FastifyInstance): Promise<void> {
   // GET /passport/views — view analytics
   app.get('/passport/views', { preHandler }, async (req: any, reply) => {
     const userId = req.user.id
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (!passport) return reply.status(404).send({ success: false, message: 'No passport' })
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const views = await (db as any).passportView.count({

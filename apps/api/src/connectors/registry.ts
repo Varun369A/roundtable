@@ -50,9 +50,6 @@ const FALLBACK_CHAINS: Partial<Record<AIModel, AIModel[]>> = {
   'perplexity-sonar':    ['gemini-pro', 'claude-3-5-sonnet'],
   'sarvam-1':            ['claude-3-5-sonnet'],
   'gamma':               ['gpt-4o', 'claude-3-5-sonnet'],
-  'midjourney-v6':       ['dalle-3', 'stability-xl'],
-  'runway-gen3':         ['claude-3-5-sonnet'],
-  'elevenlabs':          ['claude-3-5-sonnet'],
   'groq':                ['claude-3-5-sonnet'],
   'cohere':              ['claude-3-5-sonnet'],
 }

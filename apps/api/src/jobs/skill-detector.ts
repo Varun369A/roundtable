@@ -56,7 +56,7 @@ export async function detectSkillsAndAwards(taskId: string, userId: string): Pro
     const task = await db.task.findUnique({ where: { id: taskId }, select: { originalGoal: true } })
     if (!task?.originalGoal) return
 
-    const passport = await (db as any).sabhaPassport.findUnique({ where: { userId } })
+    const passport = await (db as any).arivarangamPassport.findUnique({ where: { userId } })
     if (!passport) return
 
     const goalLower = task.originalGoal.toLowerCase()
@@ -80,9 +80,9 @@ export async function createPassportOnSignup(userId: string, email: string, name
   try {
     const base = (email.split('@')[0] ?? 'user').toLowerCase().replace(/[^a-z0-9]/g, '')
     let username = base.slice(0, 30)
-    const existing = await (db as any).sabhaPassport.findFirst({ where: { username } })
+    const existing = await (db as any).arivarangamPassport.findFirst({ where: { username } })
     if (existing) username = `${username}${Date.now().toString(36).slice(-4)}`
-    await (db as any).sabhaPassport.create({
+    await (db as any).arivarangamPassport.create({
       data: {
         userId,
         username,

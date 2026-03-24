@@ -161,9 +161,11 @@ export function verifyPaymentSignature(params: {
   paymentId: string
   signature: string
 }): boolean {
+  const secret = process.env.RAZORPAY_KEY_SECRET
+  if (!secret) return false
   const body = `${params.orderId}|${params.paymentId}`
   const expected = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+    .createHmac('sha256', secret)
     .update(body)
     .digest('hex')
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(params.signature))

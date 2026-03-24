@@ -12,6 +12,8 @@ export interface PostOptions {
   hashtags?: string[]
   mediaUrl?: string
   mediaType?: 'image' | 'video'
+  /** WhatsApp: E.164 phone number(s), comma-separated, e.g. "+919876543210" */
+  recipient?: string
 }
 
 export interface PostContent {

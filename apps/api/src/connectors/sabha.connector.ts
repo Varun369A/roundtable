@@ -14,13 +14,15 @@ import { prisma } from '@arivarangam/db'
 import type { TaskCategory } from '@arivarangam/types'
 import { BaseConnector, type ConnectorInput, type ConnectorOutput } from './base.connector'
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
-
 export class ArivarangamConnector extends BaseConnector {
   readonly model = 'sabha-ai' as const
   readonly provider = 'Arivarangam'
 
-  private client = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
+  private get client(): Anthropic {
+    const key = process.env.ANTHROPIC_API_KEY
+    if (!key) throw new Error('ANTHROPIC_API_KEY not set — Arivarangam AI unavailable')
+    return new Anthropic({ apiKey: key })
+  }
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
     const start = Date.now()
