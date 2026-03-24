@@ -15,12 +15,13 @@ import { prisma } from '@arivarangam/db'
 import { hashPassword, validatePasswordStrength } from '../lib/password'
 import { revokeAllUserTokens, hashToken } from '../lib/tokens'
 import { requireAuth } from '../middleware/auth'
-import { isEnabled, FLAGS } from '../lib/feature-flags'
 import {
   sendPasswordResetEmail,
   sendVerificationEmail,
   sendPostVerificationWelcomeEmail,
 } from '../lib/email'
+
+const WEB_URL = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -73,12 +74,8 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
           data: { userId: user.id, tokenHash, expiresAt },
         })
 
-        const webUrl = process.env.WEB_URL || 'http://localhost:3000'
-        const resetUrl = `${webUrl}/auth/reset-password?token=${rawToken}`
-
-        if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
-          await sendPasswordResetEmail(user.email, user.name, resetUrl)
-        }
+        const resetUrl = `${WEB_URL}/auth/reset-password?token=${rawToken}`
+        await sendPasswordResetEmail(user.email, user.name, resetUrl)
       } catch (err) {
         // Log but don't expose — return 200 regardless
         app.log.error({ err }, '[auth-recovery] Failed to create password reset token')
@@ -208,9 +205,7 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
     ])
 
     // Send welcome email after successful verification (non-blocking)
-    if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
-      sendPostVerificationWelcomeEmail(verification.user.email, verification.user.name).catch(() => {})
-    }
+    sendPostVerificationWelcomeEmail(verification.user.email, verification.user.name).catch(() => {})
 
     return reply.send({
       success: true,
@@ -255,12 +250,8 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
       data: { userId, tokenHash, expiresAt },
     })
 
-    const webUrl = process.env.WEB_URL || 'http://localhost:3000'
-    const verifyUrl = `${webUrl}/auth/verify-email?token=${rawToken}`
-
-    if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
-      await sendVerificationEmail(user.email, user.name, verifyUrl).catch(() => {})
-    }
+    const verifyUrl = `${WEB_URL}/auth/verify-email?token=${rawToken}`
+    await sendVerificationEmail(user.email, user.name, verifyUrl).catch(() => {})
 
     return reply.send({
       success: true,

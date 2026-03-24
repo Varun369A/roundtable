@@ -149,6 +149,7 @@ export async function authRoutes(app: FastifyInstance) {
     createPassportOnSignup(user.id, user.email, user.name ?? undefined).catch(() => {})
 
     // Create email verification token and send verification email (non-blocking)
+    // NOTE: verification is a transactional email — intentionally NOT gated behind EMAIL_NOTIFICATIONS flag
     ;(async () => {
       try {
         const crypto = await import('crypto')
@@ -156,11 +157,9 @@ export async function authRoutes(app: FastifyInstance) {
         const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
         await prisma.emailVerification.create({ data: { userId: user.id, tokenHash, expiresAt } })
-        if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
-          const webUrl = process.env.WEB_URL || 'http://localhost:3000'
-          const verifyUrl = `${webUrl}/auth/verify-email?token=${rawToken}`
-          await sendVerificationEmail(email, name, verifyUrl)
-        }
+        const webUrl = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
+        const verifyUrl = `${webUrl}/auth/verify-email?token=${rawToken}`
+        await sendVerificationEmail(email, name, verifyUrl)
       } catch {
         // Non-fatal — signup succeeds even if verification email fails
       }
