@@ -158,7 +158,7 @@ export async function authRoutes(app: FastifyInstance) {
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
         await prisma.emailVerification.create({ data: { userId: user.id, tokenHash, expiresAt } })
         const webUrl = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
-        const verifyUrl = `${webUrl}/auth/verify-email?token=${rawToken}`
+        const verifyUrl = `${webUrl}/verify-email?token=${rawToken}`
         await sendVerificationEmail(email, name, verifyUrl)
       } catch {
         // Non-fatal — signup succeeds even if verification email fails

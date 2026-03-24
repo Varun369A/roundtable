@@ -74,7 +74,7 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
           data: { userId: user.id, tokenHash, expiresAt },
         })
 
-        const resetUrl = `${WEB_URL}/auth/reset-password?token=${rawToken}`
+        const resetUrl = `${WEB_URL}/reset-password?token=${rawToken}`
         await sendPasswordResetEmail(user.email, user.name, resetUrl)
       } catch (err) {
         // Log but don't expose — return 200 regardless
@@ -250,7 +250,7 @@ export async function authRecoveryRoutes(app: FastifyInstance) {
       data: { userId, tokenHash, expiresAt },
     })
 
-    const verifyUrl = `${WEB_URL}/auth/verify-email?token=${rawToken}`
+    const verifyUrl = `${WEB_URL}/verify-email?token=${rawToken}`
     await sendVerificationEmail(user.email, user.name, verifyUrl).catch(() => {})
 
     return reply.send({
