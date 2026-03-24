@@ -73,7 +73,30 @@ export class InstagramConnector implements ISocialConnector {
     return (data.data ?? []).map((c: any) => ({ id: c.id, authorName: c.username, authorHandle: `@${c.username}`, content: c.text, createdAt: new Date(c.timestamp) }))
   }
 
-  async getMentions(_since: Date): Promise<EngagementItemData[]> { return [] }
+  async getMentions(since: Date): Promise<EngagementItemData[]> {
+    try {
+      const meRes = await fetch(`https://graph.instagram.com/me?fields=id&access_token=${this.accessToken}`)
+      const me = await meRes.json() as any
+      if (!me.id) return []
+      // Fetch recent media and check for tagged/mentioned posts using IG tagged media
+      const res = await fetch(
+        `https://graph.instagram.com/${me.id}/tags?fields=id,caption,media_type,timestamp,username&access_token=${this.accessToken}`
+      )
+      const data = await res.json() as any
+      if (!res.ok) return []
+      return (data.data ?? [])
+        .filter((p: any) => new Date(p.timestamp) >= since)
+        .map((p: any) => ({
+          id: p.id,
+          authorName: p.username ?? '',
+          authorHandle: `@${p.username ?? ''}`,
+          content: p.caption ?? '',
+          createdAt: new Date(p.timestamp),
+        }))
+    } catch {
+      return []
+    }
+  }
 
   async replyToComment(commentId: string, reply: string): Promise<void> {
     await fetch(`https://graph.instagram.com/${commentId}/replies`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: reply, access_token: this.accessToken }) })
@@ -89,5 +112,32 @@ export class InstagramConnector implements ISocialConnector {
     return { impressions: metrics.impressions ?? 0, engagements: (metrics.likes_count ?? 0) + (metrics.comments_count ?? 0), clicks: 0, likes: metrics.likes_count ?? 0, shares: 0, comments: metrics.comments_count ?? 0 }
   }
 
-  async getAccountAnalytics(_period: string): Promise<AccountAnalytics> { return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 } }
+  async getAccountAnalytics(period: string): Promise<AccountAnalytics> {
+    try {
+      const meRes = await fetch(`https://graph.instagram.com/me?fields=id&access_token=${this.accessToken}`)
+      const me = await meRes.json() as any
+      if (!me.id) return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 }
+      const periodMap: Record<string, string> = { day: 'day', week: 'week', month: 'days_28' }
+      const igPeriod = periodMap[period] ?? 'days_28'
+      const res = await fetch(
+        `https://graph.instagram.com/${me.id}/insights?metric=impressions,reach,profile_views,website_clicks&period=${igPeriod}&access_token=${this.accessToken}`
+      )
+      const data = await res.json() as any
+      if (!res.ok) return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 }
+      const m: Record<string, number> = {}
+      for (const item of data.data ?? []) {
+        const latest = item.values?.[item.values.length - 1]?.value
+        m[item.name] = typeof latest === 'number' ? latest : 0
+      }
+      return {
+        impressions: m.impressions ?? 0,
+        engagements: m.reach ?? 0,
+        clicks: m.website_clicks ?? 0,
+        signups: 0,
+        conversions: 0,
+      }
+    } catch {
+      return { impressions: 0, engagements: 0, clicks: 0, signups: 0, conversions: 0 }
+    }
+  }
 }

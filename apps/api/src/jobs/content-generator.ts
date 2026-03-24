@@ -198,8 +198,8 @@ export async function runContentGeneration(): Promise<void> {
       const prompt = buildPrompt(item.platform, item.type, 'AI productivity tools trending in India', ctx)
 
       const response = await anthropic.messages.create({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
+        model: process.env.CONTENT_GEN_MODEL ?? 'claude-3-5-sonnet-20241022',
+        max_tokens: 1500,
         messages: [{ role: 'user', content: prompt }]
       })
 

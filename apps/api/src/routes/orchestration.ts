@@ -30,12 +30,16 @@ export async function orchestrationRoutes(app: FastifyInstance) {
       })
     }
 
+    // If already past PENDING, return the current status — idempotent endpoint
+    // (auto-start on task creation may have already triggered orchestration)
     if (task.status !== 'PENDING') {
-      return reply.status(409).send({
-        success: false,
-        error: {
-          code: 'INVALID_STATE',
-          message: `Task is already in status: ${task.status}. Only PENDING tasks can be started.`,
+      return reply.status(200).send({
+        success: true,
+        data: {
+          message: `Task is already in status: ${task.status}`,
+          taskId: id,
+          status: task.status,
+          statusUrl: `/api/v1/tasks/${id}`,
         },
       })
     }
@@ -50,6 +54,7 @@ export async function orchestrationRoutes(app: FastifyInstance) {
       data: {
         message: 'Task orchestration started',
         taskId: id,
+        status: 'PENDING',
         statusUrl: `/api/v1/tasks/${id}`,
       },
     })
