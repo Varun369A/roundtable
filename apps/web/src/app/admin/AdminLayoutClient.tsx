@@ -54,9 +54,14 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const [time, setTime] = useState(new Date().toLocaleTimeString())
 
   useEffect(() => {
-    apiFetch('/api/v1/admin/analytics/overview')
-      .then((res) => { if (!res.success) router.replace('/admin-login') })
-      .catch(() => router.replace('/admin-login'))
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    fetch(`${API_URL}/api/v1/admin/analytics/overview`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
+    })
+      .then((res) => { if (res.status === 401 || res.status === 403) router.replace('/admin-login') })
+      .catch(() => {}) // network errors don't kick out the admin
       .finally(() => setChecking(false))
   }, [router])
 
