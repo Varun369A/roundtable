@@ -143,36 +143,31 @@ export type SubtaskStatus =
 export type SubtaskRole = 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
 
 export type AIModel =
-  | 'claude-3-5-sonnet'
-  | 'claude-3-opus'
-  | 'gpt-4o'
-  | 'gpt-4-turbo'
-  | 'gemini-pro'
-  | 'perplexity-sonar'
-  | 'midjourney-v6'
-  | 'dalle-3'
-  | 'stability-xl'
-  | 'elevenlabs'
-  | 'runway-gen3'
-  | 'sarvam-1'
-  | 'gamma'
+  // Core reasoning & code
+  | 'claude-3-5-sonnet'   // Coding
+  | 'claude-3-opus'        // Deep reasoning
+  | 'gpt-4o'               // Reasoning
+  // Analysis & research
+  | 'gemini-2.5-pro'       // Analysis / guidance (long context)
+  | 'perplexity-sonar'     // Research (real-time web)
+  // Specialised
+  | 'sarvam-1'             // Indian languages
+  | 'elevenlabs'           // Voice output (TTS)
+  | 'whisper'              // Voice input (STT)
+  | 'gpt-image-1'          // Image generation
+  // Arivarangam AI — synthesiser / orchestrator
   | 'sabha-ai'
-  | 'groq'
-  | 'cohere'
-  | 'whisper'
 
 export type TaskCategory =
-  | 'research'
-  | 'copywriting'
-  | 'strategy'
-  | 'images'
-  | 'video'
-  | 'audio'
-  | 'presentation'
-  | 'code'
-  | 'translation'
-  | 'data_analysis'
-  | 'general'
+  | 'code'          // App / software development → Claude leads
+  | 'research'      // Research & analysis → Perplexity + Gemini lead
+  | 'content'       // Articles, blogs, copy → Claude + GPT-4o lead
+  | 'strategy'      // Business plans, strategy → GPT-4o + Gemini lead
+  | 'data_analysis' // Data insights → Gemini + GPT-4o lead
+  | 'image'         // Image generation → GPT Image 1
+  | 'voice'         // Audio / podcast → ElevenLabs
+  | 'translation'   // Indian languages → Sarvam-1
+  | 'general'       // Mixed / unknown → all specialists
 
 export interface Task {
   id: string
@@ -289,51 +284,58 @@ export interface Plan {
   features: string[]
 }
 
+// All users access all 8 specialists through Arivarangam AI (credit-based)
+const ALL_MODELS: AIModel[] = [
+  'sabha-ai', 'claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o',
+  'gemini-2.5-pro', 'perplexity-sonar', 'sarvam-1',
+  'elevenlabs', 'whisper', 'gpt-image-1',
+]
+
 export const PLANS: Record<PlanId, Plan> = {
   free: {
     id: 'free',
     name: 'Free',
     priceInr: 0,
-    tasksPerMonth: 3,  // 3 free tasks/month using Arivarangam's own API keys
+    tasksPerMonth: 3,
     roundtableTasksPerMonth: 3,
     concurrentTasks: 1,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'perplexity-sonar'],
-    features: ['3 tasks/month', 'Arivarangam covers API costs', 'All 9 specialist AIs', 'Upgrade to connect own keys']
+    aiModelsAccess: ALL_MODELS,
+    features: ['3 tasks/month', '100 free credits on signup', 'All 8 specialist AIs', 'Arivarangam AI builds your output'],
   },
   builder: {
     id: 'builder',
     name: 'Builder',
-    priceInr: 799,  // founding members: ₹499 locked for life
-    tasksPerMonth: -1,  // unlimited — user pays their own API providers
+    priceInr: 799,
+    tasksPerMonth: -1,
     roundtableTasksPerMonth: -1,
     concurrentTasks: 5,
     teamMembers: 1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'dalle-3', 'stability-xl', 'elevenlabs', 'sarvam-1'],
-    features: ['Unlimited tasks', 'Your own API keys', 'All 9 specialist AIs', 'GitHub push', 'Download ZIP', 'Claude Sonnet synthesis']
+    aiModelsAccess: ALL_MODELS,
+    features: ['Unlimited tasks via credits', 'All 8 specialist AIs', 'GitHub push + ZIP download', 'Voice & image tasks'],
   },
   studio: {
     id: 'studio',
     name: 'Studio',
-    priceInr: 1999,  // founding members: ₹999 locked for life
+    priceInr: 1999,
     tasksPerMonth: -1,
     roundtableTasksPerMonth: -1,
     concurrentTasks: 20,
     teamMembers: 5,
-    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1'],
-    features: ['Everything in Builder', 'Claude Opus synthesis', 'Team workspace (5 members)', 'Priority routing', 'Midjourney + Runway']
+    aiModelsAccess: ALL_MODELS,
+    features: ['Everything in Builder', 'Team workspace (5 members)', 'Priority routing', 'Claude Opus synthesis'],
   },
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    priceInr: 4999,
+    priceInr: 0,
     tasksPerMonth: -1,
     roundtableTasksPerMonth: -1,
     concurrentTasks: -1,
     teamMembers: -1,
-    aiModelsAccess: ['claude-3-5-sonnet', 'claude-3-opus', 'gpt-4o', 'gpt-4-turbo', 'gemini-pro', 'perplexity-sonar', 'midjourney-v6', 'dalle-3', 'stability-xl', 'elevenlabs', 'runway-gen3', 'sarvam-1'],
-    features: ['Everything in Studio', 'Unlimited teams', 'SSO/SAML', 'Audit logs', 'SLA', 'On-prem option', 'Dedicated account manager']
-  }
+    aiModelsAccess: ALL_MODELS,
+    features: ['Everything in Studio', 'Unlimited teams', 'SSO/SAML', 'Audit logs', 'SLA', 'Dedicated account manager'],
+  },
 }
 
 // ─── Phase 3: Output Quality Verification ────────────────────────────────────

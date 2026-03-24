@@ -34,23 +34,23 @@ interface ActiveSubtask {
 type Phase = 'routing' | 'planning' | 'implementation' | 'review' | 'synthesis' | 'done' | 'failed'
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  PENDING:               { label: 'Queued',      color: 'text-amber-600' },
-  ROUTING:               { label: 'Routing…',    color: 'text-blue-600'  },
-  IN_PROGRESS:           { label: 'Live',        color: 'text-indigo-600' },
+  PENDING:               { label: 'Queued',      color: 'text-amber-600'   },
+  ROUTING:               { label: 'Routing…',    color: 'text-blue-600'    },
+  IN_PROGRESS:           { label: 'Live',        color: 'text-indigo-600'  },
   COMPLETED:             { label: 'Complete',    color: 'text-emerald-600' },
-  FAILED:                { label: 'Failed',      color: 'text-red-600'   },
-  CANCELLED:             { label: 'Cancelled',   color: 'text-slate-500' },
-  WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-amber-600' },
+  FAILED:                { label: 'Failed',      color: 'text-red-500'     },
+  CANCELLED:             { label: 'Cancelled',   color: 'text-slate-400'   },
+  WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-amber-600'   },
 }
 
 const PHASE_LABELS: Record<Phase, { label: string; description: string; color: string }> = {
-  routing:        { label: 'Assembling team',   description: 'Arivarangam AI is selecting the right AIs for your task', color: 'text-blue-600'    },
-  planning:       { label: 'Planning',          description: 'AIs are discussing the approach together',                color: 'text-violet-600'  },
-  implementation: { label: 'Building',          description: 'AIs are working on your task in parallel',               color: 'text-indigo-600'  },
-  review:         { label: 'Peer review',       description: 'AIs are reviewing each other\'s work',                   color: 'text-amber-600'   },
-  synthesis:      { label: 'Synthesising',      description: 'Arivarangam AI is merging all outputs',                  color: 'text-emerald-600' },
-  done:           { label: 'Complete',          description: 'Your deliverables are ready',                            color: 'text-emerald-700' },
-  failed:         { label: 'Failed',            description: 'Task encountered errors',                                color: 'text-red-600'     },
+  routing:        { label: 'Assembling',   description: 'Selecting the right specialists for your task', color: 'text-blue-600'    },
+  planning:       { label: 'Planning',     description: 'Specialists are aligning on the approach',      color: 'text-violet-600'  },
+  implementation: { label: 'Building',     description: 'Specialists are working in parallel',           color: 'text-indigo-600'  },
+  review:         { label: 'Reviewing',    description: 'Cross-checking each other\'s work',             color: 'text-amber-600'   },
+  synthesis:      { label: 'Synthesising', description: 'Arivarangam AI is building your output',        color: 'text-emerald-600' },
+  done:           { label: 'Complete',     description: 'Your deliverable is ready',                     color: 'text-emerald-700' },
+  failed:         { label: 'Failed',       description: 'Task encountered errors',                       color: 'text-red-500'     },
 }
 
 // ─── Round Table Seat ─────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ interface SeatProps {
   messageCount: number
   index: number
   total: number
-  tableRadius: number // px
+  tableRadius: number
 }
 
 function TableSeat({ model, role, isSpeaking, isDone, messageCount, index, total, tableRadius }: SeatProps) {
@@ -73,38 +73,35 @@ function TableSeat({ model, role, isSpeaking, isDone, messageCount, index, total
   const x = 50 + (tableRadius / 2) * Math.cos(angleRad)
   const y = 50 + (tableRadius / 2) * Math.sin(angleRad)
 
+  // Hide specialist labels — show generic placeholder until done
+  const isSynthesiser = model === 'sabha-ai' || model === 'arivarangam-ai'
+  const displayLabel = isSynthesiser ? cfg.label : (isSpeaking ? 'Working…' : isDone ? cfg.label : '•••')
+
   return (
     <div
       className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
       style={{ left: `${x}%`, top: `${y}%` }}
     >
-      {/* Seat circle */}
       <div className="relative">
         <div
-          className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold border-2 transition-all duration-300 ${
-            isSpeaking
-              ? 'shadow-lg scale-110'
-              : isDone
-              ? 'opacity-90'
-              : 'opacity-60'
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold border-2 transition-all duration-300 ${
+            isSpeaking ? 'shadow-lg scale-110' : isDone ? 'opacity-90' : 'opacity-50'
           }`}
           style={{
             backgroundColor: cfg.bg,
-            borderColor: isSpeaking ? cfg.color : isDone ? `${cfg.color}80` : `${cfg.color}30`,
-            boxShadow: isSpeaking ? `0 0 20px ${cfg.color}60` : undefined,
+            borderColor: isSpeaking ? cfg.color : isDone ? `${cfg.color}80` : `${cfg.color}25`,
+            boxShadow: isSpeaking ? `0 0 18px ${cfg.color}50` : undefined,
           }}
-          title={cfg.label}
+          title={isDone ? cfg.label : 'Specialist'}
         >
-          {cfg.emoji}
+          {isSpeaking || isDone ? cfg.emoji : '🤖'}
         </div>
-        {/* Speaking pulse ring */}
         {isSpeaking && (
           <div
-            className="absolute inset-0 rounded-full animate-ping opacity-30"
+            className="absolute inset-0 rounded-full animate-ping opacity-20"
             style={{ backgroundColor: cfg.color }}
           />
         )}
-        {/* Done checkmark */}
         {isDone && !isSpeaking && (
           <div
             className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
@@ -114,10 +111,13 @@ function TableSeat({ model, role, isSpeaking, isDone, messageCount, index, total
           </div>
         )}
       </div>
-      {/* Label */}
-      <div className="text-center">
-        <div className="text-[11px] font-semibold text-slate-700 whitespace-nowrap leading-tight">{cfg.label}</div>
-        {role && <div className="text-[9px] text-slate-400 capitalize">{role}</div>}
+      <div className="text-center max-w-14">
+        <div className="text-[10px] font-semibold text-slate-600 whitespace-nowrap leading-tight truncate">
+          {displayLabel}
+        </div>
+        {role && isDone && (
+          <div className="text-[9px] text-slate-400 capitalize">{role}</div>
+        )}
       </div>
     </div>
   )
@@ -143,40 +143,38 @@ function RoundTable({ team, activeSubtasks, messages, phase, taskTitle }: RoundT
     }
   }
 
-  // De-duplicate team by model (keep first occurrence)
   const uniqueTeam = team.filter((t, i) => team.findIndex((u) => u.model === t.model) === i)
   const N = uniqueTeam.length
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Table container */}
-      <div className="relative w-72 h-72 shrink-0">
-        {/* Table surface */}
+      {/* Table */}
+      <div className="relative w-64 h-64 shrink-0">
+        {/* Table surface — light */}
         <div
-          className="absolute rounded-full border border-slate-700"
+          className="absolute rounded-full border border-indigo-100"
           style={{
             inset: '18%',
-            background: 'radial-gradient(circle at 35% 35%, #1e293b, #0f172a)',
-            boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.5), 0 4px 32px rgba(0,0,0,0.3)',
+            background: 'radial-gradient(circle at 35% 35%, #eef2ff, #e0e7ff)',
+            boxShadow: 'inset 0 2px 12px rgba(99,102,241,0.08), 0 2px 20px rgba(99,102,241,0.06)',
           }}
         >
-          {/* Center label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-0.5">
+            <span className="text-indigo-600 text-xl mb-0.5">✦</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-0.5">
               {phaseCfg.label}
             </span>
             {taskTitle && (
-              <span className="text-[9px] text-slate-600 leading-tight line-clamp-2 px-1">
+              <span className="text-[9px] text-slate-500 leading-tight line-clamp-2 px-1">
                 {taskTitle}
               </span>
             )}
-            {/* Rotating indicator when active */}
             {['routing', 'planning', 'implementation', 'review', 'synthesis'].includes(phase) && (
               <div className="mt-2 flex gap-1">
                 {[0, 100, 200].map((d) => (
                   <div
                     key={d}
-                    className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"
+                    className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
                     style={{ animationDelay: `${d}ms` }}
                   />
                 ))}
@@ -200,7 +198,6 @@ function RoundTable({ team, activeSubtasks, messages, phase, taskTitle }: RoundT
           />
         ))}
 
-        {/* Empty state seats placeholder when routing */}
         {N === 0 && [0, 1, 2].map((i) => (
           <div
             key={i}
@@ -210,7 +207,7 @@ function RoundTable({ team, activeSubtasks, messages, phase, taskTitle }: RoundT
               top:  `${50 + 43 * Math.sin(((i / 3) * 360 - 90) * Math.PI / 180)}%`,
             }}
           >
-            <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-dashed border-slate-700 animate-pulse" />
+            <div className="w-12 h-12 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 animate-pulse" />
           </div>
         ))}
       </div>
@@ -231,66 +228,70 @@ function ActivityEntry({ message }: { message: Message }) {
   if (message.type === 'system') {
     return (
       <div className="flex items-center gap-3 py-1">
-        <div className="h-px flex-1 bg-slate-700" />
-        <span className="text-[10px] text-slate-500 whitespace-nowrap">{message.title}</span>
-        <div className="h-px flex-1 bg-slate-700" />
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-[10px] text-slate-400 whitespace-nowrap">{message.title}</span>
+        <div className="h-px flex-1 bg-slate-200" />
       </div>
     )
   }
 
-  if (message.type === 'routing_card') {
-    return null // handled by the table
-  }
+  if (message.type === 'routing_card') return null
 
   const cfg = getModelConfig(message.model || '')
   const isReview    = message.role === 'REVIEW'
   const isSynthesis = message.role === 'SYNTHESIS'
-  const label = isSynthesis ? 'Final synthesis' : isReview ? 'Peer review' : 'Output'
+
+  // Hide specialist identity for non-synthesis messages
+  const displayLabel = isSynthesis ? 'Arivarangam AI' : isReview ? 'Peer review' : 'Specialist output'
+  const displayEmoji = isSynthesis ? '✦' : isReview ? '🔍' : '⚙'
+  const displayBg    = isSynthesis ? '#EEF2FF' : isReview ? '#FFFBEB' : '#F8FAFC'
+  const displayColor = isSynthesis ? '#6366F1' : isReview ? '#D97706' : '#64748B'
+
   const content = message.output?.content || ''
-  const preview = content.slice(0, 180)
-  const hasMore = content.length > 180
+  const preview = content.slice(0, 200)
+  const hasMore = content.length > 200
 
   return (
     <div
       className={`rounded-xl border transition-all ${
         message.isError
-          ? 'border-red-900/40 bg-red-950/20'
+          ? 'border-red-200 bg-red-50'
           : isSynthesis
-          ? 'border-emerald-800/40 bg-emerald-950/20'
+          ? 'border-indigo-200 bg-indigo-50/50 shadow-sm'
           : isReview
-          ? 'border-amber-800/40 bg-amber-950/10'
-          : 'border-slate-700/60 bg-slate-800/40'
+          ? 'border-amber-200 bg-amber-50/50'
+          : 'border-slate-200 bg-white'
       }`}
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 py-2.5">
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0 font-bold"
-          style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.color}40` }}
+          style={{ backgroundColor: displayBg, color: displayColor, border: `1.5px solid ${displayColor}30` }}
         >
-          {cfg.emoji}
+          {displayEmoji}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-200">{cfg.label}</span>
+            <span className="text-xs font-semibold text-slate-800">{displayLabel}</span>
             <span
               className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                isSynthesis ? 'bg-emerald-900/60 text-emerald-400' :
-                isReview    ? 'bg-amber-900/60 text-amber-400'     :
-                              'bg-slate-700 text-slate-400'
+                isSynthesis ? 'bg-indigo-100 text-indigo-600' :
+                isReview    ? 'bg-amber-100 text-amber-700'  :
+                              'bg-slate-100 text-slate-500'
               }`}
             >
-              {label}
+              {isSynthesis ? 'Final output' : isReview ? 'Review' : 'Consulting'}
             </span>
           </div>
-          {message.title && (
+          {isSynthesis && message.title && (
             <div className="text-[10px] text-slate-500 truncate">{message.title}</div>
           )}
         </div>
         {content && (
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="text-[10px] text-slate-500 hover:text-slate-300 shrink-0 transition-colors"
+            className="text-[10px] text-slate-400 hover:text-slate-700 shrink-0 transition-colors"
           >
             {expanded ? 'collapse' : 'expand'}
           </button>
@@ -299,7 +300,7 @@ function ActivityEntry({ message }: { message: Message }) {
 
       {/* Content */}
       {message.isError ? (
-        <p className="px-4 pb-3 text-xs text-red-400">Failed to complete this step.</p>
+        <p className="px-4 pb-3 text-xs text-red-500">This step encountered an error.</p>
       ) : message.output?.type === 'image' && message.output.fileUrl ? (
         <div className="px-4 pb-3">
           <img src={message.output.fileUrl} alt="Generated" className="rounded-lg max-h-48 w-auto" />
@@ -313,8 +314,8 @@ function ActivityEntry({ message }: { message: Message }) {
               fileUrl={message.output!.fileUrl}
             />
           ) : (
-            <p className="text-xs text-slate-400 leading-relaxed">
-              {preview}{hasMore && !expanded && <span className="text-slate-600">…</span>}
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {preview}{hasMore && !expanded && <span className="text-slate-300">…</span>}
             </p>
           )}
         </div>
@@ -333,18 +334,13 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
   const [pushed, setPushed]                   = useState<string | null>(null)
   const [error, setError]                     = useState<string | null>(null)
   const [assembling, setAssembling]           = useState(false)
-  const [assembled, setAssembled]             = useState(false)
 
   useEffect(() => {
     if (!hasCode) return
-    // Check GitHub connection
     apiFetch<{ connection: { login: string } | null }>('/api/v1/github/connection').then((r) => {
       setGithubConnected(!!(r.success && (r.data as any)?.connection))
     })
-    // Trigger assembly
-    apiFetch(`/api/v1/code-projects/${taskId}/assemble`, { method: 'POST' }).then((r) => {
-      if (r.success) setAssembled(true)
-    })
+    apiFetch(`/api/v1/code-projects/${taskId}/assemble`, { method: 'POST' })
   }, [taskId, hasCode])
 
   async function handleDownload() {
@@ -382,14 +378,13 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
   if (!hasCode) return null
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-4 mt-3">
-      <p className="text-xs font-semibold text-slate-300 mb-3">Download your project</p>
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 mt-3">
+      <p className="text-xs font-semibold text-slate-600 mb-3">Download your project</p>
       <div className="flex flex-wrap gap-2">
-        {/* ZIP Download */}
         <button
           onClick={handleDownload}
           disabled={assembling}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
         >
           {assembling ? (
             <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -397,48 +392,46 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
           Download ZIP
         </button>
 
-        {/* GitHub push */}
         {pushed ? (
           <a
             href={pushed}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
           >
             ✓ View on GitHub →
           </a>
         ) : githubConnected === false ? (
           <Link
             href="/settings/integrations?connect=github"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 hover:border-slate-400 text-slate-300 text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 hover:border-slate-400 text-slate-600 text-sm font-medium transition-colors"
           >
             🔗 Connect GitHub to push
           </Link>
         ) : githubConnected && !showRepoInput ? (
           <button
             onClick={() => setShowRepoInput(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 hover:border-indigo-400 text-slate-600 hover:text-indigo-700 text-sm font-medium transition-colors"
           >
             Push to GitHub →
           </button>
         ) : null}
       </div>
 
-      {/* Repo name input */}
       {showRepoInput && !pushed && (
         <div className="mt-3 flex gap-2">
           <input
             value={repoName}
             onChange={(e) => setRepoName(e.target.value)}
             placeholder="repo-name"
-            className="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10"
             onKeyDown={(e) => e.key === 'Enter' && handlePush()}
             autoFocus
           />
           <button
             onClick={handlePush}
             disabled={pushing || !repoName.trim()}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
           >
             {pushing ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
@@ -446,13 +439,13 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
           </button>
           <button
             onClick={() => setShowRepoInput(false)}
-            className="px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white text-sm transition-colors"
+            className="px-3 py-2 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 text-sm transition-colors"
           >
             ✕
           </button>
         </div>
       )}
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   )
 }
@@ -463,20 +456,19 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const { id } = use(params)
   const router = useRouter()
 
-  const [task, setTask]                       = useState<TaskInfo | null>(null)
-  const [messages, setMessages]               = useState<Message[]>([])
-  const [activeSubtasks, setActiveSubtasks]   = useState<ActiveSubtask[]>([])
-  const [taskStatus, setTaskStatus]           = useState<string>('PENDING')
-  const [phase, setPhase]                     = useState<Phase>('routing')
-  const [team, setTeam]                       = useState<TeamMember[]>([])
-  const [hasCodeWorkspace, setHasCodeWorkspace] = useState(false)
+  const [task, setTask]                           = useState<TaskInfo | null>(null)
+  const [messages, setMessages]                   = useState<Message[]>([])
+  const [activeSubtasks, setActiveSubtasks]       = useState<ActiveSubtask[]>([])
+  const [taskStatus, setTaskStatus]               = useState<string>('PENDING')
+  const [phase, setPhase]                         = useState<Phase>('routing')
+  const [team, setTeam]                           = useState<TeamMember[]>([])
+  const [hasCodeWorkspace, setHasCodeWorkspace]   = useState(false)
   const [synthesisComplete, setSynthesisComplete] = useState(false)
-  const [clarifications, setClarifications]   = useState<any[]>([])
+  const [clarifications, setClarifications]       = useState<any[]>([])
   const [showClarification, setShowClarification] = useState(false)
-  const [steeringText, setSteeringText]       = useState('')
-  const [showReviewModal, setShowReviewModal] = useState(false)
-  const [reviewToast, setReviewToast]         = useState(false)
-  const [showKeyDialog, setShowKeyDialog]     = useState(false)
+  const [steeringText, setSteeringText]           = useState('')
+  const [showReviewModal, setShowReviewModal]     = useState(false)
+  const [reviewToast, setReviewToast]             = useState(false)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
   const logRef     = useRef<HTMLDivElement>(null)
@@ -510,9 +502,6 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       if (t.status === 'PENDING' && !hasStarted.current) {
         hasStarted.current = true
-        const connRes = await apiFetch<{ providers: Array<{ connected: boolean; verified: boolean }> }>('/api/v1/ai-connections')
-        const hasKeys = connRes.success && (connRes.data as any)?.providers?.some((p: any) => p.connected && p.verified)
-        if (!hasKeys) { setShowKeyDialog(true); return }
         await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
       } else if (t.status === 'WAITING_CLARIFICATION') {
@@ -552,7 +541,6 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             ...prev.filter((s) => s.subtaskId !== event.subtaskId),
             { subtaskId: event.subtaskId!, title: event.title || '', model: event.model!, role: event.role, roundNumber: event.roundNumber },
           ])
-          // Set phase based on role
           if (event.role === 'REVIEW') setPhase('review')
           else if (event.role === 'SYNTHESIS') setPhase('synthesis')
           else setPhase((prev) => (prev === 'planning' || prev === 'routing') ? 'implementation' : prev)
@@ -586,12 +574,12 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       case 'discussion_round_started':
         setPhase('review')
-        addSystemMessage('Peer Review — each AI critiques the others\' work')
+        addSystemMessage('Cross-reviewing outputs…')
         break
 
       case 'synthesis_started':
         setPhase('synthesis')
-        addSystemMessage('Arivarangam AI is synthesising all outputs…')
+        addSystemMessage('Arivarangam AI is building your output…')
         break
 
       case 'synthesis_complete':
@@ -603,7 +591,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         setPhase('done')
         setActiveSubtasks([])
         if (event.hasCodeWorkspace) setHasCodeWorkspace(true)
-        addSystemMessage('All done — your deliverables are ready')
+        addSystemMessage('Done — your deliverable is ready')
         break
 
       case 'task_failed':
@@ -636,27 +624,19 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const statusCfg = STATUS_LABEL[taskStatus] || STATUS_LABEL.PENDING
   const isLive    = ['ROUTING', 'IN_PROGRESS'].includes(taskStatus)
 
-  async function proceedWithPlatformKeys() {
-    setShowKeyDialog(false)
-    await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
-    setTaskStatus('ROUTING')
-    addSystemMessage('Using Arivarangam platform keys — assembling your team…')
-  }
-
-  // Visible activity messages (exclude routing_card — shown in table)
   const activityMessages = messages.filter((m) => m.type !== 'routing_card')
 
   return (
-    <div className="h-screen flex flex-col bg-slate-900 text-slate-100 overflow-hidden">
+    <div className="h-screen flex flex-col bg-white text-slate-900 overflow-hidden">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="shrink-0 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
-        <div className="max-w-none px-4 h-14 flex items-center gap-3">
-          <Link href="/dashboard" className="text-slate-500 hover:text-slate-300 text-sm shrink-0 transition-colors">
+      <header className="shrink-0 border-b border-slate-200 bg-white">
+        <div className="px-4 h-14 flex items-center gap-3">
+          <Link href="/dashboard" className="text-slate-400 hover:text-slate-700 text-sm shrink-0 transition-colors">
             ← Dashboard
           </Link>
-          <div className="h-4 w-px bg-slate-700" />
-          <p className="flex-1 text-sm font-medium truncate text-slate-200">
+          <div className="h-4 w-px bg-slate-200" />
+          <p className="flex-1 text-sm font-medium truncate text-slate-700">
             {task?.originalGoal || '…'}
           </p>
           <div className="flex items-center gap-3 shrink-0">
@@ -667,7 +647,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                   await apiFetch(`/api/v1/tasks/${id}`, { method: 'DELETE' })
                   router.push('/dashboard')
                 }}
-                className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-950/30"
+                className="text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
               >
                 Cancel
               </button>
@@ -685,7 +665,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
       <div className="flex flex-1 min-h-0">
 
         {/* Left — Round Table */}
-        <div className="hidden md:flex w-80 shrink-0 flex-col items-center border-r border-slate-800 bg-slate-900 py-10 px-4 gap-6 overflow-y-auto">
+        <div className="hidden md:flex w-72 shrink-0 flex-col items-center border-r border-slate-100 bg-slate-50 py-10 px-4 gap-6 overflow-y-auto">
           <RoundTable
             team={team}
             activeSubtasks={activeSubtasks}
@@ -694,8 +674,8 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             taskTitle={task?.originalGoal}
           />
 
-          {/* Phase progress steps */}
-          <div className="w-full space-y-1.5 mt-2">
+          {/* Phase steps */}
+          <div className="w-full space-y-1 mt-2">
             {((['routing', 'planning', 'implementation', 'review', 'synthesis', 'done']) as Phase[]).map((p) => {
               const cfg = PHASE_LABELS[p]
               const phases: Phase[] = ['routing', 'planning', 'implementation', 'review', 'synthesis', 'done']
@@ -707,52 +687,60 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                 <div
                   key={p}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
-                    isActive ? 'bg-slate-800 border border-slate-700' : 'opacity-40'
+                    isActive ? 'bg-white border border-indigo-100 shadow-sm' : isPast ? 'opacity-60' : 'opacity-30'
                   }`}
                 >
                   <div
                     className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                      isPast    ? 'bg-emerald-500' :
-                      isActive  ? 'bg-indigo-500 animate-pulse' :
-                                  'bg-slate-600'
+                      isPast   ? 'bg-emerald-500' :
+                      isActive ? 'bg-indigo-500 animate-pulse' :
+                                 'bg-slate-300'
                     }`}
                   />
-                  <div>
-                    <div className={`text-[11px] font-semibold ${isActive ? cfg.color : 'text-slate-500'}`}>
-                      {cfg.label}
-                    </div>
+                  <div className={`text-[11px] font-semibold ${isActive ? cfg.color : 'text-slate-400'}`}>
+                    {cfg.label}
                   </div>
                   {isPast && <span className="ml-auto text-emerald-500 text-[10px]">✓</span>}
                 </div>
               )
             })}
           </div>
+
+          {/* Note: specialists work behind the scenes */}
+          {phase !== 'done' && phase !== 'failed' && (
+            <p className="text-[10px] text-slate-400 text-center leading-relaxed px-2">
+              Specialists consult internally. Arivarangam AI builds your final output.
+            </p>
+          )}
         </div>
 
         {/* Right — Activity Feed */}
-        <div ref={logRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-3">
+        <div ref={logRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-3 bg-white">
 
-          {/* Mobile: compact AI seats row */}
+          {/* Mobile: compact AI row */}
           <div className="flex md:hidden gap-3 overflow-x-auto pb-2 mb-2">
             {team.filter((t, i) => team.findIndex((u) => u.model === t.model) === i).map((member) => {
               const cfg = getModelConfig(member.model)
               const isSpeaking = activeSubtasks.some((s) => s.model === member.model)
               const isDone = messages.some((m) => m.type === 'ai' && m.model === member.model && !m.isError)
+              const isSynthesiser = member.model === 'sabha-ai' || member.model === 'arivarangam-ai'
               return (
                 <div key={member.model} className="flex flex-col items-center gap-1 shrink-0">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold border-2 transition-all ${
-                      isSpeaking ? 'scale-110' : isDone ? '' : 'opacity-50'
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-base font-bold border-2 transition-all ${
+                      isSpeaking ? 'scale-110' : isDone ? '' : 'opacity-40'
                     }`}
                     style={{
                       backgroundColor: cfg.bg,
-                      borderColor: isSpeaking ? cfg.color : `${cfg.color}40`,
-                      boxShadow: isSpeaking ? `0 0 12px ${cfg.color}60` : undefined,
+                      borderColor: isSpeaking ? cfg.color : `${cfg.color}30`,
+                      boxShadow: isSpeaking ? `0 0 10px ${cfg.color}50` : undefined,
                     }}
                   >
-                    {cfg.emoji}
+                    {isSpeaking || isDone || isSynthesiser ? cfg.emoji : '🤖'}
                   </div>
-                  <span className="text-[9px] text-slate-500 whitespace-nowrap">{cfg.label}</span>
+                  <span className="text-[9px] text-slate-400 whitespace-nowrap">
+                    {isSynthesiser ? cfg.label : (isDone ? cfg.label : '•••')}
+                  </span>
                 </div>
               )
             })}
@@ -763,11 +751,11 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             <div className="flex flex-col items-center justify-center py-32 text-center gap-3">
               <div className="flex gap-2">
                 {[0, 150, 300].map((d) => (
-                  <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                  <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
                 ))}
               </div>
-              <p className="text-slate-500 text-sm max-w-xs">
-                {taskStatus === 'ROUTING' ? 'Assembling your AI team…' : 'Preparing your roundtable…'}
+              <p className="text-slate-400 text-sm max-w-xs">
+                {taskStatus === 'ROUTING' ? 'Assembling specialists…' : 'Preparing your task…'}
               </p>
             </div>
           )}
@@ -776,10 +764,10 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           {taskStatus === 'WAITING_CLARIFICATION' && !showClarification && (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
               <p className="text-2xl">💬</p>
-              <p className="text-slate-300 font-medium text-sm">A few quick questions</p>
+              <p className="text-slate-700 font-medium text-sm">A few quick questions</p>
               <button
                 onClick={() => setShowClarification(true)}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors"
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 Answer questions
               </button>
@@ -793,19 +781,23 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
           {/* Typing indicators */}
           {activeSubtasks.map((s) => {
-            const cfg = getModelConfig(s.model)
+            const isSynthesiser = s.model === 'sabha-ai' || s.model === 'arivarangam-ai'
+            const label = isSynthesiser ? 'Arivarangam AI' : 'Specialist'
+            const emoji = isSynthesiser ? '✦' : '⚙'
+            const color = isSynthesiser ? '#6366F1' : '#94A3B8'
+            const bg    = isSynthesiser ? '#EEF2FF' : '#F8FAFC'
             return (
-              <div key={s.subtaskId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-700/50 bg-slate-800/30">
+              <div key={s.subtaskId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50">
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0 font-bold"
-                  style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.color}40` }}
+                  style={{ backgroundColor: bg, color, border: `1.5px solid ${color}30` }}
                 >
-                  {cfg.emoji}
+                  {emoji}
                 </div>
                 <div className="flex-1">
-                  <span className="text-xs font-semibold text-slate-300">{cfg.label}</span>
-                  <span className="text-xs text-slate-500 ml-2">
-                    {s.role === 'REVIEW' ? 'reviewing…' : s.role === 'SYNTHESIS' ? 'synthesising…' : 'thinking…'}
+                  <span className="text-xs font-semibold text-slate-700">{label}</span>
+                  <span className="text-xs text-slate-400 ml-2">
+                    {s.role === 'REVIEW' ? 'reviewing…' : s.role === 'SYNTHESIS' ? 'building your output…' : 'consulting…'}
                   </span>
                 </div>
                 <div className="flex gap-1">
@@ -813,7 +805,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                     <div
                       key={d}
                       className="w-1.5 h-1.5 rounded-full animate-bounce"
-                      style={{ backgroundColor: cfg.color, animationDelay: `${d}ms` }}
+                      style={{ backgroundColor: color, animationDelay: `${d}ms` }}
                     />
                   ))}
                 </div>
@@ -823,33 +815,31 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
           {/* Completion card */}
           {taskStatus === 'COMPLETED' && (
-            <div className="rounded-2xl border border-emerald-800/60 bg-emerald-950/30 p-6 text-center mt-4">
-              <p className="text-emerald-400 font-semibold text-lg mb-1">
-                {synthesisComplete ? '🏆 Roundtable Complete' : 'Roundtable complete'}
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center mt-4">
+              <p className="text-emerald-700 font-semibold text-lg mb-1">
+                {synthesisComplete ? '✦ Arivarangam AI is done' : 'Complete'}
               </p>
-              <p className="text-slate-400 text-sm">
-                {messages.filter((m) => m.type === 'ai' && !m.isError).length} outputs ·{' '}
-                {new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs
-                {synthesisComplete && ' · Planning → Building → Review → Synthesis'}
+              <p className="text-slate-500 text-sm">
+                Your deliverable is ready
+                {synthesisComplete && ' — assembled from specialist inputs'}
               </p>
               <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
                 {hasCodeWorkspace && (
                   <Link
                     href={`/workspace/${id}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
                   >
                     💻 Open Workspace
                   </Link>
                 )}
                 <button
                   onClick={() => setShowReviewModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900/30 hover:bg-amber-900/50 border border-amber-800/60 text-amber-400 text-sm font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium transition-colors"
                 >
                   🎓 Request Expert Review
                 </button>
               </div>
 
-              {/* Delivery panel */}
               <DeliveryPanel taskId={id} hasCode={hasCodeWorkspace} />
             </div>
           )}
@@ -875,46 +865,8 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       {/* ── Reconnecting banner ──────────────────────────────────────────────── */}
       {!connected && isLive && (
-        <div className="fixed bottom-0 inset-x-0 bg-yellow-500/10 border-t border-yellow-500/20 py-2 text-center text-xs text-yellow-400">
+        <div className="fixed bottom-0 inset-x-0 bg-amber-50 border-t border-amber-200 py-2 text-center text-xs text-amber-600">
           Reconnecting to live feed…
-        </div>
-      )}
-
-      {/* ── API Key dialog ───────────────────────────────────────────────────── */}
-      {showKeyDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-3">🔑</div>
-              <h2 className="text-lg font-bold text-slate-100">No AI keys connected</h2>
-              <p className="text-sm text-slate-400 mt-1.5">
-                Connect your own keys for free unlimited usage, or use Arivarangam platform keys (credits deducted).
-              </p>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={proceedWithPlatformKeys}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition-colors"
-              >
-                💳 Use platform keys (deduct credits)
-              </button>
-              <Link
-                href="/settings/ai-connections"
-                className="w-full py-3 border border-slate-700 hover:border-slate-500 text-slate-300 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center"
-              >
-                🔧 Connect my own API keys
-              </Link>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="w-full py-2 text-slate-500 hover:text-slate-300 text-xs transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-            <p className="text-center text-[11px] text-slate-600 mt-4">
-              Own keys = free forever · Platform keys use credit balance
-            </p>
-          </div>
         </div>
       )}
 
@@ -926,7 +878,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           onComplete={() => {
             setShowClarification(false)
             setTaskStatus('ROUTING')
-            addSystemMessage('Answers saved — assembling your team…')
+            addSystemMessage('Answers saved — assembling specialists…')
           }}
         />
       )}
@@ -948,10 +900,10 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       {/* ── Review toast ─────────────────────────────────────────────────────── */}
       {reviewToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm text-slate-100 shadow-2xl flex items-center gap-2">
-          <span className="text-amber-400">🎓</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 shadow-xl flex items-center gap-2">
+          <span className="text-amber-500">🎓</span>
           Expert review requested! You'll be notified when ready.
-          <button onClick={() => setReviewToast(false)} className="ml-2 text-slate-400 hover:text-slate-200">&times;</button>
+          <button onClick={() => setReviewToast(false)} className="ml-2 text-slate-400 hover:text-slate-700">&times;</button>
         </div>
       )}
     </div>

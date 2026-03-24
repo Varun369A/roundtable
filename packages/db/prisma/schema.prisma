@@ -49,23 +49,20 @@ enum SubtaskRole {
 }
 
 enum AIModel {
-  claude_3_5_sonnet   @map("claude-3-5-sonnet")
-  claude_3_opus       @map("claude-3-opus")
-  gpt_4o              @map("gpt-4o")
-  gpt_4_turbo         @map("gpt-4-turbo")
-  gemini_pro          @map("gemini-pro")
-  perplexity_sonar    @map("perplexity-sonar")
-  midjourney_v6       @map("midjourney-v6")
-  dalle_3             @map("dalle-3")
-  stability_xl        @map("stability-xl")
-  elevenlabs          @map("elevenlabs")
-  runway_gen3         @map("runway-gen3")
-  sarvam_1            @map("sarvam-1")
-  gamma               @map("gamma")
-  groq              @map("groq")
-  cohere            @map("cohere")
-  whisper           @map("whisper")
-  arivarangam_ai          @map("arivarangam-ai")
+  // ── Core reasoning & code ───────────────────────────────────────────────
+  claude_3_5_sonnet   @map("claude-3-5-sonnet")   // Coding
+  claude_3_opus       @map("claude-3-opus")         // Deep reasoning
+  gpt_4o              @map("gpt-4o")                // Reasoning
+  // ── Analysis & research ─────────────────────────────────────────────────
+  gemini_2_5_pro      @map("gemini-2.5-pro")        // Analysis / guidance
+  perplexity_sonar    @map("perplexity-sonar")      // Research
+  // ── Specialised ─────────────────────────────────────────────────────────
+  sarvam_1            @map("sarvam-1")              // Indian languages
+  elevenlabs          @map("elevenlabs")            // Voice output (TTS)
+  whisper             @map("whisper")               // Voice input (STT)
+  gpt_image_1         @map("gpt-image-1")           // Image generation
+  // ── Arivarangam AI — synthesiser ────────────────────────────────────────
+  sabha_ai            @map("sabha-ai")
 }
 
 enum TaskCategory {

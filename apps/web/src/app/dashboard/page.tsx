@@ -91,7 +91,6 @@ const NAV_SECTIONS = [
   {
     label: 'Settings',
     items: [
-      { href: '/settings/ai-connections', icon: '🔑', label: 'AI Keys' },
       { href: '/credits', icon: '💳', label: 'Credits' },
       { href: '/settings/billing', icon: '📊', label: 'Billing' },
       { href: '/settings/language', icon: '🌐', label: 'Language' },
@@ -219,7 +218,7 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
           >
             <span className="text-xl block mb-1.5">{t.icon}</span>
             <p className="text-xs font-medium text-slate-800 leading-tight line-clamp-1">{t.name}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">{t.agents.length} AIs</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{t.agents.length} specialists</p>
           </button>
         ))}
       </div>
@@ -577,7 +576,7 @@ export default function DashboardPage() {
                   disabled={creating || !goal.trim()}
                   className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 whitespace-nowrap shadow-sm"
                 >
-                  {creating ? 'Starting…' : selectedTemplate ? `Start ${selectedTemplate.icon}` : 'Start Roundtable'}
+                  {creating ? 'Starting…' : selectedTemplate ? `Start ${selectedTemplate.icon}` : 'Build with Arivarangam AI'}
                 </button>
               </div>
 

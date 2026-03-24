@@ -14,7 +14,7 @@ interface GeminiResponse {
 }
 
 export class GeminiConnector extends BaseConnector {
-  readonly model: AIModel = 'gemini-pro'
+  readonly model: AIModel = 'gemini-2.5-pro'
   readonly provider = 'google'
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
@@ -22,7 +22,7 @@ export class GeminiConnector extends BaseConnector {
     if (!apiKey) throw new Error('GOOGLE_AI_API_KEY not set')
 
     const start = Date.now()
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`
 
     return this.withRetry(async () => {
       const response = await fetch(apiUrl, {
@@ -51,8 +51,8 @@ export class GeminiConnector extends BaseConnector {
       const content = data.candidates[0]?.content?.parts[0]?.text || ''
       const inputTokens  = data.usageMetadata?.promptTokenCount     || 0
       const outputTokens = data.usageMetadata?.candidatesTokenCount || 0
-      // $3.5/1M input, $10.5/1M output (Gemini 1.5 Pro)
-      const costUsd = (inputTokens / 1_000_000) * 3.5 + (outputTokens / 1_000_000) * 10.5
+      // $1.25/1M input, $10/1M output (Gemini 2.5 Pro)
+      const costUsd = (inputTokens / 1_000_000) * 1.25 + (outputTokens / 1_000_000) * 10.0
 
       return {
         type: 'text',

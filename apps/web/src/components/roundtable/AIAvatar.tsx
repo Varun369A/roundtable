@@ -6,36 +6,51 @@ interface ModelConfig {
 }
 
 const MODEL_CONFIG: Record<string, ModelConfig> = {
-  'arivarangam-ai':  { label: 'Arivarangam AI', color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
-  'arivarangam_ai':  { label: 'Arivarangam AI', color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
-  'sabha-ai':        { label: 'Sabha AI',        color: '#818CF8', bg: '#1E1B4B', emoji: '✦'  },
-  'claude-3-5-sonnet': { label: 'Claude',      color: '#F97316', bg: '#7C2D12', emoji: '🟠' },
-  'claude-3-opus':     { label: 'Claude Opus', color: '#F97316', bg: '#7C2D12', emoji: '🟠' },
-  'gpt-4o':            { label: 'GPT-4o',      color: '#22C55E', bg: '#14532D', emoji: '🟢' },
-  'gpt-4-turbo':       { label: 'GPT-4',       color: '#22C55E', bg: '#14532D', emoji: '🟢' },
-  'perplexity-sonar':  { label: 'Perplexity',  color: '#06B6D4', bg: '#164E63', emoji: '🔵' },
-  'gemini-pro':        { label: 'Gemini',       color: '#3B82F6', bg: '#1E3A5F', emoji: '🔷' },
-  'dalle-3':           { label: 'DALL-E 3',    color: '#EC4899', bg: '#831843', emoji: '🌸' },
-  'midjourney-v6':     { label: 'Midjourney',  color: '#A855F7', bg: '#4C1D95', emoji: '🎨' },
-  'stability-xl':      { label: 'Stability',   color: '#8B5CF6', bg: '#3B0764', emoji: '🎆' },
-  'elevenlabs':        { label: 'ElevenLabs',  color: '#EAB308', bg: '#713F12', emoji: '🎵' },
-  'runway-gen3':       { label: 'Runway',      color: '#F43F5E', bg: '#881337', emoji: '🎬' },
-  'sarvam-1':          { label: 'Sarvam',      color: '#6366F1', bg: '#1E1B4B', emoji: '🇮🇳' },
-  'gamma':             { label: 'Gamma',        color: '#14B8A6', bg: '#134E4A', emoji: '📊' },
+  // Arivarangam AI — orchestrator
+  'sabha-ai':          { label: 'Arivarangam AI', color: '#6366F1', bg: '#EEF2FF', emoji: '✦'  },
+  'arivarangam-ai':    { label: 'Arivarangam AI', color: '#6366F1', bg: '#EEF2FF', emoji: '✦'  },
+
+  // Code
+  'claude-3-5-sonnet': { label: 'Claude',         color: '#EA580C', bg: '#FFF7ED', emoji: '🟠' },
+  'claude-3-opus':     { label: 'Claude Opus',    color: '#EA580C', bg: '#FFF7ED', emoji: '🟠' },
+
+  // Reasoning
+  'gpt-4o':            { label: 'GPT-4o',         color: '#16A34A', bg: '#F0FDF4', emoji: '🟢' },
+
+  // Analysis
+  'gemini-2.5-pro':    { label: 'Gemini',         color: '#2563EB', bg: '#EFF6FF', emoji: '🔷' },
+
+  // Research
+  'perplexity-sonar':  { label: 'Perplexity',     color: '#0891B2', bg: '#ECFEFF', emoji: '🔵' },
+
+  // Indian languages
+  'sarvam-1':          { label: 'Sarvam',          color: '#7C3AED', bg: '#F5F3FF', emoji: '🇮🇳' },
+
+  // Voice output
+  'elevenlabs':        { label: 'ElevenLabs',     color: '#CA8A04', bg: '#FEFCE8', emoji: '🎵' },
+
+  // Voice input
+  'whisper':           { label: 'Whisper',         color: '#475569', bg: '#F8FAFC', emoji: '🎤' },
+
+  // Image
+  'gpt-image-1':       { label: 'GPT Image',      color: '#DB2777', bg: '#FDF2F8', emoji: '🎨' },
 }
 
 export function getModelConfig(model: string): ModelConfig {
-  return MODEL_CONFIG[model] || { label: model, color: '#A1A1AA', bg: '#27272A', emoji: '🤖' }
+  return MODEL_CONFIG[model] || { label: model, color: '#64748B', bg: '#F8FAFC', emoji: '🤖' }
 }
 
 interface AIAvatarProps {
   model: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function AIAvatar({ model, size = 'md' }: AIAvatarProps) {
   const config = getModelConfig(model)
-  const dim = size === 'sm' ? 'w-7 h-7 text-sm' : 'w-9 h-9 text-base'
+  const dim =
+    size === 'sm' ? 'w-7 h-7 text-sm' :
+    size === 'lg' ? 'w-12 h-12 text-xl' :
+                    'w-9 h-9 text-base'
 
   return (
     <div
@@ -43,7 +58,7 @@ export function AIAvatar({ model, size = 'md' }: AIAvatarProps) {
       style={{
         backgroundColor: config.bg,
         color: config.color,
-        border: `1.5px solid ${config.color}40`,
+        border: `1.5px solid ${config.color}30`,
       }}
       title={config.label}
     >

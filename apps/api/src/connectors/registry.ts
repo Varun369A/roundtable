@@ -2,74 +2,60 @@ import type { AIModel } from '@arivarangam/types'
 import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector'
 import { ClaudeConnector } from './claude.connector'
 import { OpenAIConnector } from './openai.connector'
-import { DalleConnector } from './dalle.connector'
-import { PerplexityConnector } from './perplexity.connector'
 import { GeminiConnector } from './gemini.connector'
-import { ElevenLabsConnector } from './elevenlabs.connector'
-import { StabilityConnector } from './stability.connector'
-import { RunwayConnector } from './runway.connector'
-import { GammaConnector } from './gamma.connector'
-import { MidjourneyConnector } from './midjourney.connector'
+import { PerplexityConnector } from './perplexity.connector'
 import { SarvamConnector } from './sarvam.connector'
-import { GroqConnector } from './groq.connector'
-import { CohereConnector } from './cohere.connector'
+import { ElevenLabsConnector } from './elevenlabs.connector'
 import { WhisperConnector } from './whisper.connector'
+import { ImageConnector } from './image.connector'
 import { ArivarangamConnector } from './sabha.connector'
 import { circuitBreakerRegistry } from '../lib/circuit-breaker'
 import { metrics } from '../lib/metrics'
 import { redis } from '../lib/redis'
 
 // ─── Fallback Chains ──────────────────────────────────────────────────────────
-// When a model is unavailable (circuit open, timeout, rate limit),
-// the registry automatically tries the next model in the chain.
-// Chains are ordered: preferred → acceptable → last resort
+// When a model fails (circuit open, rate limit, timeout) try the next in chain.
 
 const FALLBACK_CHAINS: Partial<Record<AIModel, AIModel[]>> = {
-  // Arivarangam falls back to Claude
-  'sabha-ai':          ['claude-3-5-sonnet', 'gpt-4o'],
+  // Arivarangam AI — synthesiser, falls back to Claude
+  'sabha-ai':        ['claude-3-5-sonnet', 'gpt-4o'],
 
-  // Text — reasoning tier
-  'claude-3-opus':       ['claude-3-5-sonnet', 'gpt-4o', 'gpt-4-turbo'],
-  'claude-3-5-sonnet':   ['gpt-4o', 'gpt-4-turbo', 'gemini-pro'],
-  'gpt-4o':              ['gpt-4-turbo', 'claude-3-5-sonnet', 'gemini-pro'],
-  'gpt-4-turbo':         ['gpt-4o', 'claude-3-5-sonnet', 'gemini-pro'],
-  'gemini-pro':          ['claude-3-5-sonnet', 'gpt-4o'],
+  // Code — Claude is primary, GPT-4o backup
+  'claude-3-5-sonnet': ['gpt-4o', 'gemini-2.5-pro'],
+  'claude-3-opus':     ['claude-3-5-sonnet', 'gpt-4o'],
 
-  // Image generation
-  'midjourney-v6':       ['dalle-3', 'stability-xl'],
-  'dalle-3':             ['stability-xl', 'midjourney-v6'],
-  'stability-xl':        ['dalle-3'],
+  // Reasoning — GPT-4o primary, Claude backup
+  'gpt-4o':            ['claude-3-5-sonnet', 'gemini-2.5-pro'],
 
-  // Video — no fallback (single provider)
-  'runway-gen3':         [],
+  // Analysis/guidance — Gemini primary, GPT-4o backup
+  'gemini-2.5-pro':    ['gpt-4o', 'claude-3-5-sonnet'],
 
-  // Audio / speech
-  'elevenlabs':          [],
+  // Research — Perplexity primary, Gemini for analysis backup
+  'perplexity-sonar':  ['gemini-2.5-pro', 'claude-3-5-sonnet'],
 
-  // Specialized — fall back to Claude when no API key available
-  'perplexity-sonar':    ['gemini-pro', 'claude-3-5-sonnet'],
-  'sarvam-1':            ['claude-3-5-sonnet'],
-  'gamma':               ['gpt-4o', 'claude-3-5-sonnet'],
-  'groq':                ['claude-3-5-sonnet'],
-  'cohere':              ['claude-3-5-sonnet'],
+  // Indian language — Sarvam primary, Claude backup
+  'sarvam-1':          ['claude-3-5-sonnet'],
+
+  // Voice output — ElevenLabs only
+  'elevenlabs':        [],
+
+  // Voice input — Whisper only
+  'whisper':           [],
+
+  // Image — GPT Image 1 only
+  'gpt-image-1':       [],
 }
 
-// ─── Fallback depth limit ─────────────────────────────────────────────────────
 const MAX_FALLBACK_DEPTH = 3
 
-// ─── Fallback error types that warrant trying the next model ──────────────────
 const FALLBACK_ERROR_CODES = new Set([
-  'CIRCUIT_OPEN',
-  'RATE_LIMIT',
-  'TIMEOUT',
-  'OVERLOADED',
-  'SERVICE_UNAVAILABLE',
+  'CIRCUIT_OPEN', 'RATE_LIMIT', 'TIMEOUT', 'OVERLOADED', 'SERVICE_UNAVAILABLE',
 ])
 
 function isFallbackableError(err: unknown): boolean {
   if (!err) return false
-  const code = (err as NodeJS.ErrnoException).code || ''
-  const msg  = (err instanceof Error ? err.message : String(err)).toLowerCase()
+  const code   = (err as NodeJS.ErrnoException).code || ''
+  const msg    = (err instanceof Error ? err.message : String(err)).toLowerCase()
   const status = (err as any).status || (err as any).statusCode || 0
   return (
     FALLBACK_ERROR_CODES.has(code) ||
@@ -78,7 +64,6 @@ function isFallbackableError(err: unknown): boolean {
     msg.includes('timeout') ||
     msg.includes('service unavailable') ||
     msg.includes('circuit') ||
-    // Missing or invalid API key — fall back to next model in chain
     msg.includes('api key') ||
     msg.includes('not set') ||
     msg.includes('not configured') ||
@@ -91,34 +76,29 @@ function isFallbackableError(err: unknown): boolean {
 }
 
 /**
- * Central registry for all AI connectors.
+ * Central registry for Arivarangam's 8 specialist AI connectors.
  * Singleton — connectors are instantiated once and reused.
- * Wraps every execute() call with:
+ * Wraps every execute() with:
  *   - Circuit-breaker protection
  *   - Automatic model fallback on transient failures
  *   - Prometheus metrics recording
- *   - Fallback usage notification (published to Valkey)
+ *   - Fallback event published to Valkey
  */
 class ConnectorRegistry {
   private connectors: Map<AIModel, BaseConnector> = new Map()
 
   constructor() {
-    this.register(new ClaudeConnector('claude-3-5-sonnet'))
-    this.register(new ClaudeConnector('claude-3-opus'))
-    this.register(new OpenAIConnector('gpt-4o'))
-    this.register(new OpenAIConnector('gpt-4-turbo'))
-    this.register(new DalleConnector())
-    this.register(new PerplexityConnector())
-    this.register(new GeminiConnector())
-    this.register(new ElevenLabsConnector())
-    this.register(new StabilityConnector())
-    this.register(new RunwayConnector())
-    this.register(new GammaConnector())
-    this.register(new MidjourneyConnector())
-    this.register(new SarvamConnector())
-    this.register(new GroqConnector())
-    this.register(new CohereConnector())
-    this.register(new WhisperConnector())
+    // ── 8 specialist AIs ────────────────────────────────────────────────────
+    this.register(new ClaudeConnector('claude-3-5-sonnet'))  // Coding
+    this.register(new ClaudeConnector('claude-3-opus'))       // Deep reasoning
+    this.register(new OpenAIConnector('gpt-4o'))              // Reasoning
+    this.register(new GeminiConnector())                      // Analysis / guidance
+    this.register(new PerplexityConnector())                  // Research
+    this.register(new SarvamConnector())                      // Indian languages
+    this.register(new ElevenLabsConnector())                  // Voice output
+    this.register(new WhisperConnector())                     // Voice input
+    this.register(new ImageConnector())                       // Image generation
+    // ── Arivarangam AI — synthesiser / orchestrator ─────────────────────────
     this.register(new ArivarangamConnector())
   }
 
@@ -132,11 +112,8 @@ class ConnectorRegistry {
     return connector
   }
 
-  // ─── Core execute with fallback ─────────────────────────────────────────────
-
   async execute(model: AIModel, input: ConnectorInput): Promise<ConnectorOutput> {
-    const result = await this._executeWithFallback(model, input, model, 0)
-    return result
+    return this._executeWithFallback(model, input, model, 0)
   }
 
   private async _executeWithFallback(
@@ -146,9 +123,7 @@ class ConnectorRegistry {
     fallbackDepth: number,
   ): Promise<ConnectorOutput> {
     const connector = this.connectors.get(model)
-    if (!connector) {
-      throw new Error(`No connector for model: ${model}`)
-    }
+    if (!connector) throw new Error(`No connector for model: ${model}`)
 
     const start = Date.now()
 
@@ -161,10 +136,9 @@ class ConnectorRegistry {
       metrics.recordAiCall(model, durationMs, output.costUsd, true)
       metrics.subtasksRun.inc({ model })
 
-      // Tag output with which model actually ran (may differ from requested)
       if (model !== originalModel) {
         output.metadata = { ...(output.metadata || {}), fallbackFrom: originalModel, fallbackDepth }
-        metrics.aiCallErrors.inc({ model: originalModel })  // count original as error
+        metrics.aiCallErrors.inc({ model: originalModel })
       }
 
       return output
@@ -173,11 +147,8 @@ class ConnectorRegistry {
       const durationMs = Date.now() - start
       metrics.recordAiCall(model, durationMs, 0, false)
 
-      // Try fallback if error is transient and depth limit not exceeded
       if (isFallbackableError(err) && fallbackDepth < MAX_FALLBACK_DEPTH) {
-        // Always walk the ORIGINAL model's chain so we don't switch to a
-        // different model's fallback list mid-chain (which broke Claude reaching)
-        const chain = FALLBACK_CHAINS[originalModel] || []
+        const chain     = FALLBACK_CHAINS[originalModel] || []
         const nextModel = chain[fallbackDepth] as AIModel | undefined
 
         if (nextModel && this.connectors.has(nextModel)) {
@@ -186,7 +157,6 @@ class ConnectorRegistry {
             `falling back to ${nextModel} (depth=${fallbackDepth + 1})`
           )
 
-          // Publish fallback event to Valkey for notification system
           redis.publish('sabha:admin', JSON.stringify({
             event: 'model_fallback',
             originalModel,
@@ -203,8 +173,6 @@ class ConnectorRegistry {
       throw err
     }
   }
-
-  // ─── Utilities ─────────────────────────────────────────────────────────────
 
   async getAvailableModels(): Promise<AIModel[]> {
     const results = await Promise.all(
@@ -225,5 +193,4 @@ class ConnectorRegistry {
   }
 }
 
-// Singleton export
 export const connectorRegistry = new ConnectorRegistry()
