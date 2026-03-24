@@ -17,7 +17,16 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
           script: |
+            # Ensure swap is active (2GB) so tsc doesn't OOM
+            if [ "$(sudo swapon --show | wc -l)" -eq 0 ]; then
+              sudo fallocate -l 2G /swapfile 2>/dev/null || true
+              sudo chmod 600 /swapfile
+              sudo mkswap /swapfile
+              sudo swapon /swapfile
+            fi
+
             cd /home/ubuntu/roundtable
             git pull origin main
             npm install
@@ -25,6 +34,6 @@ jobs:
             cd packages/types && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
             cd packages/config && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
             cd packages/db && npx tsc --outDir dist --rootDir src --declaration --skipLibCheck || true && cd ../..
-            cd apps/api && NODE_OPTIONS="--max-old-space-size=3072" npx tsc || true
+            cd apps/api && NODE_OPTIONS="--max-old-space-size=3072" npx tsc --skipLibCheck || true
             pm2 restart arivarangam-api
             echo "Deployed successfully"
