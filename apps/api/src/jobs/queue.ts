@@ -112,7 +112,12 @@ export const taskWorker = new Worker<{ taskId: string }>(
 
     console.log(`[TaskWorker] Enqueued ${readySubtaskIds.length} subtasks for task ${taskId}`)
   },
-  { connection, concurrency: 5 }
+  {
+    connection,
+    concurrency: 2,
+    stalledInterval: 60_000, // check stalled jobs every 60s (default: 30s)
+    drainDelay: 5_000,       // wait 5s before polling empty queue again (default: 5ms)
+  }
 )
 
 // ─── Subtask Queue Worker ─────────────────────────────────────────────────────
@@ -456,7 +461,9 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
   },
   {
     connection,
-    concurrency: 20, // run 20 subtasks in parallel across all tasks
+    concurrency: 5,          // reduced from 20 — Upstash free tier has 500k cmd/day limit
+    stalledInterval: 60_000, // check stalled jobs every 60s (default: 30s)
+    drainDelay: 5_000,       // wait 5s before polling empty queue again (default: 5ms)
   }
 )
 
