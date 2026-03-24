@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import { PricingFaqJsonLd } from '@/components/seo/JsonLd'
 
 export const metadata: Metadata = {
-  title: 'Pricing — Affordable AI Plans',
-  description: 'Arivarangam pricing starting at ₹499/month. Free tier with 5 tasks. Unlimited AI models, all plans. No hidden fees.',
+  title: 'Pricing — Arivarangam AI',
+  description: 'Simple credit-based pricing. 100 free credits on signup. Buy credits once, use for any task. 8 specialist AIs included. No subscriptions. Indian pricing.',
   openGraph: {
-    title: 'Arivarangam Pricing — Start Free, Scale Affordably',
-    description: 'Free tier available. Starter ₹499/mo, Pro ₹1299/mo, Power ₹2499/mo. Indian pricing, Razorpay.',
+    title: 'Arivarangam AI Pricing — Pay per use, no subscriptions',
+    description: '100 free credits on signup. ₹500/₹1,000/₹2,500/₹5,000 credit packs. All 8 specialist AIs included. Credits never expire.',
     images: [{ url: '/og-pricing.png', width: 1200, height: 630 }],
   },
 }

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About Arivarangam — Building the AI Operating System for India',
-  description: 'Arivarangam coordinates Claude, GPT-4, Gemini, Perplexity and more so Indian knowledge workers get the best of every AI — without the per-app subscriptions.',
+  description: 'Arivarangam AI consults 8 specialist AIs — Claude, GPT-4o, Gemini, Perplexity, Sarvam, ElevenLabs, Whisper, GPT Image — and builds your complete deliverable. Built in Coimbatore for India.',
   alternates: { canonical: 'https://arivarangam.com/about' },
 }
 
@@ -46,8 +46,8 @@ const WHY_INDIA = [
   },
   {
     stat: '₹0',
-    label: 'Dollar premium',
-    detail: 'The equivalent of ChatGPT + Claude + Gemini costs ₹8,500/month separately. Arivarangam Pro is ₹1,299.',
+    label: 'Subscriptions needed',
+    detail: 'No monthly fees. Buy credits once, use for any task. The equivalent of 8 separate AI subscriptions costs ₹8,500+/month. Arivarangam AI charges per task.',
   },
 ]
 
@@ -58,14 +58,14 @@ export default function AboutPage() {
       <nav className="fixed top-0 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
-            Arivarangam<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-indigo-500">.</span>
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/features" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Features</Link>
             <Link href="/pricing" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Pricing</Link>
             <Link href="/blog" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Blog</Link>
             <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Log in</Link>
-            <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors text-white">
+            <Link href="/signup" className="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors text-white">
               Get started
             </Link>
           </div>
@@ -75,13 +75,13 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-40 pb-24 px-6 text-center">
         <div className="max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-600 text-xs font-medium mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 text-xs font-medium mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
             Made in India, for the world
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-slate-900">
             Building the AI Operating System{' '}
-            <span className="bg-gradient-to-r from-brand-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
               for India
             </span>
           </h1>
@@ -138,12 +138,12 @@ export default function AboutPage() {
             {[
               {
                 title: 'Fragmentation',
-                desc: 'You need ChatGPT for writing, Claude for analysis, Perplexity for research, Midjourney for images, ElevenLabs for audio. Each is a separate tab, a separate subscription, a separate context switch.',
+                desc: 'You need ChatGPT for writing, Claude for coding, Perplexity for research, GPT Image for visuals, ElevenLabs for audio. Each is a separate tab, a separate subscription, a separate context switch.',
                 pain: true,
               },
               {
                 title: 'Cost',
-                desc: 'ChatGPT Pro + Claude Pro + Gemini Advanced + Perplexity Pro adds up to over ₹8,500 per month — before image generation, audio, or video tools. That\'s unaffordable for most Indian professionals.',
+                desc: 'ChatGPT + Claude + Gemini + Perplexity + ElevenLabs adds up to ₹8,500+/month in separate subscriptions. Arivarangam AI gives you all 8 specialists in one, credit-based, no monthly fee.',
                 pain: true,
               },
               {
@@ -161,13 +161,13 @@ export default function AboutPage() {
           </div>
 
           {/* Solution */}
-          <div className="rounded-2xl border border-brand-500/30 bg-brand-500/5 p-8 text-center">
+          <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-8 text-center">
             <h3 className="text-2xl font-bold text-slate-900 mb-4">Arivarangam's Solution</h3>
             <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto text-lg">
-              Arivarangam acts as the coordinator. You describe a goal once. Arivarangam's Discussion Engine assigns the right AI to each sub-task — Perplexity researches, Claude strategises, GPT-4 writes, Midjourney visualises — and synthesises a complete, coherent deliverable.
+              You describe a goal once. Arivarangam AI internally consults 8 specialist AIs — Claude codes, Perplexity researches, GPT-4o reasons, Gemini analyses, Sarvam handles Indian languages, ElevenLabs generates voice, and GPT Image 1 creates visuals. Then Arivarangam AI reads everything and builds one complete, polished deliverable.
             </p>
             <p className="text-slate-500 mt-4 leading-relaxed max-w-xl mx-auto">
-              One subscription. One prompt. Every AI working together.
+              One prompt. 8 AIs working together. One complete output.
             </p>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function AboutPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {WHY_INDIA.map(({ stat, label, detail }) => (
               <div key={label} className="p-6 rounded-2xl border border-slate-200 bg-white text-center shadow-sm">
-                <p className="text-3xl font-bold text-brand-600 mb-1">{stat}</p>
+                <p className="text-3xl font-bold text-indigo-600 mb-1">{stat}</p>
                 <p className="text-sm font-semibold text-slate-900 mb-3">{label}</p>
                 <p className="text-xs text-slate-500 leading-relaxed">{detail}</p>
               </div>
@@ -205,7 +205,7 @@ export default function AboutPage() {
                 'India-specific AI model routing: Sarvam for Indic languages, not Google Translate',
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
-                  <span className="text-brand-600 mt-0.5 shrink-0">✓</span>
+                  <span className="text-indigo-600 mt-0.5 shrink-0">✓</span>
                   <span>{item}</span>
                 </div>
               ))}
@@ -251,14 +251,14 @@ export default function AboutPage() {
             Arivarangam is built by a small, focused team of engineers, designers, and AI researchers who believe India deserves a world-class AI platform that respects its scale, its languages, and its economics. We move fast, we ship constantly, and we believe the best way to build AI tools is to be the most intensive users of AI tools ourselves.
           </p>
 
-          <div className="p-8 rounded-2xl border border-brand-500/30 bg-white shadow-sm max-w-xl mx-auto">
+          <div className="p-8 rounded-2xl border border-indigo-500/30 bg-white shadow-sm max-w-xl mx-auto">
             <h3 className="text-xl font-bold text-slate-900 mb-3">We're Hiring</h3>
             <p className="text-slate-500 mb-6 leading-relaxed">
               We're looking for engineers, AI researchers, and product designers who want to build the AI platform for a billion people. Remote-first. Equity-bearing. Interesting problems every day.
             </p>
             <a
               href="mailto:support@arivarangam.com"
-              className="inline-block px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold transition-colors text-white"
+              className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors text-white"
             >
               support@arivarangam.com
             </a>
@@ -283,7 +283,7 @@ export default function AboutPage() {
                 className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm"
               >
                 <p className="text-xs text-slate-400 mb-1">{label}</p>
-                <p className="text-sm font-medium text-brand-600">{email}</p>
+                <p className="text-sm font-medium text-indigo-600">{email}</p>
               </a>
             ))}
           </div>
@@ -294,7 +294,7 @@ export default function AboutPage() {
       <footer className="border-t border-slate-200 bg-white py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
-            Arivarangam<span className="text-brand-500">.</span>
+            Arivarangam<span className="text-indigo-500">.</span>
           </Link>
           <div className="flex items-center gap-6 text-sm text-slate-500">
             <Link href="/terms" className="hover:text-slate-700 transition-colors">Terms</Link>

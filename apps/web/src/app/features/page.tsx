@@ -5,37 +5,23 @@ export const dynamic = 'force-static'
 
 export const metadata: Metadata = {
   title: 'Features — Arivarangam Platform',
-  description: 'Every Arivarangam feature explained: Discussion Engine, BYOAI, voice input in 10 Indian languages, agent execution, AI Firewall, vertical packs, and more.',
+  description: 'Every Arivarangam AI feature explained: 8 specialist AIs, synthesis engine, voice input in 10 Indian languages, mid-generation steering, agent execution, AI Firewall, and more.',
   alternates: { canonical: 'https://arivarangam.com/features' },
 }
 
 const FEATURES = [
   {
     id: 'discussion-engine',
-    icon: '⚡',
-    title: 'Discussion Engine',
-    tagline: 'Three rounds. Every answer battle-tested.',
+    icon: '✦',
+    title: 'Arivarangam AI Synthesis',
+    tagline: '8 specialists consult. One AI builds your deliverable.',
     description:
-      'Arivarangam\'s Discussion Engine is the core of the platform. Multiple AI models don\'t just answer in parallel — they argue. Round 1: Each AI produces its best initial response. Round 2: Every AI critiques the others\' work — what\'s right, wrong, missing. Round 3: A synthesis AI produces a final output incorporating the best contributions and resolving contradictions.',
+      'Arivarangam AI is not a chatbot. It\'s a builder. When you give it a goal, it internally consults 8 world-class specialist AIs — Claude for coding, GPT-4o for reasoning, Gemini 2.5 Pro for analysis, Perplexity for research, Sarvam for Indian languages, ElevenLabs for voice, and GPT Image 1 for visuals. Then Arivarangam AI reads everything and builds one complete, polished deliverable. You see the final output — not the internal consultations.',
     highlights: [
-      'Configurable model selection per roundtable',
-      'Transparent per-model reasoning and critique',
-      'Final synthesis with quality confidence score',
-      'Export full discussion transcripts',
-    ],
-  },
-  {
-    id: 'byoai',
-    icon: '🔑',
-    title: 'Bring Your Own AI (BYOAI)',
-    tagline: 'Use Claude for free with your own Anthropic key.',
-    description:
-      'Connect your own API keys from Anthropic, OpenAI, Google, or Perplexity. When Arivarangam uses your BYOAI key, no Arivarangam credits are consumed. Keys are encrypted at rest with AES-256-GCM and never stored in plaintext. Revoke access at any time from Settings → AI Connections.',
-    highlights: [
-      'Connect your own OpenAI, Anthropic, Google keys',
-      'No credit usage when BYOAI key is active',
-      'AES-256-GCM encryption at rest — never stored in plaintext',
-      'Revoke access at any time from AI Connections settings',
+      'Auto-routes each task to the right specialist AI',
+      'Specialists consult in parallel — faster results',
+      'Arivarangam AI synthesises all outputs into one deliverable',
+      'Final output is complete and production-ready',
     ],
   },
   {
@@ -236,15 +222,16 @@ export default function FeaturesPage() {
       <section className="pt-36 pb-16 px-6 text-center">
         <div className="max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-full text-indigo-600 text-xs font-medium mb-6">
-            14 capabilities. One platform.
+            8 specialist AIs · One unified output
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-slate-900">
-            Every feature that makes Arivarangam{' '}
+            Every feature that makes Arivarangam AI{' '}
             <span className="text-indigo-600">different</span>
           </h1>
           <p className="text-lg text-slate-500 leading-relaxed">
-            Arivarangam orchestrates Claude, GPT-4, Gemini, Perplexity, and more so India's knowledge workers
-            get the best of every AI — without managing multiple subscriptions.
+            Arivarangam AI consults Claude, GPT-4o, Gemini, Perplexity and more —
+            then builds your complete deliverable. India's knowledge workers get
+            every AI working together, without managing a single subscription.
           </p>
         </div>
       </section>

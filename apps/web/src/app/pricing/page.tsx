@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-// Credit packs — ₹X = Y credits. 1 typical 3-AI Roundtable = 30 credits.
 const CREDIT_PACKS = [
   {
     id: 'starter',
@@ -47,36 +46,36 @@ const CREDIT_PACKS = [
 
 const FAQS = [
   {
-    q: 'If I have my own API keys, is Arivarangam really free?',
-    a: 'Yes, completely. Connect your Anthropic, OpenAI, Perplexity, or Gemini keys in Settings → AI Keys. Arivarangam orchestrates them for free — we take no markup. You only pay your AI provider directly at their rates.',
+    q: 'How does Arivarangam AI work?',
+    a: 'You describe your goal. Arivarangam AI internally consults 8 specialist AIs — Claude for coding, GPT-4o for reasoning, Gemini for analysis, Perplexity for research, Sarvam for Indian languages, ElevenLabs for voice, Whisper for transcription, and GPT Image for visuals. Then Arivarangam AI reads all their outputs and builds you one complete, polished deliverable.',
   },
   {
-    q: 'How many credits does a Roundtable task use?',
-    a: 'Each AI agent (subtask) costs 10 credits. A typical 3-AI Roundtable costs 30 credits. A full discussion-round Roundtable (3 AIs + peer review + synthesis) costs ~75 credits. You always see the estimated cost before a task starts.',
+    q: 'How many credits does a task use?',
+    a: 'Each specialist sub-task costs 10 credits. A typical task (3 specialists + synthesis) costs ~30 credits. A complex task with peer review + multiple specialists costs ~75 credits. You always see the estimated cost before a task starts.',
   },
   {
     q: 'Do credits expire?',
     a: 'No. Credits you purchase never expire. Promotional or referral credits may have a 1-year validity noted at the time they\'re granted.',
   },
   {
-    q: 'Which AI models are available?',
-    a: 'Claude 3.5 Sonnet, Claude 3 Opus, GPT-4o, GPT-4 Turbo, Gemini 1.5 Pro, Perplexity Sonar, Stable Diffusion XL, DALL·E 3, ElevenLabs, Runway Gen-3, Sarvam-1 (Indian languages), Groq, Cohere, and more. BYOAI users get all models they hold keys for. Credit users get Claude + GPT-4o by default.',
+    q: 'Which AI models are included?',
+    a: 'All 8 specialist AIs are included: Claude 3.5 Sonnet (coding), GPT-4o (reasoning), Gemini 2.5 Pro (analysis), Perplexity Sonar Pro (research), Sarvam-1 (Indian languages), ElevenLabs (voice output), Whisper (voice input), and GPT Image 1 (images). Arivarangam AI synthesises them all into your final output.',
   },
   {
-    q: 'What is Arivarangam Passport?',
-    a: 'Your Passport is a public AI-verified skill profile that builds automatically from your completed tasks — shareable as a link. It shows what you\'ve built, which AI models you used, and your expertise areas. Every account gets a Passport for free.',
+    q: 'What is the 100 free credits on signup?',
+    a: 'Every new account gets 100 credits automatically on signup — no card required. That\'s enough for 3 full tasks. Use them to try Arivarangam AI before buying any credits.',
   },
   {
     q: 'Which payment methods are accepted?',
-    a: 'UPI, all major credit/debit cards, net banking, and EMI — powered by Razorpay. All prices are in Indian Rupees (₹).',
-  },
-  {
-    q: 'Can I use both BYOAI keys and credits?',
-    a: 'Yes. When you have your own key for a model, Arivarangam uses it. When you don\'t, it automatically falls back to credit-based usage. You\'re never blocked from running a task.',
+    a: 'UPI, all major credit/debit cards, net banking, and EMI — powered by Razorpay. All prices are in Indian Rupees (₹). No dollar conversion, no international fees.',
   },
   {
     q: 'What about teams or enterprise?',
     a: 'Email admin@arivarangam.com for team credit packs, custom SLAs, role-based access, and dedicated support. Built in Coimbatore — we respond fast.',
+  },
+  {
+    q: 'Can Arivarangam AI generate images and voice?',
+    a: 'Yes. For tasks requiring visuals, Arivarangam AI automatically allocates GPT Image 1. For voice output, it uses ElevenLabs TTS. For voice input, it uses Whisper. You don\'t need to pick — it\'s allocated automatically based on your task.',
   },
 ]
 
@@ -87,86 +86,62 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Nav */}
-      <nav className="border-b border-slate-200 bg-white px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
-        <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
-          Arivarangam<span className="text-brand-500">.</span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Log in</Link>
-          <Link href="/signup" className="text-sm px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-lg font-medium transition-colors text-white">
-            Get started free
+      <nav className="border-b border-slate-200 bg-white sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
+            Arivarangam<span className="text-indigo-600">.</span>
           </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/features" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">Features</Link>
+            <Link href="/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">Sign in</Link>
+            <Link href="/signup" className="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition-colors text-white shadow-sm">
+              Start free →
+            </Link>
+          </div>
         </div>
       </nav>
 
       <main className="max-w-5xl mx-auto px-6 py-16">
 
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4 tracking-tight text-slate-900">
-            Your API keys? Free forever.<br />
-            <span className="text-brand-500">No keys? Pay per use.</span>
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            Simple credit-based pricing · No subscriptions
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-slate-900">
+            One AI. Pay only for what you use.
           </h1>
           <p className="text-lg text-slate-500 max-w-xl mx-auto">
-            Arivarangam orchestrates Claude, GPT-4o, Gemini, Perplexity and more together — free if you bring your own keys, credit-based if you don't.
+            Arivarangam AI consults 8 world-class specialists and builds your complete deliverable.
+            Buy credits once — use for any task. Credits never expire.
           </p>
-          <p className="text-xs text-slate-400 mt-3">Built in Coimbatore, Tamil Nadu · India-first pricing · No hidden fees</p>
+          <p className="text-xs text-slate-400 mt-3">Built in Coimbatore, Tamil Nadu · Indian pricing · UPI accepted</p>
         </div>
 
-        {/* ── BYOAI section ───────────────────────────────────────────────── */}
-        <div className="rounded-2xl border-2 border-brand-500 bg-white shadow-md p-8 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🔑</span>
-                <h2 className="text-2xl font-bold text-slate-900">BYOAI — Bring Your Own API Keys</h2>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">FREE FOREVER</span>
-              </div>
-              <p className="text-slate-500 mb-5">
-                Connect your own Anthropic, OpenAI, Perplexity, or Gemini keys. Arivarangam orchestrates them — we charge nothing. You pay your AI provider at their rates with zero markup.
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  'All 16 AI models (you hold the keys)',
-                  'Unlimited Roundtable tasks',
-                  'Workflow builder & scheduling',
-                  'Arivarangam Passport (auto-generated)',
-                  'Sarvam — Indian language support',
-                  'Social media automation',
-                  'Team workspace',
-                  'No subscription, no lock-in',
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-slate-700">
-                    <span className="text-brand-500 font-bold">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="md:w-48 text-center shrink-0">
-              <div className="text-5xl font-black text-slate-900 mb-1">₹0</div>
-              <div className="text-slate-400 text-sm mb-4">forever</div>
-              <Link
-                href="/signup"
-                className="block w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-colors"
-              >
-                Start free →
-              </Link>
-              <p className="text-xs text-slate-400 mt-2">No credit card needed</p>
+        {/* Free signup banner */}
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎁</span>
+            <div>
+              <p className="font-semibold text-emerald-800 text-sm">100 free credits on signup</p>
+              <p className="text-xs text-emerald-600">No card required · Enough for 3 full tasks</p>
             </div>
           </div>
+          <Link
+            href="/signup"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm whitespace-nowrap"
+          >
+            Create free account →
+          </Link>
         </div>
 
-        {/* ── Credits section ─────────────────────────────────────────────── */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 mb-6">
+        {/* Credit packs */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 mb-8">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <span className="text-2xl">💳</span>
-              <h2 className="text-2xl font-bold text-slate-900">Credits — No API Keys Needed</h2>
-            </div>
-            <p className="text-slate-500 max-w-lg mx-auto">
-              Don't have API keys? Buy credits and run tasks instantly. Arivarangam uses its own keys on your behalf.
-              <br />
-              <span className="text-sm font-medium text-slate-700 mt-1 block">1 credit = ₹1 · Typical 3-AI Roundtable = 30 credits · Credits never expire</span>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Credit Packs</h2>
+            <p className="text-slate-500 max-w-lg mx-auto text-sm">
+              1 credit = ₹1 · Typical task = 30 credits · Credits never expire · Top up anytime
             </p>
           </div>
 
@@ -176,29 +151,29 @@ export default function PricingPage() {
                 key={pack.id}
                 className={`relative rounded-xl p-5 flex flex-col text-center border transition-all ${
                   pack.highlight
-                    ? 'border-brand-500 bg-brand-50 shadow-md'
-                    : 'border-slate-200 bg-slate-50'
+                    ? 'border-indigo-400 bg-indigo-50 shadow-md'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                 }`}
               >
                 {pack.badge && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-brand-600 rounded-full text-[10px] font-bold whitespace-nowrap text-white">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-indigo-600 rounded-full text-[10px] font-bold whitespace-nowrap text-white">
                     {pack.badge}
                   </div>
                 )}
-                <div className="text-sm font-semibold text-slate-500 mb-1">{pack.label}</div>
+                <div className="text-xs font-semibold text-slate-500 mb-1">{pack.label}</div>
                 <div className="text-3xl font-black text-slate-900 mb-1">₹{pack.inr.toLocaleString('en-IN')}</div>
-                <div className={`text-lg font-bold mb-0.5 ${pack.highlight ? 'text-brand-600' : 'text-slate-700'}`}>
+                <div className={`text-base font-bold mb-0.5 ${pack.highlight ? 'text-indigo-600' : 'text-slate-700'}`}>
                   {pack.credits.toLocaleString('en-IN')} credits
                 </div>
                 {pack.bonus > 0 && (
                   <div className="text-xs text-emerald-600 font-medium mb-1">+{pack.bonus} bonus</div>
                 )}
-                <div className="text-xs text-slate-400 mb-4">~{pack.tasks} Roundtable tasks</div>
+                <div className="text-xs text-slate-400 mb-4">~{pack.tasks} tasks</div>
                 <button
                   onClick={() => router.push('/credits')}
                   className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
                     pack.highlight
-                      ? 'bg-brand-600 hover:bg-brand-500 text-white'
+                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                       : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                   }`}
                 >
@@ -208,31 +183,54 @@ export default function PricingPage() {
             ))}
           </div>
 
-          <div className="text-center">
-            <p className="text-xs text-slate-400">
-              Sign up free — you get <strong className="text-slate-600">100 credits</strong> on your first day, no card required.
-              Top up anytime from your dashboard.
-            </p>
-          </div>
+          <p className="text-center text-xs text-slate-400">
+            UPI · Credit/debit cards · Net banking · EMI — via Razorpay
+          </p>
         </div>
 
-        {/* ── Comparison row ──────────────────────────────────────────────── */}
-        <div className="rounded-xl bg-slate-100 border border-slate-200 p-5 mb-16">
+        {/* What's included */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 mb-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">Every credit pack includes everything</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {[
+              { icon: '🟠', label: 'Claude 3.5 Sonnet — coding specialist' },
+              { icon: '🟢', label: 'GPT-4o — reasoning specialist' },
+              { icon: '🔷', label: 'Gemini 2.5 Pro — analysis specialist' },
+              { icon: '🔵', label: 'Perplexity Sonar Pro — research specialist' },
+              { icon: '🇮🇳', label: 'Sarvam-1 — Indian language specialist' },
+              { icon: '🎵', label: 'ElevenLabs — voice output (TTS)' },
+              { icon: '🎤', label: 'Whisper — voice input (STT)' },
+              { icon: '🎨', label: 'GPT Image 1 — image generation' },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-sm text-slate-700">{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-5">
+            Arivarangam AI reads all specialist outputs and builds your final deliverable. You see one polished result.
+          </p>
+        </div>
+
+        {/* Value comparison */}
+        <div className="rounded-xl bg-slate-100 border border-slate-200 p-6 mb-12">
+          <h3 className="text-center font-semibold text-slate-700 mb-5 text-sm">The value of 8 AIs in one</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-center">
             <div>
-              <div className="font-semibold text-slate-700 mb-1">ChatGPT Plus alone</div>
+              <div className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">ChatGPT Plus</div>
               <div className="text-2xl font-black text-red-400 line-through">₹1,675/mo</div>
-              <div className="text-slate-400 text-xs">just one AI</div>
+              <div className="text-slate-400 text-xs">just GPT-4o</div>
             </div>
             <div>
-              <div className="font-semibold text-slate-700 mb-1">All 5 AIs separately</div>
-              <div className="text-2xl font-black text-red-400 line-through">₹8,526/mo</div>
-              <div className="text-slate-400 text-xs">ChatGPT + Claude + Gemini + Perplexity + Midjourney</div>
+              <div className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">All 5 AIs separately</div>
+              <div className="text-2xl font-black text-red-400 line-through">₹8,500+/mo</div>
+              <div className="text-slate-400 text-xs">ChatGPT + Claude + Gemini + Perplexity + ElevenLabs</div>
             </div>
             <div>
-              <div className="font-semibold text-brand-600 mb-1">Arivarangam BYOAI</div>
-              <div className="text-2xl font-black text-emerald-600">₹0/mo</div>
-              <div className="text-slate-400 text-xs">all of them together, orchestrated</div>
+              <div className="text-xs font-semibold text-indigo-600 mb-1 uppercase tracking-wide">Arivarangam AI</div>
+              <div className="text-2xl font-black text-emerald-600">₹1,000</div>
+              <div className="text-slate-400 text-xs">all 8 specialists · 36 complete tasks · no subscription</div>
             </div>
           </div>
         </div>
@@ -241,11 +239,11 @@ export default function PricingPage() {
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center mb-16">
           <h2 className="text-xl font-bold mb-2 text-slate-900">Enterprise / Teams</h2>
           <p className="text-slate-500 text-sm mb-4 max-w-lg mx-auto">
-            Bulk credit packs, custom SLAs, role-based access, dedicated admin dashboard, on-prem routing, and a dedicated account manager.
+            Bulk credit packs, custom SLAs, role-based access, dedicated admin dashboard, and a dedicated account manager.
           </p>
           <a
             href="mailto:admin@arivarangam.com"
-            className="inline-block px-6 py-3 border border-slate-300 hover:border-brand-500 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors text-slate-700"
+            className="inline-block px-6 py-3 border border-slate-300 hover:border-indigo-400 hover:text-indigo-600 rounded-xl text-sm font-medium transition-colors text-slate-700"
           >
             Contact us → admin@arivarangam.com
           </a>
@@ -275,6 +273,20 @@ export default function PricingPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-20 border-t border-slate-200 bg-white py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-slate-900 font-bold">Arivarangam<span className="text-indigo-600">.</span></span>
+          <div className="flex gap-6 text-sm text-slate-400">
+            <Link href="/features" className="hover:text-slate-700">Features</Link>
+            <Link href="/privacy" className="hover:text-slate-700">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-700">Terms</Link>
+            <a href="mailto:admin@arivarangam.com" className="hover:text-slate-700">Contact</a>
+          </div>
+          <span className="text-xs text-slate-400">© 2025 Arivarangam. Built in India.</span>
+        </div>
+      </footer>
     </div>
   )
 }
