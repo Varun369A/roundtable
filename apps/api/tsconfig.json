@@ -15,9 +15,9 @@
     "sourceMap": true,
     "rootDir": "src",
     "paths": {
-      "@arivarangam/types": ["../../packages/types/src"],
-      "@arivarangam/db": ["../../packages/db/src"],
-      "@arivarangam/config": ["../../packages/config/src"]
+      "@arivarangam/types": ["../../packages/types/dist"],
+      "@arivarangam/db": ["../../packages/db/dist"],
+      "@arivarangam/config": ["../../packages/config/dist"]
     }
   },
   "include": ["src/**/*"],

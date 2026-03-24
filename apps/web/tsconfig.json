@@ -22,7 +22,7 @@
         "./src/*"
       ],
       "@arivarangam/types": [
-        "../../packages/types/src"
+        "../../packages/types/dist"
       ]
     },
     "plugins": [
