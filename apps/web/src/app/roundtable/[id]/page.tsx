@@ -81,6 +81,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const [steeringText, setSteeringText]     = useState('')
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [reviewToast, setReviewToast]       = useState(false)
+  const [showKeyDialog, setShowKeyDialog]   = useState(false)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
 
@@ -122,6 +123,17 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       if (t.status === 'PENDING' && !hasStarted.current) {
         hasStarted.current = true
+
+        // Check if user has any active AI connections
+        const connRes = await apiFetch<{ providers: Array<{ connected: boolean; verified: boolean }> }>('/api/v1/ai-connections')
+        const hasKeys = connRes.success && (connRes.data as any)?.providers?.some((p: any) => p.connected && p.verified)
+
+        if (!hasKeys) {
+          // No API keys — ask the user what they want to do
+          setShowKeyDialog(true)
+          return
+        }
+
         await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
         addSystemMessage('Analysing your goal and assembling the team…')
@@ -301,6 +313,14 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const statusCfg = STATUS_LABEL[taskStatus] || STATUS_LABEL.PENDING
   const isLive    = ['ROUTING', 'IN_PROGRESS'].includes(taskStatus)
   const hasPreview = previewUpdates.length > 0
+
+  // Called when user confirms they want to use platform API keys
+  async function proceedWithPlatformKeys() {
+    setShowKeyDialog(false)
+    await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
+    setTaskStatus('ROUTING')
+    addSystemMessage('Using Arivarangam platform keys — analysing your goal…')
+  }
 
   return (
     <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
@@ -613,6 +633,48 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
       )}
 
       {/* ── Clarification modal ──────────────────────────────────────────────── */}
+      {/* ── API Key detection dialog ─────────────────────────────────────────── */}
+      {showKeyDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-5">
+              <div className="text-4xl mb-3">🔑</div>
+              <h2 className="text-lg font-bold text-slate-900">No AI keys connected</h2>
+              <p className="text-sm text-slate-500 mt-1.5">
+                Connect your own API keys for free unlimited usage, or use Arivarangam&apos;s platform keys (credits deducted per task).
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={proceedWithPlatformKeys}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <span>💳</span> Use platform keys (deduct credits)
+              </button>
+
+              <Link
+                href="/settings/ai-connections"
+                className="w-full py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <span>🔧</span> Help me connect my own API keys
+              </Link>
+
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full py-2 text-slate-400 hover:text-slate-600 text-xs transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <p className="text-center text-[11px] text-slate-400 mt-4">
+              Your own keys = free usage. Platform keys use your credit balance.
+            </p>
+          </div>
+        </div>
+      )}
+
       {showClarification && clarifications.length > 0 && (
         <ClarificationModal
           taskId={id}

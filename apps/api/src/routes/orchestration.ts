@@ -163,9 +163,9 @@ export async function orchestrationRoutes(app: FastifyInstance) {
       })
 
       await subtaskQueue.add(
-        `subtask:${correctionSubtask.id}`,
+        `subtask_${correctionSubtask.id}`,
         { subtaskId: correctionSubtask.id, taskId },
-        { jobId: `subtask:${correctionSubtask.id}` }
+        { jobId: `subtask_${correctionSubtask.id}` }
       )
 
       return reply.status(202).send({

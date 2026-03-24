@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
   {
     label: 'Growth & Trust',
     items: [
+      { href: '/admin/broadcast',  label: 'Broadcast',      icon: '📢', desc: 'Message all users' },
       { href: '/admin/marketing',  label: 'Marketing',      icon: '📣', desc: 'Waitlist & campaigns' },
       { href: '/admin/feedback',   label: 'Feedback',       icon: '💬', desc: 'User reports' },
       { href: '/admin/nova',       label: 'Nova AI',        icon: '🔮', desc: 'Admin AI assistant' },
@@ -54,8 +55,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
   useEffect(() => {
     apiFetch('/api/v1/admin/analytics/overview')
-      .then((res) => { if (!res.success) router.replace('/dashboard') })
-      .catch(() => router.replace('/dashboard'))
+      .then((res) => { if (!res.success) router.replace('/admin-login') })
+      .catch(() => router.replace('/admin-login'))
       .finally(() => setChecking(false))
   }, [router])
 

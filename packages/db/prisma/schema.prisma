@@ -2384,3 +2384,18 @@ model PassportView {
   @@index([passportId, createdAt])
   @@map("passport_views")
 }
+
+// ─── Admin Broadcast ──────────────────────────────────────────────────────────
+
+model AdminBroadcast {
+  id             String   @id @default(cuid())
+  title          String
+  message        String   @db.Text
+  targetTier     String?  // null = ALL tiers
+  recipientCount Int      @default(0)
+  sentBy         String   // admin userId
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("admin_broadcasts")
+}
