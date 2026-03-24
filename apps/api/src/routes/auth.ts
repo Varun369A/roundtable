@@ -133,6 +133,25 @@ export async function authRoutes(app: FastifyInstance) {
       data: { currentWorkspaceId: personalWorkspace.id },
     })
 
+    // Auto-accept current terms at signup so user is never blocked by 403
+    ;(async () => {
+      try {
+        const latestTerms = await prisma.termsVersion.findFirst({ orderBy: { effectiveAt: 'desc' } })
+        if (latestTerms) {
+          await prisma.userTermsAcceptance.create({
+            data: {
+              userId: user.id,
+              termsVersionId: latestTerms.id,
+              ipAddress: String(request.headers['x-forwarded-for'] ?? request.ip ?? 'unknown').slice(0, 45),
+              userAgent: String(request.headers['user-agent'] ?? 'unknown').slice(0, 500),
+            },
+          })
+        }
+      } catch {
+        // Non-fatal — signup succeeds even if terms acceptance fails
+      }
+    })()
+
     // Grant signup bonus credits (non-blocking, fire-and-forget)
     grantSignupBonus(user.id).catch(() => {})
 
