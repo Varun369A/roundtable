@@ -4,17 +4,16 @@ import { useEffect, useRef, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTaskStream, StreamEvent } from '@/hooks/useTaskStream'
-import { MessageBubble, TypingIndicator } from '@/components/roundtable'
-import { PreviewPane, type PreviewUpdate } from '@/components/roundtable/PreviewPane'
 import { ClarificationModal } from '@/components/roundtable/ClarificationModal'
 import { SteeringInput } from '@/components/roundtable/SteeringInput'
 import { SessionPanel } from '@/components/roundtable/SessionPanel'
-import { ReactionBar } from '@/components/roundtable/ReactionBar'
-import { VerificationBadge } from '@/components/roundtable/VerificationBadge'
 import { VoiceInputButton } from '@/components/roundtable/VoiceInputButton'
+import { OutputViewer, getModelConfig } from '@/components/roundtable'
 import type { Message, TeamMember } from '@/components/roundtable'
 import { apiFetch } from '@/lib/api'
 import RequestReviewModal from '@/components/marketplace/RequestReviewModal'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TaskInfo {
   id: string
@@ -22,23 +21,6 @@ interface TaskInfo {
   originalGoal: string
   status: string
   template?: { category: string }
-}
-
-interface VerificationData {
-  status: 'PENDING' | 'RUNNING' | 'PASSED' | 'PARTIAL' | 'FAILED'
-  confidenceScore: number
-  factualScore: number
-  completenessScore: number
-  citationsFound: number
-  issues: Array<{ type: string; severity: string; description: string; suggestion?: string }>
-  citations: Array<{ text: string; source: string; url?: string; confidence: number }>
-}
-
-interface ActionData {
-  id: string
-  subtaskId: string
-  type: string
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXECUTED'
 }
 
 interface ActiveSubtask {
@@ -49,96 +31,491 @@ interface ActiveSubtask {
   roundNumber?: number
 }
 
+type Phase = 'routing' | 'planning' | 'implementation' | 'review' | 'synthesis' | 'done' | 'failed'
+
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   PENDING:               { label: 'Queued',      color: 'text-amber-600' },
-  ROUTING:               { label: 'Routing…',    color: 'text-blue-600'   },
-  IN_PROGRESS:           { label: 'Live',        color: 'text-indigo-600'  },
-  COMPLETED:             { label: 'Complete',    color: 'text-emerald-600'  },
-  FAILED:                { label: 'Failed',      color: 'text-red-600'    },
-  CANCELLED:             { label: 'Cancelled',   color: 'text-slate-500'   },
+  ROUTING:               { label: 'Routing…',    color: 'text-blue-600'  },
+  IN_PROGRESS:           { label: 'Live',        color: 'text-indigo-600' },
+  COMPLETED:             { label: 'Complete',    color: 'text-emerald-600' },
+  FAILED:                { label: 'Failed',      color: 'text-red-600'   },
+  CANCELLED:             { label: 'Cancelled',   color: 'text-slate-500' },
   WAITING_CLARIFICATION: { label: 'Needs input', color: 'text-amber-600' },
 }
+
+const PHASE_LABELS: Record<Phase, { label: string; description: string; color: string }> = {
+  routing:        { label: 'Assembling team',   description: 'Arivarangam AI is selecting the right AIs for your task', color: 'text-blue-600'    },
+  planning:       { label: 'Planning',          description: 'AIs are discussing the approach together',                color: 'text-violet-600'  },
+  implementation: { label: 'Building',          description: 'AIs are working on your task in parallel',               color: 'text-indigo-600'  },
+  review:         { label: 'Peer review',       description: 'AIs are reviewing each other\'s work',                   color: 'text-amber-600'   },
+  synthesis:      { label: 'Synthesising',      description: 'Arivarangam AI is merging all outputs',                  color: 'text-emerald-600' },
+  done:           { label: 'Complete',          description: 'Your deliverables are ready',                            color: 'text-emerald-700' },
+  failed:         { label: 'Failed',            description: 'Task encountered errors',                                color: 'text-red-600'     },
+}
+
+// ─── Round Table Seat ─────────────────────────────────────────────────────────
+
+interface SeatProps {
+  model: string
+  role?: string
+  isSpeaking: boolean
+  isDone: boolean
+  messageCount: number
+  index: number
+  total: number
+  tableRadius: number // px
+}
+
+function TableSeat({ model, role, isSpeaking, isDone, messageCount, index, total, tableRadius }: SeatProps) {
+  const cfg = getModelConfig(model)
+  const angleDeg = (index / total) * 360 - 90
+  const angleRad = (angleDeg * Math.PI) / 180
+  const x = 50 + (tableRadius / 2) * Math.cos(angleRad)
+  const y = 50 + (tableRadius / 2) * Math.sin(angleRad)
+
+  return (
+    <div
+      className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
+      style={{ left: `${x}%`, top: `${y}%` }}
+    >
+      {/* Seat circle */}
+      <div className="relative">
+        <div
+          className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold border-2 transition-all duration-300 ${
+            isSpeaking
+              ? 'shadow-lg scale-110'
+              : isDone
+              ? 'opacity-90'
+              : 'opacity-60'
+          }`}
+          style={{
+            backgroundColor: cfg.bg,
+            borderColor: isSpeaking ? cfg.color : isDone ? `${cfg.color}80` : `${cfg.color}30`,
+            boxShadow: isSpeaking ? `0 0 20px ${cfg.color}60` : undefined,
+          }}
+          title={cfg.label}
+        >
+          {cfg.emoji}
+        </div>
+        {/* Speaking pulse ring */}
+        {isSpeaking && (
+          <div
+            className="absolute inset-0 rounded-full animate-ping opacity-30"
+            style={{ backgroundColor: cfg.color }}
+          />
+        )}
+        {/* Done checkmark */}
+        {isDone && !isSpeaking && (
+          <div
+            className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+            style={{ backgroundColor: cfg.color, color: '#fff' }}
+          >
+            {messageCount > 1 ? messageCount : '✓'}
+          </div>
+        )}
+      </div>
+      {/* Label */}
+      <div className="text-center">
+        <div className="text-[11px] font-semibold text-slate-700 whitespace-nowrap leading-tight">{cfg.label}</div>
+        {role && <div className="text-[9px] text-slate-400 capitalize">{role}</div>}
+      </div>
+    </div>
+  )
+}
+
+// ─── Round Table Visual ───────────────────────────────────────────────────────
+
+interface RoundTableProps {
+  team: TeamMember[]
+  activeSubtasks: ActiveSubtask[]
+  messages: Message[]
+  phase: Phase
+  taskTitle?: string
+}
+
+function RoundTable({ team, activeSubtasks, messages, phase, taskTitle }: RoundTableProps) {
+  const phaseCfg = PHASE_LABELS[phase]
+  const activeModels = new Set(activeSubtasks.map((s) => s.model))
+  const doneModels = new Map<string, number>()
+  for (const m of messages) {
+    if (m.type === 'ai' && m.model && !m.isError) {
+      doneModels.set(m.model, (doneModels.get(m.model) || 0) + 1)
+    }
+  }
+
+  // De-duplicate team by model (keep first occurrence)
+  const uniqueTeam = team.filter((t, i) => team.findIndex((u) => u.model === t.model) === i)
+  const N = uniqueTeam.length
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      {/* Table container */}
+      <div className="relative w-72 h-72 shrink-0">
+        {/* Table surface */}
+        <div
+          className="absolute rounded-full border border-slate-700"
+          style={{
+            inset: '18%',
+            background: 'radial-gradient(circle at 35% 35%, #1e293b, #0f172a)',
+            boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.5), 0 4px 32px rgba(0,0,0,0.3)',
+          }}
+        >
+          {/* Center label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-0.5">
+              {phaseCfg.label}
+            </span>
+            {taskTitle && (
+              <span className="text-[9px] text-slate-600 leading-tight line-clamp-2 px-1">
+                {taskTitle}
+              </span>
+            )}
+            {/* Rotating indicator when active */}
+            {['routing', 'planning', 'implementation', 'review', 'synthesis'].includes(phase) && (
+              <div className="mt-2 flex gap-1">
+                {[0, 100, 200].map((d) => (
+                  <div
+                    key={d}
+                    className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"
+                    style={{ animationDelay: `${d}ms` }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Seats */}
+        {N > 0 && uniqueTeam.map((member, i) => (
+          <TableSeat
+            key={member.model}
+            model={member.model}
+            role={member.category}
+            isSpeaking={activeModels.has(member.model)}
+            isDone={doneModels.has(member.model)}
+            messageCount={doneModels.get(member.model) || 0}
+            index={i}
+            total={N}
+            tableRadius={87}
+          />
+        ))}
+
+        {/* Empty state seats placeholder when routing */}
+        {N === 0 && [0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${50 + 43 * Math.cos(((i / 3) * 360 - 90) * Math.PI / 180)}%`,
+              top:  `${50 + 43 * Math.sin(((i / 3) * 360 - 90) * Math.PI / 180)}%`,
+            }}
+          >
+            <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-dashed border-slate-700 animate-pulse" />
+          </div>
+        ))}
+      </div>
+
+      {/* Phase description */}
+      <p className={`text-xs font-medium text-center ${phaseCfg.color}`}>
+        {phaseCfg.description}
+      </p>
+    </div>
+  )
+}
+
+// ─── Activity Entry ───────────────────────────────────────────────────────────
+
+function ActivityEntry({ message }: { message: Message }) {
+  const [expanded, setExpanded] = useState(false)
+
+  if (message.type === 'system') {
+    return (
+      <div className="flex items-center gap-3 py-1">
+        <div className="h-px flex-1 bg-slate-700" />
+        <span className="text-[10px] text-slate-500 whitespace-nowrap">{message.title}</span>
+        <div className="h-px flex-1 bg-slate-700" />
+      </div>
+    )
+  }
+
+  if (message.type === 'routing_card') {
+    return null // handled by the table
+  }
+
+  const cfg = getModelConfig(message.model || '')
+  const isReview    = message.role === 'REVIEW'
+  const isSynthesis = message.role === 'SYNTHESIS'
+  const label = isSynthesis ? 'Final synthesis' : isReview ? 'Peer review' : 'Output'
+  const content = message.output?.content || ''
+  const preview = content.slice(0, 180)
+  const hasMore = content.length > 180
+
+  return (
+    <div
+      className={`rounded-xl border transition-all ${
+        message.isError
+          ? 'border-red-900/40 bg-red-950/20'
+          : isSynthesis
+          ? 'border-emerald-800/40 bg-emerald-950/20'
+          : isReview
+          ? 'border-amber-800/40 bg-amber-950/10'
+          : 'border-slate-700/60 bg-slate-800/40'
+      }`}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-4 py-2.5">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0 font-bold"
+          style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.color}40` }}
+        >
+          {cfg.emoji}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-200">{cfg.label}</span>
+            <span
+              className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                isSynthesis ? 'bg-emerald-900/60 text-emerald-400' :
+                isReview    ? 'bg-amber-900/60 text-amber-400'     :
+                              'bg-slate-700 text-slate-400'
+              }`}
+            >
+              {label}
+            </span>
+          </div>
+          {message.title && (
+            <div className="text-[10px] text-slate-500 truncate">{message.title}</div>
+          )}
+        </div>
+        {content && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-[10px] text-slate-500 hover:text-slate-300 shrink-0 transition-colors"
+          >
+            {expanded ? 'collapse' : 'expand'}
+          </button>
+        )}
+      </div>
+
+      {/* Content */}
+      {message.isError ? (
+        <p className="px-4 pb-3 text-xs text-red-400">Failed to complete this step.</p>
+      ) : message.output?.type === 'image' && message.output.fileUrl ? (
+        <div className="px-4 pb-3">
+          <img src={message.output.fileUrl} alt="Generated" className="rounded-lg max-h-48 w-auto" />
+        </div>
+      ) : content ? (
+        <div className="px-4 pb-3">
+          {expanded ? (
+            <OutputViewer
+              type={message.output!.type}
+              content={message.output!.content}
+              fileUrl={message.output!.fileUrl}
+            />
+          ) : (
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {preview}{hasMore && !expanded && <span className="text-slate-600">…</span>}
+            </p>
+          )}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+// ─── Delivery Panel ───────────────────────────────────────────────────────────
+
+function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }) {
+  const [githubConnected, setGithubConnected] = useState<boolean | null>(null)
+  const [showRepoInput, setShowRepoInput]     = useState(false)
+  const [repoName, setRepoName]               = useState('')
+  const [pushing, setPushing]                 = useState(false)
+  const [pushed, setPushed]                   = useState<string | null>(null)
+  const [error, setError]                     = useState<string | null>(null)
+  const [assembling, setAssembling]           = useState(false)
+  const [assembled, setAssembled]             = useState(false)
+
+  useEffect(() => {
+    if (!hasCode) return
+    // Check GitHub connection
+    apiFetch<{ connection: { login: string } | null }>('/api/v1/github/connection').then((r) => {
+      setGithubConnected(!!(r.success && (r.data as any)?.connection))
+    })
+    // Trigger assembly
+    apiFetch(`/api/v1/code-projects/${taskId}/assemble`, { method: 'POST' }).then((r) => {
+      if (r.success) setAssembled(true)
+    })
+  }, [taskId, hasCode])
+
+  async function handleDownload() {
+    setAssembling(true)
+    const response = await fetch(`/api/v1/code-projects/${taskId}/download`, { credentials: 'include' })
+    if (!response.ok) { setAssembling(false); return }
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `arivarangam-project-${taskId.slice(0, 8)}.zip`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    setAssembling(false)
+  }
+
+  async function handlePush() {
+    if (!repoName.trim()) return
+    setPushing(true)
+    setError(null)
+    const r = await apiFetch<{ repoUrl: string }>(`/api/v1/code-projects/${taskId}/push`, {
+      method: 'POST',
+      body: JSON.stringify({ repoName: repoName.trim() }),
+    })
+    setPushing(false)
+    if (r.success && (r.data as any)?.repoUrl) {
+      setPushed((r.data as any).repoUrl)
+    } else {
+      setError((r as any)?.error?.message || 'Push failed. Please try again.')
+    }
+  }
+
+  if (!hasCode) return null
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-4 mt-3">
+      <p className="text-xs font-semibold text-slate-300 mb-3">Download your project</p>
+      <div className="flex flex-wrap gap-2">
+        {/* ZIP Download */}
+        <button
+          onClick={handleDownload}
+          disabled={assembling}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+        >
+          {assembling ? (
+            <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : '📦'}
+          Download ZIP
+        </button>
+
+        {/* GitHub push */}
+        {pushed ? (
+          <a
+            href={pushed}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors"
+          >
+            ✓ View on GitHub →
+          </a>
+        ) : githubConnected === false ? (
+          <Link
+            href="/settings/integrations?connect=github"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 hover:border-slate-400 text-slate-300 text-sm font-medium transition-colors"
+          >
+            🔗 Connect GitHub to push
+          </Link>
+        ) : githubConnected && !showRepoInput ? (
+          <button
+            onClick={() => setShowRepoInput(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-600 hover:border-indigo-500 text-slate-300 hover:text-white text-sm font-medium transition-colors"
+          >
+            Push to GitHub →
+          </button>
+        ) : null}
+      </div>
+
+      {/* Repo name input */}
+      {showRepoInput && !pushed && (
+        <div className="mt-3 flex gap-2">
+          <input
+            value={repoName}
+            onChange={(e) => setRepoName(e.target.value)}
+            placeholder="repo-name"
+            className="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            onKeyDown={(e) => e.key === 'Enter' && handlePush()}
+            autoFocus
+          />
+          <button
+            onClick={handlePush}
+            disabled={pushing || !repoName.trim()}
+            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+          >
+            {pushing ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+            ) : 'Push'}
+          </button>
+          <button
+            onClick={() => setShowRepoInput(false)}
+            className="px-3 py-2 rounded-lg border border-slate-600 text-slate-400 hover:text-white text-sm transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RoundtablePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const [task, setTask]                     = useState<TaskInfo | null>(null)
-  const [messages, setMessages]             = useState<Message[]>([])
-  const [activeSubtasks, setActiveSubtasks] = useState<ActiveSubtask[]>([])
-  const [taskStatus, setTaskStatus]         = useState<string>('PENDING')
+
+  const [task, setTask]                       = useState<TaskInfo | null>(null)
+  const [messages, setMessages]               = useState<Message[]>([])
+  const [activeSubtasks, setActiveSubtasks]   = useState<ActiveSubtask[]>([])
+  const [taskStatus, setTaskStatus]           = useState<string>('PENDING')
+  const [phase, setPhase]                     = useState<Phase>('routing')
+  const [team, setTeam]                       = useState<TeamMember[]>([])
   const [hasCodeWorkspace, setHasCodeWorkspace] = useState(false)
-  const [previewUpdates, setPreviewUpdates] = useState<PreviewUpdate[]>([])
-  const [showPreview, setShowPreview]       = useState(true)
-  const [activeTab, setActiveTab]           = useState<'feed' | 'preview'>('feed')
-  const [discussionRound, setDiscussionRound] = useState<1 | 2 | 3>(1)
   const [synthesisComplete, setSynthesisComplete] = useState(false)
-  const [clarifications, setClarifications] = useState<any[]>([])
+  const [clarifications, setClarifications]   = useState<any[]>([])
   const [showClarification, setShowClarification] = useState(false)
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  // Phase 3: verification and actions
-  const [verifications, setVerifications]   = useState<Record<string, VerificationData>>({})
-  const [pendingActions, setPendingActions] = useState<Record<string, number>>({}) // subtaskId → count
-  const [steeringText, setSteeringText]     = useState('')
+  const [steeringText, setSteeringText]       = useState('')
   const [showReviewModal, setShowReviewModal] = useState(false)
-  const [reviewToast, setReviewToast]       = useState(false)
-  const [showKeyDialog, setShowKeyDialog]   = useState(false)
+  const [reviewToast, setReviewToast]         = useState(false)
+  const [showKeyDialog, setShowKeyDialog]     = useState(false)
   const bottomRef  = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
+  const logRef     = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom only when user is already near the bottom
-  const mainRef = useRef<HTMLDivElement>(null)
+  // Auto-scroll log
   useEffect(() => {
-    const main = mainRef.current
-    if (!main) return
-    const distFromBottom = main.scrollHeight - main.scrollTop - main.clientHeight
-    if (distFromBottom < 200) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
+    const el = logRef.current
+    if (!el) return
+    const dist = el.scrollHeight - el.scrollTop - el.clientHeight
+    if (dist < 300) el.scrollTop = el.scrollHeight
   }, [messages, activeSubtasks])
 
   const addSystemMessage = (text: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id:        `sys-${Date.now()}`,
-        type:      'system',
-        title:     text,
-        timestamp: new Date(),
-      },
-    ])
+    setMessages((prev) => [...prev, { id: `sys-${Date.now()}`, type: 'system', title: text, timestamp: new Date() }])
   }
 
-  // Load task metadata and auto-start if PENDING
+  // Load task + auto-start
   useEffect(() => {
     async function init() {
       const result = await apiFetch<{ task: TaskInfo }>(`/api/v1/tasks/${id}`)
-      if (!result.success || !result.data) {
-        router.push('/dashboard')
-        return
-      }
-
+      if (!result.success || !result.data) { router.push('/dashboard'); return }
       const t = result.data.task
       setTask(t)
       setTaskStatus(t.status)
 
+      if (t.status === 'COMPLETED') {
+        setPhase('done')
+      } else if (t.status === 'FAILED') {
+        setPhase('failed')
+      }
+
       if (t.status === 'PENDING' && !hasStarted.current) {
         hasStarted.current = true
-
-        // Check if user has any active AI connections
         const connRes = await apiFetch<{ providers: Array<{ connected: boolean; verified: boolean }> }>('/api/v1/ai-connections')
         const hasKeys = connRes.success && (connRes.data as any)?.providers?.some((p: any) => p.connected && p.verified)
-
-        if (!hasKeys) {
-          // No API keys — ask the user what they want to do
-          setShowKeyDialog(true)
-          return
-        }
-
+        if (!hasKeys) { setShowKeyDialog(true); return }
         await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
         setTaskStatus('ROUTING')
-        addSystemMessage('Arivarangam AI is analysing your goal and selecting the best team…')
       } else if (t.status === 'WAITING_CLARIFICATION') {
-        // Task is paused waiting for user input — load and show questions
         const clRes = await apiFetch<{ clarifications: any[] }>(`/api/v1/tasks/${id}/clarifications`)
         if (clRes.success && (clRes.data as any)?.clarifications?.length) {
           setClarifications((clRes.data as any).clarifications)
@@ -158,20 +535,14 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         break
 
       case 'routing_decided':
-        if (event.team && event.team.length > 0) {
-          setMessages((prev) => {
-            // Don't add duplicate routing card on reconnect
-            if (prev.some((m) => m.id === 'routing-decision')) return prev
-            return [
-              ...prev,
-              {
-                id:        'routing-decision',
-                type:      'routing_card',
-                team:      event.team,
-                timestamp: new Date(),
-              },
-            ]
-          })
+        if (event.team?.length) {
+          setTeam(event.team)
+          setMessages((prev) =>
+            prev.some((m) => m.id === 'routing-decision')
+              ? prev
+              : [...prev, { id: 'routing-decision', type: 'routing_card', team: event.team, timestamp: new Date() }]
+          )
+          setPhase('planning')
         }
         break
 
@@ -179,21 +550,17 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         if (event.subtaskId && event.model) {
           setActiveSubtasks((prev) => [
             ...prev.filter((s) => s.subtaskId !== event.subtaskId),
-            {
-              subtaskId:   event.subtaskId!,
-              title:       event.title || '',
-              model:       event.model!,
-              role:        event.role,
-              roundNumber: event.roundNumber,
-            },
+            { subtaskId: event.subtaskId!, title: event.title || '', model: event.model!, role: event.role, roundNumber: event.roundNumber },
           ])
+          // Set phase based on role
+          if (event.role === 'REVIEW') setPhase('review')
+          else if (event.role === 'SYNTHESIS') setPhase('synthesis')
+          else setPhase((prev) => (prev === 'planning' || prev === 'routing') ? 'implementation' : prev)
         }
         break
 
       case 'subtask_completed':
-        setActiveSubtasks((prev) =>
-          prev.filter((s) => s.subtaskId !== event.subtaskId),
-        )
+        setActiveSubtasks((prev) => prev.filter((s) => s.subtaskId !== event.subtaskId))
         setMessages((prev) => [
           ...prev,
           {
@@ -203,55 +570,28 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             title:       event.title,
             output:      event.output as Message['output'],
             timestamp:   new Date(),
-            // Discussion Engine fields
             role:        event.role,
             roundNumber: event.roundNumber,
           },
         ])
-        // Add preview update if available
-        if (event.preview) {
-          setPreviewUpdates((prev) => [
-            ...prev,
-            {
-              subtaskTitle: event.title || 'Output',
-              type:         event.preview!.type,
-              html:         event.preview!.html,
-              timestamp:    new Date(),
-            },
-          ])
-          // Auto-switch to preview tab on mobile when content arrives
-          setActiveTab('preview')
-        }
         break
 
       case 'subtask_failed':
-        setActiveSubtasks((prev) =>
-          prev.filter((s) => s.subtaskId !== event.subtaskId),
-        )
+        setActiveSubtasks((prev) => prev.filter((s) => s.subtaskId !== event.subtaskId))
         setMessages((prev) => [
           ...prev,
-          {
-            id:        event.subtaskId || `err-${Date.now()}`,
-            type:      'ai',
-            isError:   true,
-            title:     'A step encountered an error',
-            timestamp: new Date(),
-          },
+          { id: event.subtaskId || `err-${Date.now()}`, type: 'ai', isError: true, title: 'A step encountered an error', timestamp: new Date() },
         ])
         break
 
-      case 'auto_fix_started':
-        addSystemMessage(`Auto-correcting errors: ${(event.errors || []).slice(0, 2).join(', ')}`)
-        break
-
       case 'discussion_round_started':
-        setDiscussionRound(2)
-        addSystemMessage('Round 2 — Peer Review: each AI critiques and enriches the others\' work…')
+        setPhase('review')
+        addSystemMessage('Peer Review — each AI critiques the others\' work')
         break
 
       case 'synthesis_started':
-        setDiscussionRound(3)
-        addSystemMessage('Round 3 — Arivarangam AI is synthesising all outputs into the final result…')
+        setPhase('synthesis')
+        addSystemMessage('Arivarangam AI is synthesising all outputs…')
         break
 
       case 'synthesis_complete':
@@ -260,40 +600,17 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
       case 'task_completed':
         setTaskStatus('COMPLETED')
+        setPhase('done')
         setActiveSubtasks([])
         if (event.hasCodeWorkspace) setHasCodeWorkspace(true)
-        addSystemMessage('All done — your deliverables are ready.')
-        // Fetch verifications and pending actions after task completes
-        ;(async () => {
-          const [verRes, actRes] = await Promise.all([
-            apiFetch<{ verifications: Array<{ subtaskId: string } & VerificationData> }>(
-              `/api/v1/tasks/${id}/verifications`,
-            ),
-            apiFetch<{ actions: ActionData[] }>(`/api/v1/tasks/${id}/actions`),
-          ])
-          if (verRes.success && verRes.data?.verifications) {
-            const map: Record<string, VerificationData> = {}
-            for (const v of verRes.data.verifications) {
-              map[v.subtaskId] = v
-            }
-            setVerifications(map)
-          }
-          if (actRes.success && actRes.data?.actions) {
-            const counts: Record<string, number> = {}
-            for (const a of actRes.data.actions) {
-              if (a.status === 'PENDING') {
-                counts[a.subtaskId] = (counts[a.subtaskId] || 0) + 1
-              }
-            }
-            setPendingActions(counts)
-          }
-        })()
+        addSystemMessage('All done — your deliverables are ready')
         break
 
       case 'task_failed':
         setTaskStatus('FAILED')
+        setPhase('failed')
         setActiveSubtasks([])
-        addSystemMessage('Task encountered errors. Partial results are shown above.')
+        addSystemMessage('Task encountered errors. Partial results are shown below.')
         break
 
       case 'task_cancelled':
@@ -308,59 +625,41 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         setTaskStatus('WAITING_CLARIFICATION')
         break
 
-      case 'steering_received':
-        addSystemMessage(`Steering queued: "${event.message}"`)
-        break
-
       case 'steering_applied':
-        addSystemMessage(`Steering applied to current step ✓`)
-        break
-
-      case 'session_created':
-        if (event.sessionId) setSessionId(event.sessionId)
+        addSystemMessage('Steering applied ✓')
         break
     }
   }, [])
 
-  const { connected } = useTaskStream({
-    taskId:  id,
-    onEvent: handleStreamEvent,
-    enabled: !!task,
-  })
+  const { connected } = useTaskStream({ taskId: id, onEvent: handleStreamEvent, enabled: !!task })
 
   const statusCfg = STATUS_LABEL[taskStatus] || STATUS_LABEL.PENDING
   const isLive    = ['ROUTING', 'IN_PROGRESS'].includes(taskStatus)
-  const hasPreview = previewUpdates.length > 0
 
-  // Called when user confirms they want to use platform API keys
   async function proceedWithPlatformKeys() {
     setShowKeyDialog(false)
     await apiFetch(`/api/v1/tasks/${id}/start`, { method: 'POST' })
     setTaskStatus('ROUTING')
-    addSystemMessage('Using Arivarangam platform keys — analysing your goal…')
+    addSystemMessage('Using Arivarangam platform keys — assembling your team…')
   }
 
+  // Visible activity messages (exclude routing_card — shown in table)
+  const activityMessages = messages.filter((m) => m.type !== 'routing_card')
+
   return (
-    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
+    <div className="h-screen flex flex-col bg-slate-900 text-slate-100 overflow-hidden">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm shrink-0">
+      <header className="shrink-0 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-none px-4 h-14 flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="text-slate-500 hover:text-slate-700 transition-colors text-sm shrink-0"
-          >
+          <Link href="/dashboard" className="text-slate-500 hover:text-slate-300 text-sm shrink-0 transition-colors">
             ← Dashboard
           </Link>
-
-          <div className="h-4 w-px bg-slate-200" />
-
-          <p className="flex-1 text-sm font-medium truncate text-slate-900">
+          <div className="h-4 w-px bg-slate-700" />
+          <p className="flex-1 text-sm font-medium truncate text-slate-200">
             {task?.originalGoal || '…'}
           </p>
-
           <div className="flex items-center gap-3 shrink-0">
-            {/* Cancel button — only for non-terminal tasks */}
             {!['COMPLETED', 'FAILED', 'CANCELLED'].includes(taskStatus) && (
               <button
                 onClick={async () => {
@@ -368,277 +667,208 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                   await apiFetch(`/api/v1/tasks/${id}`, { method: 'DELETE' })
                   router.push('/dashboard')
                 }}
-                className="text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-950/30"
               >
                 Cancel
               </button>
             )}
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Preview toggle (desktop) */}
-            {hasPreview && (
-              <button
-                onClick={() => setShowPreview((v) => !v)}
-                className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors ${
-                  showPreview
-                    ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
-                    : 'bg-slate-100 text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                👁 Preview
-              </button>
-            )}
-
-            {/* Status */}
             <div className="flex items-center gap-2">
-              {isLive && (
-                <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse-slow" />
-              )}
-              <span className={`text-xs font-semibold ${statusCfg.color}`}>
-                {statusCfg.label}
-              </span>
+              {isLive && <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />}
+              <span className={`text-xs font-semibold ${statusCfg.color}`}>{statusCfg.label}</span>
             </div>
-
-            {/* Multiplayer session */}
-            <SessionPanel
-              taskId={id}
-              taskStatus={taskStatus}
-              isOwner={true}
-            />
+            <SessionPanel taskId={id} taskStatus={taskStatus} isOwner />
           </div>
         </div>
-
-        {/* Mobile tabs — only show when we have preview content */}
-        {hasPreview && (
-          <div className="flex md:hidden border-t border-slate-200">
-            {(['feed', 'preview'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 text-xs font-medium transition-colors ${
-                  activeTab === tab
-                    ? 'text-slate-900 border-b-2 border-indigo-500'
-                    : 'text-slate-500'
-                }`}
-              >
-                {tab === 'feed' ? '💬 Feed' : '👁 Preview'}
-              </button>
-            ))}
-          </div>
-        )}
       </header>
 
-      {/* ── Body (split on desktop, tabs on mobile) ─────────────────────── */}
+      {/* ── Body ────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0">
 
-        {/* Message Feed */}
-        <main
-          ref={mainRef}
-          className={`flex flex-col overflow-y-auto ${
-            hasPreview && showPreview ? 'hidden md:flex md:w-[55%]' : 'flex-1'
-          } ${hasPreview && activeTab !== 'feed' ? 'hidden md:flex' : ''}`}
-        >
-          <div className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 space-y-5">
+        {/* Left — Round Table */}
+        <div className="hidden md:flex w-80 shrink-0 flex-col items-center border-r border-slate-800 bg-slate-900 py-10 px-4 gap-6 overflow-y-auto">
+          <RoundTable
+            team={team}
+            activeSubtasks={activeSubtasks}
+            messages={messages}
+            phase={phase}
+            taskTitle={task?.originalGoal}
+          />
 
-            {/* Empty state */}
-            {messages.length === 0 && activeSubtasks.length === 0 && taskStatus !== 'WAITING_CLARIFICATION' && (
-              <div className="flex flex-col items-center justify-center py-36 text-center gap-4">
-                <div className="flex gap-2">
-                  {[0, 150, 300].map((d) => (
-                    <div
-                      key={d}
-                      className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-bounce"
-                      style={{ animationDelay: `${d}ms` }}
-                    />
-                  ))}
-                </div>
-                <p className="text-slate-500 text-sm max-w-xs">
-                  {taskStatus === 'ROUTING'
-                    ? 'Arivarangam AI is analysing your goal and selecting the best team…'
-                    : 'Preparing your roundtable…'}
-                </p>
-              </div>
-            )}
-
-            {/* Clarification waiting state */}
-            {messages.length === 0 && taskStatus === 'WAITING_CLARIFICATION' && !showClarification && (
-              <div className="flex flex-col items-center justify-center py-36 text-center gap-4">
-                <p className="text-2xl">💬</p>
-                <p className="text-slate-700 font-medium text-sm">A few quick questions</p>
-                <p className="text-slate-400 text-xs max-w-xs">
-                  Answering these will help the AI team deliver better results for your goal.
-                </p>
-                <button
-                  onClick={() => setShowClarification(true)}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
-                >
-                  Answer questions
-                </button>
-              </div>
-            )}
-
-            {/* Round 1 header (only shows when discussion is multi-round) */}
-            {discussionRound > 1 && messages.some((m) => m.roundNumber === 1) && (
-              <div className="flex items-center gap-3 py-1">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-semibold text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-200 bg-indigo-50">
-                  Round 1 — Initial Work
-                </span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-            )}
-
-            {messages.map((msg, i) => {
-              const prev = messages[i - 1]
-              const showRound2Banner = msg.roundNumber === 2 && (!prev || prev.roundNumber !== 2)
-              const showRound3Banner = msg.roundNumber === 3 && (!prev || prev.roundNumber !== 3)
+          {/* Phase progress steps */}
+          <div className="w-full space-y-1.5 mt-2">
+            {((['routing', 'planning', 'implementation', 'review', 'synthesis', 'done']) as Phase[]).map((p) => {
+              const cfg = PHASE_LABELS[p]
+              const phases: Phase[] = ['routing', 'planning', 'implementation', 'review', 'synthesis', 'done']
+              const currentIdx = phases.indexOf(phase)
+              const thisIdx    = phases.indexOf(p)
+              const isActive   = phase === p
+              const isPast     = thisIdx < currentIdx
               return (
-                <div key={msg.id}>
-                  {showRound2Banner && (
-                    <div className="flex items-center gap-3 py-1 my-2">
-                      <div className="h-px flex-1 bg-slate-200" />
-                      <span className="text-xs font-semibold text-amber-600 px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50">
-                        Round 2 — Peer Review
-                      </span>
-                      <div className="h-px flex-1 bg-slate-200" />
+                <div
+                  key={p}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
+                    isActive ? 'bg-slate-800 border border-slate-700' : 'opacity-40'
+                  }`}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      isPast    ? 'bg-emerald-500' :
+                      isActive  ? 'bg-indigo-500 animate-pulse' :
+                                  'bg-slate-600'
+                    }`}
+                  />
+                  <div>
+                    <div className={`text-[11px] font-semibold ${isActive ? cfg.color : 'text-slate-500'}`}>
+                      {cfg.label}
                     </div>
-                  )}
-                  {showRound3Banner && (
-                    <div className="flex items-center gap-3 py-1 my-2">
-                      <div className="h-px flex-1 bg-slate-200" />
-                      <span className="text-xs font-semibold text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50">
-                        Round 3 — Synthesis
-                      </span>
-                      <div className="h-px flex-1 bg-slate-200" />
-                    </div>
-                  )}
-                  <div className="group relative">
-                    <MessageBubble
-                      message={{
-                        ...msg,
-                        title: msg.role === 'REVIEW'
-                          ? `Peer Review: ${msg.title}`
-                          : msg.role === 'SYNTHESIS'
-                          ? `Final Synthesis: ${msg.title}`
-                          : msg.title,
-                      }}
-                    />
-                    {/* Phase 3: verification badge + actions badge */}
-                    {msg.type === 'ai' && !msg.isError && (
-                      <div className="flex items-center gap-1.5 mt-1 ml-11">
-                        <VerificationBadge
-                          verification={verifications[msg.id]}
-                          subtaskId={msg.id}
-                        />
-                        {pendingActions[msg.id] != null && pendingActions[msg.id] > 0 && (
-                          <Link
-                            href="/settings/actions"
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/15 border border-orange-500/30 text-orange-400 hover:bg-orange-500/25 transition-colors"
-                          >
-                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                            </svg>
-                            {pendingActions[msg.id]} action{pendingActions[msg.id] !== 1 ? 's' : ''} pending
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                    {sessionId && msg.type === 'ai' && !msg.isError && (
-                      <ReactionBar
-                        taskId={id}
-                        subtaskId={msg.id}
-                        sessionId={sessionId}
-                      />
-                    )}
                   </div>
+                  {isPast && <span className="ml-auto text-emerald-500 text-[10px]">✓</span>}
                 </div>
               )
             })}
+          </div>
+        </div>
 
-            {activeSubtasks.map((s) => (
-              <TypingIndicator
-                key={s.subtaskId}
-                model={s.model}
-                title={
-                  s.role === 'REVIEW' ? `Reviewing: ${s.title}` :
-                  s.role === 'SYNTHESIS' ? `Synthesising all outputs…` :
-                  s.title
-                }
-              />
-            ))}
+        {/* Right — Activity Feed */}
+        <div ref={logRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-3">
 
-            {/* Completion summary card */}
-            {taskStatus === 'COMPLETED' && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center mt-4">
-                <p className="text-emerald-700 font-semibold text-lg mb-1">
-                  {synthesisComplete ? '🏆 Roundtable Complete — Synthesised' : 'Roundtable complete'}
-                </p>
-                <p className="text-slate-500 text-sm">
-                  {synthesisComplete
-                    ? `${discussionRound} rounds of AI collaboration — ${messages.filter((m) => m.type === 'ai' && !m.isError).length} outputs across ${new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs`
-                    : `${messages.filter((m) => m.type === 'ai' && !m.isError).length} tasks completed across ${new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs`
-                  }
-                </p>
-                {synthesisComplete && (
-                  <p className="text-xs text-slate-400 mt-1">
-                    Initial work → Peer review → Final synthesis
-                  </p>
-                )}
-                <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
-                  {hasCodeWorkspace && (
-                    <Link
-                      href={`/workspace/${id}`}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
-                    >
-                      💻 Open Workspace
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => setShowReviewModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-sm font-medium transition-colors"
+          {/* Mobile: compact AI seats row */}
+          <div className="flex md:hidden gap-3 overflow-x-auto pb-2 mb-2">
+            {team.filter((t, i) => team.findIndex((u) => u.model === t.model) === i).map((member) => {
+              const cfg = getModelConfig(member.model)
+              const isSpeaking = activeSubtasks.some((s) => s.model === member.model)
+              const isDone = messages.some((m) => m.type === 'ai' && m.model === member.model && !m.isError)
+              return (
+                <div key={member.model} className="flex flex-col items-center gap-1 shrink-0">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold border-2 transition-all ${
+                      isSpeaking ? 'scale-110' : isDone ? '' : 'opacity-50'
+                    }`}
+                    style={{
+                      backgroundColor: cfg.bg,
+                      borderColor: isSpeaking ? cfg.color : `${cfg.color}40`,
+                      boxShadow: isSpeaking ? `0 0 12px ${cfg.color}60` : undefined,
+                    }}
                   >
-                    🎓 Request Expert Review
-                  </button>
+                    {cfg.emoji}
+                  </div>
+                  <span className="text-[9px] text-slate-500 whitespace-nowrap">{cfg.label}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Empty state */}
+          {activityMessages.length === 0 && activeSubtasks.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-32 text-center gap-3">
+              <div className="flex gap-2">
+                {[0, 150, 300].map((d) => (
+                  <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                ))}
+              </div>
+              <p className="text-slate-500 text-sm max-w-xs">
+                {taskStatus === 'ROUTING' ? 'Assembling your AI team…' : 'Preparing your roundtable…'}
+              </p>
+            </div>
+          )}
+
+          {/* Clarification waiting */}
+          {taskStatus === 'WAITING_CLARIFICATION' && !showClarification && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <p className="text-2xl">💬</p>
+              <p className="text-slate-300 font-medium text-sm">A few quick questions</p>
+              <button
+                onClick={() => setShowClarification(true)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                Answer questions
+              </button>
+            </div>
+          )}
+
+          {/* Activity messages */}
+          {activityMessages.map((msg) => (
+            <ActivityEntry key={msg.id} message={msg} />
+          ))}
+
+          {/* Typing indicators */}
+          {activeSubtasks.map((s) => {
+            const cfg = getModelConfig(s.model)
+            return (
+              <div key={s.subtaskId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-700/50 bg-slate-800/30">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0 font-bold"
+                  style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.color}40` }}
+                >
+                  {cfg.emoji}
+                </div>
+                <div className="flex-1">
+                  <span className="text-xs font-semibold text-slate-300">{cfg.label}</span>
+                  <span className="text-xs text-slate-500 ml-2">
+                    {s.role === 'REVIEW' ? 'reviewing…' : s.role === 'SYNTHESIS' ? 'synthesising…' : 'thinking…'}
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  {[0, 150, 300].map((d) => (
+                    <div
+                      key={d}
+                      className="w-1.5 h-1.5 rounded-full animate-bounce"
+                      style={{ backgroundColor: cfg.color, animationDelay: `${d}ms` }}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
+            )
+          })}
 
-            <div ref={bottomRef} />
-          </div>
-        </main>
+          {/* Completion card */}
+          {taskStatus === 'COMPLETED' && (
+            <div className="rounded-2xl border border-emerald-800/60 bg-emerald-950/30 p-6 text-center mt-4">
+              <p className="text-emerald-400 font-semibold text-lg mb-1">
+                {synthesisComplete ? '🏆 Roundtable Complete' : 'Roundtable complete'}
+              </p>
+              <p className="text-slate-400 text-sm">
+                {messages.filter((m) => m.type === 'ai' && !m.isError).length} outputs ·{' '}
+                {new Set(messages.filter((m) => m.model).map((m) => m.model)).size} AIs
+                {synthesisComplete && ' · Planning → Building → Review → Synthesis'}
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+                {hasCodeWorkspace && (
+                  <Link
+                    href={`/workspace/${id}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+                  >
+                    💻 Open Workspace
+                  </Link>
+                )}
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900/30 hover:bg-amber-900/50 border border-amber-800/60 text-amber-400 text-sm font-medium transition-colors"
+                >
+                  🎓 Request Expert Review
+                </button>
+              </div>
 
-        {/* Live Preview Pane (desktop: right side | mobile: second tab) */}
-        {hasPreview && (
-          <div
-            className={`${
-              showPreview ? 'md:flex md:w-[45%]' : 'hidden'
-            } ${activeTab === 'preview' ? 'flex flex-1' : 'hidden md:flex'} flex-col`}
-          >
-            <PreviewPane
-              updates={previewUpdates}
-              templateCategory={task?.template?.category || 'general'}
-              isGenerating={isLive}
-            />
-          </div>
-        )}
+              {/* Delivery panel */}
+              <DeliveryPanel taskId={id} hasCode={hasCodeWorkspace} />
+            </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* ── Steering input + Voice input ─────────────────────────────────────── */}
-      <div className="relative">
+      {/* ── Steering input ───────────────────────────────────────────────────── */}
+      <div className="relative shrink-0">
         <SteeringInput
           taskId={id}
           isVisible={taskStatus === 'IN_PROGRESS'}
           initialText={steeringText}
           onTextChange={setSteeringText}
         />
-        {/* Phase 3: Voice input button — shown to the left of the send button */}
         {taskStatus === 'IN_PROGRESS' && (
           <div className="absolute bottom-0 right-[5.5rem] h-[3.25rem] flex items-center pr-1">
-            <VoiceInputButton
-              onTranscription={(text) => setSteeringText(text)}
-              disabled={taskStatus !== 'IN_PROGRESS'}
-            />
+            <VoiceInputButton onTranscription={(text) => setSteeringText(text)} disabled={false} />
           </div>
         )}
       </div>
@@ -650,49 +880,45 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      {/* ── Clarification modal ──────────────────────────────────────────────── */}
-      {/* ── API Key detection dialog ─────────────────────────────────────────── */}
+      {/* ── API Key dialog ───────────────────────────────────────────────────── */}
       {showKeyDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="text-center mb-5">
               <div className="text-4xl mb-3">🔑</div>
-              <h2 className="text-lg font-bold text-slate-900">No AI keys connected</h2>
-              <p className="text-sm text-slate-500 mt-1.5">
-                Connect your own API keys for free unlimited usage, or use Arivarangam&apos;s platform keys (credits deducted per task).
+              <h2 className="text-lg font-bold text-slate-100">No AI keys connected</h2>
+              <p className="text-sm text-slate-400 mt-1.5">
+                Connect your own keys for free unlimited usage, or use Arivarangam platform keys (credits deducted).
               </p>
             </div>
-
             <div className="space-y-3">
               <button
                 onClick={proceedWithPlatformKeys}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition-colors"
               >
-                <span>💳</span> Use platform keys (deduct credits)
+                💳 Use platform keys (deduct credits)
               </button>
-
               <Link
                 href="/settings/ai-connections"
-                className="w-full py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border border-slate-700 hover:border-slate-500 text-slate-300 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center"
               >
-                <span>🔧</span> Help me connect my own API keys
+                🔧 Connect my own API keys
               </Link>
-
               <button
                 onClick={() => router.push('/dashboard')}
-                className="w-full py-2 text-slate-400 hover:text-slate-600 text-xs transition-colors"
+                className="w-full py-2 text-slate-500 hover:text-slate-300 text-xs transition-colors"
               >
                 Cancel
               </button>
             </div>
-
-            <p className="text-center text-[11px] text-slate-400 mt-4">
-              Your own keys = free usage. Platform keys use your credit balance.
+            <p className="text-center text-[11px] text-slate-600 mt-4">
+              Own keys = free forever · Platform keys use credit balance
             </p>
           </div>
         </div>
       )}
 
+      {/* ── Clarification modal ──────────────────────────────────────────────── */}
       {showClarification && clarifications.length > 0 && (
         <ClarificationModal
           taskId={id}
@@ -700,7 +926,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           onComplete={() => {
             setShowClarification(false)
             setTaskStatus('ROUTING')
-            addSystemMessage('Answers saved — Arivarangam AI is assembling your team…')
+            addSystemMessage('Answers saved — assembling your team…')
           }}
         />
       )}
@@ -720,12 +946,12 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         />
       )}
 
-      {/* ── Expert review toast ──────────────────────────────────────────────── */}
+      {/* ── Review toast ─────────────────────────────────────────────────────── */}
       {reviewToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-sm text-slate-100 shadow-2xl flex items-center gap-2">
           <span className="text-amber-400">🎓</span>
-          Expert review requested! You'll be notified when it's ready.
-          <button onClick={() => setReviewToast(false)} className="ml-2 text-slate-500 hover:text-slate-900 transition-colors">&times;</button>
+          Expert review requested! You'll be notified when ready.
+          <button onClick={() => setReviewToast(false)} className="ml-2 text-slate-400 hover:text-slate-200">&times;</button>
         </div>
       )}
     </div>
