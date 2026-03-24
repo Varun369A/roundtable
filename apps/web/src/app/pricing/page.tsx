@@ -3,190 +3,91 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { apiFetch } from '@/lib/api'
 
-const PLANS = [
+// Credit packs — ₹X = Y credits. 1 typical 3-AI Roundtable = 30 credits.
+const CREDIT_PACKS = [
   {
-    id: 'free',
-    name: 'Free',
-    monthlyInr: 0,
-    annualInr: 0,
-    description: 'Run your first Roundtable. No credit card needed.',
-    features: [
-      'Claude + GPT-4o (2 models)',
-      '5 Roundtable tasks/month',
-      '50 credits to start',
-      'Arivarangam Passport (forever free)',
-      'Community support',
-    ],
-    cta: 'Start free',
-    href: '/signup',
+    id: 'starter',
+    label: 'Starter',
+    inr: 500,
+    credits: 500,
+    bonus: 0,
+    tasks: 16,
     highlight: false,
   },
   {
-    id: 'builder',
-    name: 'Builder',
-    monthlyInr: 799,
-    annualInr: 638,   // 20% off
-    description: 'For makers who bring their own API keys — zero API markup.',
-    features: [
-      'Bring your own API keys (BYOAI)',
-      'All 16 AI models',
-      'Unlimited Roundtable tasks',
-      'Workflow builder & scheduling',
-      'Arivarangam Passport Pro',
-      'Sarvam — Indian language support',
-      'Priority support',
-    ],
-    cta: 'Get Builder',
-    highlight: false,
-  },
-  {
-    id: 'studio',
-    name: 'Studio',
-    monthlyInr: 1999,
-    annualInr: 1599,  // 20% off
-    originalComboInr: 8526,
-    description: 'The full Arivarangam experience — we absorb every API bill.',
-    features: [
-      'All 16 AI models (Arivarangam pays)',
-      'Unlimited Roundtable tasks',
-      'Claude Opus synthesis round',
-      'Team workspace (up to 5 seats)',
-      'Social media automation',
-      'Arivarangam Passport Business',
-      'Midjourney, Runway, Stability AI',
-      'API access + priority routing',
-    ],
-    cta: 'Get Studio',
+    id: 'standard',
+    label: 'Standard',
+    inr: 1000,
+    credits: 1100,
+    bonus: 100,
+    tasks: 36,
     highlight: true,
-    badge: 'Most popular',
+    badge: 'Best value',
+  },
+  {
+    id: 'pro',
+    label: 'Pro',
+    inr: 2500,
+    credits: 3000,
+    bonus: 500,
+    tasks: 100,
+    highlight: false,
+  },
+  {
+    id: 'power',
+    label: 'Power',
+    inr: 5000,
+    credits: 6500,
+    bonus: 1500,
+    tasks: 216,
+    highlight: false,
   },
 ]
 
 const FAQS = [
   {
-    q: 'Do I pay separately for each AI?',
-    a: 'No. On Studio, Arivarangam absorbs all API costs — Claude, GPT-4o, Perplexity, Gemini, and more. On Builder, you connect your own API keys and pay providers at their rates with zero markup from us.',
+    q: 'If I have my own API keys, is Arivarangam really free?',
+    a: 'Yes, completely. Connect your Anthropic, OpenAI, Perplexity, or Gemini keys in Settings → AI Keys. Arivarangam orchestrates them for free — we take no markup. You only pay your AI provider directly at their rates.',
+  },
+  {
+    q: 'How many credits does a Roundtable task use?',
+    a: 'Each AI agent (subtask) costs 10 credits. A typical 3-AI Roundtable costs 30 credits. A full discussion-round Roundtable (3 AIs + peer review + synthesis) costs ~75 credits. You always see the estimated cost before a task starts.',
+  },
+  {
+    q: 'Do credits expire?',
+    a: 'No. Credits you purchase never expire. Promotional or referral credits may have a 1-year validity noted at the time they\'re granted.',
+  },
+  {
+    q: 'Which AI models are available?',
+    a: 'Claude 3.5 Sonnet, Claude 3 Opus, GPT-4o, GPT-4 Turbo, Gemini 1.5 Pro, Perplexity Sonar, Stable Diffusion XL, DALL·E 3, ElevenLabs, Runway Gen-3, Sarvam-1 (Indian languages), Groq, Cohere, and more. BYOAI users get all models they hold keys for. Credit users get Claude + GPT-4o by default.',
   },
   {
     q: 'What is Arivarangam Passport?',
-    a: 'Your Passport is a public AI-verified skill profile built automatically from your completed tasks. It shows what you\'ve built, which AI models you used, and your areas of expertise — shareable as a link. Free plan gets a basic Passport; Builder and Studio get Pro/Business tiers with more visibility.',
-  },
-  {
-    q: 'What are credits?',
-    a: 'Credits are the in-platform currency for running tasks on Free plan. You get 50 credits on signup. Each Roundtable task uses credits based on how many AI models ran and how complex the task was. Builder and Studio plans run on API keys directly — no credits needed.',
+    a: 'Your Passport is a public AI-verified skill profile that builds automatically from your completed tasks — shareable as a link. It shows what you\'ve built, which AI models you used, and your expertise areas. Every account gets a Passport for free.',
   },
   {
     q: 'Which payment methods are accepted?',
-    a: 'UPI, all major credit/debit cards, net banking, and EMI. Powered by Razorpay. All prices are in Indian Rupees (₹) inclusive of GST.',
+    a: 'UPI, all major credit/debit cards, net banking, and EMI — powered by Razorpay. All prices are in Indian Rupees (₹).',
   },
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel anytime from Settings → Billing. You keep full access until the end of your current billing period. No questions asked.',
+    q: 'Can I use both BYOAI keys and credits?',
+    a: 'Yes. When you have your own key for a model, Arivarangam uses it. When you don\'t, it automatically falls back to credit-based usage. You\'re never blocked from running a task.',
   },
   {
-    q: 'What counts as a Roundtable task?',
-    a: 'One Roundtable session counts as one task — regardless of how many AI models collaborate inside it or how many subtasks run. For example, "Build a marketing plan" is 1 task even if Claude, Perplexity, and GPT-4o all contribute.',
-  },
-  {
-    q: 'Is there a free trial for Builder or Studio?',
-    a: 'Yes. Every account starts on Free with 5 tasks included — no credit card required. Upgrade anytime and your existing tasks and Passport carry over.',
-  },
-  {
-    q: 'What about enterprise pricing?',
-    a: 'Custom contracts for teams of 10+. Includes SLA guarantees, role-based access control, dedicated admin dashboard, on-prem routing options, and a dedicated account manager. Email admin@arivarangam.com.',
+    q: 'What about teams or enterprise?',
+    a: 'Email admin@arivarangam.com for team credit packs, custom SLAs, role-based access, and dedicated support. Built in Coimbatore — we respond fast.',
   },
 ]
 
-declare global {
-  interface Window {
-    Razorpay: new (options: Record<string, unknown>) => { open(): void }
-  }
-}
-
 export default function PricingPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  // Fix 16: annual billing is the default — users save 20%, better for Arivarangam LTV
-  const [isAnnual, setIsAnnual] = useState(true)
-
-  async function handleUpgrade(planId: string) {
-    if (planId === 'free') { router.push('/signup'); return }
-
-    const token = localStorage.getItem('accessToken')
-    if (!token) { router.push('/login'); return }
-
-    setLoading(planId)
-    try {
-      const res = await apiFetch<{ subscriptionId: string; razorpayKeyId: string }>(
-        '/api/v1/billing/create-subscription',
-        { method: 'POST', body: JSON.stringify({ planId, billing: isAnnual ? 'annual' : 'monthly' }) }
-      )
-
-      if (!res.success || !res.data) {
-        alert(res.error?.message || 'Failed to create subscription')
-        return
-      }
-
-      const { subscriptionId, razorpayKeyId } = res.data
-
-      if (!window.Razorpay) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script')
-          script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-          script.onload = () => resolve()
-          script.onerror = () => reject(new Error('Failed to load Razorpay'))
-          document.head.appendChild(script)
-        })
-      }
-
-      const plan = PLANS.find((p) => p.id === planId)
-      const rzp = new window.Razorpay({
-        key: razorpayKeyId,
-        subscription_id: subscriptionId,
-        name: 'Arivarangam',
-        description: `Arivarangam ${plan?.name} Plan${isAnnual ? ' (Annual)' : ''}`,
-        image: '/logo.png',
-        theme: { color: '#c026d3' },
-        handler: async (response: {
-          razorpay_payment_id: string
-          razorpay_subscription_id: string
-          razorpay_signature: string
-        }) => {
-          const verifyRes = await apiFetch('/api/v1/billing/verify-payment', {
-            method: 'POST',
-            body: JSON.stringify({
-              razorpayPaymentId:      response.razorpay_payment_id,
-              razorpaySubscriptionId: response.razorpay_subscription_id,
-              razorpaySignature:      response.razorpay_signature,
-              planId,
-              billing: isAnnual ? 'annual' : 'monthly',
-            }),
-          })
-
-          if (verifyRes.success) {
-            router.push('/dashboard?upgraded=1')
-          } else {
-            alert('Payment verification failed. Contact support.')
-          }
-        },
-      })
-
-      rzp.open()
-    } catch (err) {
-      alert('Something went wrong. Please try again.')
-      console.error(err)
-    } finally {
-      setLoading(null)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Nav */}
-      <nav role="navigation" aria-label="Main navigation" className="border-b border-slate-200 bg-white px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
+      <nav className="border-b border-slate-200 bg-white px-6 h-16 flex items-center justify-between max-w-6xl mx-auto">
         <Link href="/" className="text-xl font-bold tracking-tight text-slate-900">
           Arivarangam<span className="text-brand-500">.</span>
         </Link>
@@ -198,143 +99,155 @@ export default function PricingPage() {
         </div>
       </nav>
 
-      <main id="main-content" className="max-w-6xl mx-auto px-6 py-16">
+      <main className="max-w-5xl mx-auto px-6 py-16">
+
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 tracking-tight text-slate-900">
-            Simple, honest pricing
+            Your API keys? Free forever.<br />
+            <span className="text-brand-500">No keys? Pay per use.</span>
           </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
-            ChatGPT Plus + Claude Pro + Midjourney + ElevenLabs + Perplexity Pro = <span className="line-through">₹8,526/month</span> separately.
-            <br />
-            Arivarangam Studio = <span className="text-brand-400 font-bold">₹1,599/month.</span>
+          <p className="text-lg text-slate-500 max-w-xl mx-auto">
+            Arivarangam orchestrates Claude, GPT-4o, Gemini, Perplexity and more together — free if you bring your own keys, credit-based if you don't.
           </p>
-          <p className="text-sm text-slate-400 mt-3">Built in Coimbatore, Tamil Nadu. India-first pricing.</p>
+          <p className="text-xs text-slate-400 mt-3">Built in Coimbatore, Tamil Nadu · India-first pricing · No hidden fees</p>
         </div>
 
-        {/* Annual / Monthly toggle — annual is the default */}
-        <div className="flex items-center justify-center gap-4 mb-12">
-          <button
-            onClick={() => setIsAnnual(false)}
-            className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
-          >
-            Monthly
-          </button>
-
-          <button
-            role="switch"
-            aria-checked={isAnnual}
-            aria-label="Toggle annual billing"
-            onClick={() => setIsAnnual((v) => !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${isAnnual ? 'bg-brand-600' : 'bg-slate-300'}`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`}
-            />
-          </button>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`text-sm font-medium transition-colors ${isAnnual ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
-            >
-              Annual
-            </button>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-              Save 20%
-            </span>
+        {/* ── BYOAI section ───────────────────────────────────────────────── */}
+        <div className="rounded-2xl border-2 border-brand-500 bg-white shadow-md p-8 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">🔑</span>
+                <h2 className="text-2xl font-bold text-slate-900">BYOAI — Bring Your Own API Keys</h2>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">FREE FOREVER</span>
+              </div>
+              <p className="text-slate-500 mb-5">
+                Connect your own Anthropic, OpenAI, Perplexity, or Gemini keys. Arivarangam orchestrates them — we charge nothing. You pay your AI provider at their rates with zero markup.
+              </p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  'All 16 AI models (you hold the keys)',
+                  'Unlimited Roundtable tasks',
+                  'Workflow builder & scheduling',
+                  'Arivarangam Passport (auto-generated)',
+                  'Sarvam — Indian language support',
+                  'Social media automation',
+                  'Team workspace',
+                  'No subscription, no lock-in',
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-slate-700">
+                    <span className="text-brand-500 font-bold">✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="md:w-48 text-center shrink-0">
+              <div className="text-5xl font-black text-slate-900 mb-1">₹0</div>
+              <div className="text-slate-400 text-sm mb-4">forever</div>
+              <Link
+                href="/signup"
+                className="block w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-semibold text-sm transition-colors"
+              >
+                Start free →
+              </Link>
+              <p className="text-xs text-slate-400 mt-2">No credit card needed</p>
+            </div>
           </div>
         </div>
 
-        {/* Plans */}
-        <div role="list" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
-          {PLANS.map((plan) => {
-            const price = isAnnual ? plan.annualInr : plan.monthlyInr
-            return (
+        {/* ── Credits section ─────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 mb-6">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="text-2xl">💳</span>
+              <h2 className="text-2xl font-bold text-slate-900">Credits — No API Keys Needed</h2>
+            </div>
+            <p className="text-slate-500 max-w-lg mx-auto">
+              Don't have API keys? Buy credits and run tasks instantly. Arivarangam uses its own keys on your behalf.
+              <br />
+              <span className="text-sm font-medium text-slate-700 mt-1 block">1 credit = ₹1 · Typical 3-AI Roundtable = 30 credits · Credits never expire</span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {CREDIT_PACKS.map((pack) => (
               <div
-                key={plan.id}
-                role="listitem"
-                className={`relative rounded-2xl p-6 flex flex-col ${
-                  plan.highlight
-                    ? 'border-2 border-brand-500 bg-white shadow-md'
-                    : 'border border-slate-200 bg-white shadow-sm'
+                key={pack.id}
+                className={`relative rounded-xl p-5 flex flex-col text-center border transition-all ${
+                  pack.highlight
+                    ? 'border-brand-500 bg-brand-50 shadow-md'
+                    : 'border-slate-200 bg-slate-50'
                 }`}
               >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-600 rounded-full text-xs font-semibold whitespace-nowrap text-white">
-                    {plan.badge}
+                {pack.badge && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-brand-600 rounded-full text-[10px] font-bold whitespace-nowrap text-white">
+                    {pack.badge}
                   </div>
                 )}
-
-                <div className="mb-4">
-                  <h2 className="font-bold text-lg mb-1 text-slate-900">{plan.name}</h2>
-                  <p id={`plan-desc-${plan.id}`} className="text-slate-500 text-sm">{plan.description}</p>
+                <div className="text-sm font-semibold text-slate-500 mb-1">{pack.label}</div>
+                <div className="text-3xl font-black text-slate-900 mb-1">₹{pack.inr.toLocaleString('en-IN')}</div>
+                <div className={`text-lg font-bold mb-0.5 ${pack.highlight ? 'text-brand-600' : 'text-slate-700'}`}>
+                  {pack.credits.toLocaleString('en-IN')} credits
                 </div>
-
-                <div className="mb-6">
-                  {'originalComboInr' in plan && isAnnual && (
-                    <p className="text-slate-400 text-sm line-through">
-                      ₹{(plan as typeof plan & { originalComboInr: number }).originalComboInr.toLocaleString('en-IN')}/mo if bought separately
-                    </p>
-                  )}
-                  {!isAnnual && plan.monthlyInr > 0 && (
-                    <p className="text-slate-400 text-sm">
-                      or ₹{plan.annualInr.toLocaleString('en-IN')}/mo billed annually
-                    </p>
-                  )}
-                  <div className="flex items-end gap-1 mt-1">
-                    <span className="text-4xl font-bold text-slate-900">
-                      {price === 0 ? 'Free' : `₹${price.toLocaleString('en-IN')}`}
-                    </span>
-                    {price > 0 && (
-                      <span className="text-slate-500 mb-1">/mo{isAnnual ? ' · billed annually' : ''}</span>
-                    )}
-                  </div>
-                  {isAnnual && plan.monthlyInr > 0 && (
-                    <p className="text-emerald-600 text-xs mt-1 font-medium">
-                      Saves ₹{((plan.monthlyInr - plan.annualInr) * 12).toLocaleString('en-IN')}/year
-                    </p>
-                  )}
-                </div>
-
-                <ul className="space-y-2 mb-8 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
-                      <span className={plan.highlight ? 'text-brand-400' : 'text-green-600'}>✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
+                {pack.bonus > 0 && (
+                  <div className="text-xs text-emerald-600 font-medium mb-1">+{pack.bonus} bonus</div>
+                )}
+                <div className="text-xs text-slate-400 mb-4">~{pack.tasks} Roundtable tasks</div>
                 <button
-                  onClick={() => handleUpgrade(plan.id)}
-                  disabled={loading === plan.id}
-                  aria-label={`${plan.cta} with ${plan.name} plan`}
-                  aria-describedby={`plan-desc-${plan.id}`}
-                  className={`w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 ${
-                    plan.highlight
-                      ? 'bg-brand-600 hover:bg-brand-500 hover:scale-105 text-white'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  onClick={() => router.push('/credits')}
+                  className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    pack.highlight
+                      ? 'bg-brand-600 hover:bg-brand-500 text-white'
+                      : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                   }`}
                 >
-                  {loading === plan.id ? 'Opening checkout…' : plan.cta}
+                  Buy credits
                 </button>
               </div>
-            )
-          })}
+            ))}
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs text-slate-400">
+              Sign up free — you get <strong className="text-slate-600">100 credits</strong> on your first day, no card required.
+              Top up anytime from your dashboard.
+            </p>
+          </div>
         </div>
 
-        {/* Enterprise callout */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center mb-20">
-          <h2 className="text-2xl font-bold mb-2 text-slate-900">Enterprise</h2>
-          <p className="text-slate-500 mb-4 max-w-xl mx-auto">
-            Custom contracts for teams. SLA, role-based access, admin dashboard, on-prem routing, dedicated account manager.
+        {/* ── Comparison row ──────────────────────────────────────────────── */}
+        <div className="rounded-xl bg-slate-100 border border-slate-200 p-5 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-center">
+            <div>
+              <div className="font-semibold text-slate-700 mb-1">ChatGPT Plus alone</div>
+              <div className="text-2xl font-black text-red-400 line-through">₹1,675/mo</div>
+              <div className="text-slate-400 text-xs">just one AI</div>
+            </div>
+            <div>
+              <div className="font-semibold text-slate-700 mb-1">All 5 AIs separately</div>
+              <div className="text-2xl font-black text-red-400 line-through">₹8,526/mo</div>
+              <div className="text-slate-400 text-xs">ChatGPT + Claude + Gemini + Perplexity + Midjourney</div>
+            </div>
+            <div>
+              <div className="font-semibold text-brand-600 mb-1">Arivarangam BYOAI</div>
+              <div className="text-2xl font-black text-emerald-600">₹0/mo</div>
+              <div className="text-slate-400 text-xs">all of them together, orchestrated</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Enterprise */}
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center mb-16">
+          <h2 className="text-xl font-bold mb-2 text-slate-900">Enterprise / Teams</h2>
+          <p className="text-slate-500 text-sm mb-4 max-w-lg mx-auto">
+            Bulk credit packs, custom SLAs, role-based access, dedicated admin dashboard, on-prem routing, and a dedicated account manager.
           </p>
           <a
             href="mailto:admin@arivarangam.com"
-            className="inline-block px-6 py-3 border border-slate-300 hover:border-slate-400 rounded-xl text-sm font-medium transition-colors text-slate-700 hover:text-slate-900"
+            className="inline-block px-6 py-3 border border-slate-300 hover:border-brand-500 hover:text-brand-600 rounded-xl text-sm font-medium transition-colors text-slate-700"
           >
-            Contact sales →
+            Contact us → admin@arivarangam.com
           </a>
         </div>
 
@@ -343,10 +256,7 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-center mb-8 text-slate-900">Frequently asked</h2>
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm"
-              >
+              <div key={i} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-medium hover:bg-slate-50 transition-colors text-slate-800"
