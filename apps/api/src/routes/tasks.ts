@@ -6,6 +6,7 @@ import { enforcePlanLimits } from '../middleware/plan-limits'
 import { metrics } from '../lib/metrics'
 import { sanitizeText } from '../middleware/request-validator'
 import { firewall } from '../lib/ai-firewall'
+import { orchestrateTask } from '../orchestration/orchestrator'
 
 function truncateTitle(text: string, maxLen = 80): string {
   if (text.length <= maxLen) return text
@@ -127,6 +128,9 @@ export async function taskRoutes(app: FastifyInstance) {
     })
 
     metrics.tasksCreated.inc()
+
+    // Auto-start orchestration — fire-and-forget so response is immediate
+    orchestrateTask(task.id).catch(() => {})
 
     return reply.status(201).send({
       success: true,

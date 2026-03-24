@@ -363,7 +363,7 @@ export async function gdprRoutes(app: FastifyInstance) {
   //   true  = opt in  (data from future tasks may be used to train Arivarangam-AI)
   //   false = opt out (stop collecting; existing records are NOT deleted retroactively
   //                    unless user submits a data deletion request separately)
-  app.post('/account/consent/training', async (request, reply) => {
+  app.post('/consent/training', async (request, reply) => {
     const body = z.object({ consent: z.boolean() }).safeParse(request.body)
     if (!body.success) {
       return reply.status(400).send({
@@ -396,7 +396,7 @@ export async function gdprRoutes(app: FastifyInstance) {
 
   // ─── GET /account/consent ─────────────────────────────────────────────────
   // Returns the user's current consent state.
-  app.get('/account/consent', async (request, reply) => {
+  app.get('/consent', async (request, reply) => {
     const user = await prisma.user.findUnique({
       where:  { id: request.user!.id },
       select: { trainingConsent: true, trainingConsentAt: true },
