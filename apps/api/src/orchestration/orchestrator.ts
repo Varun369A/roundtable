@@ -64,6 +64,16 @@ export async function orchestrateTask(taskId: string): Promise<void> {
 
     if (questions.length > 0) {
       await saveClarifications(task.id, questions)
+      // Publish live event so the SSE subscriber shows the modal immediately
+      redis.publish(`arivarangam:task:${task.id}`, JSON.stringify({
+        event:     'clarification_needed',
+        taskId:    task.id,
+        questions: questions.map((q: any) => ({
+          id:         q.id,
+          question:   q.question,
+          orderIndex: q.orderIndex,
+        })),
+      })).catch(() => {})
       // Pause here — orchestration will resume when user submits answers
       // via POST /api/v1/tasks/:id/clarifications/answer
       return

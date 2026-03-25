@@ -225,7 +225,8 @@ export async function streamRoutes(app: FastifyInstance) {
       })
 
       subscriber.on('error', (err) => {
-        app.log.error({ err }, '[SSE] Redis subscriber error')
+        app.log.error({ err }, '[SSE] Redis subscriber error — closing connection for client reconnect')
+        cleanup()
       })
 
       // ── Heartbeat — keeps connection alive through proxies / load balancers ───
