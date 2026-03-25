@@ -144,19 +144,14 @@ async function processStaleTaskScan(_job: Job): Promise<void> {
       )
     }
 
-    // Re-enqueue in-progress subtasks that appear stuck (no updates in 30+ min)
-    for (const subtask of inProgressSubtasks) {
-      if (new Date(subtask.updatedAt) < staleThreshold) {
-        await prisma.subtask.update({
-          where: { id: subtask.id },
-          data: { status: 'PENDING', updatedAt: new Date() },
-        })
-        await subtaskQueue.add(
-          'process-subtask',
-          { subtaskId: subtask.id, taskId: task.id },
-          { attempts: 3, backoff: { type: 'exponential', delay: 5000 } }
-        )
-      }
+    // Do NOT reset IN_PROGRESS subtasks to PENDING here.
+    // BullMQ's lockDuration + stalledInterval already handles truly stalled jobs.
+    // Resetting here causes duplicate execution: the original job and the re-queued
+    // job both run the same subtask concurrently.
+    // If inProgressSubtasks have been stuck for 30+ min, BullMQ will mark them
+    // stalled and retry them automatically via its own stall detection.
+    if (inProgressSubtasks.length > 0) {
+      console.log(`[stale-task-worker] Task ${task.id} has ${inProgressSubtasks.length} IN_PROGRESS subtask(s) — leaving for BullMQ stall detection`)
     }
 
     recovered++

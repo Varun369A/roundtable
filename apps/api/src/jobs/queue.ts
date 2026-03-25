@@ -256,7 +256,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         subtaskId,
         userApiKey,
         onToken,
-        options: { maxTokens: 8192 },
+        options: { maxTokens: 4096 },
       })
 
       // Flush any remaining buffered tokens
