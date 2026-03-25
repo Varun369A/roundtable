@@ -812,12 +812,12 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             <div className="flex items-center gap-2">
               <SteeringInput
                 taskId={id}
-                taskStatus={taskStatus}
-                value={steeringText}
-                onChange={setSteeringText}
+                isVisible={isLive}
+                initialText={steeringText}
+                onTextChange={setSteeringText}
               />
               <VoiceInputButton
-                onTranscript={(text) => setSteeringText((v) => v + text)}
+                onTranscription={(text) => setSteeringText((v) => v + text)}
                 disabled={!isLive}
               />
               {taskStatus === 'COMPLETED' && (
