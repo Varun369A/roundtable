@@ -34,6 +34,7 @@ export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
 
 // ─── Who consults on each category ───────────────────────────────────────────
 // MAX 1 consultant per category (not 2). Keeps total subtasks ≤ 5.
+// Exception: code + complex → 2 consultants (Perplexity + Claude).
 // Consultation is SKIPPED entirely for simple tasks.
 
 const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
@@ -43,6 +44,12 @@ const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
   strategy:      'perplexity-sonar',   // Market research
   data_analysis: 'gpt-4o',            // Structured reasoning
   general:       'perplexity-sonar',   // Research support
+}
+
+// For complex code tasks: Claude adds implementation guidance + code patterns
+// GPT-4o plans → Perplexity researches → Claude guides patterns → Arivarangam codes
+const SECOND_CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
+  code: 'claude-3-5-sonnet',  // Implementation patterns, code quality, best practices
 }
 
 // ─── Dependency rules ────────────────────────────────────────────────────────
@@ -57,9 +64,10 @@ const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
  * Decomposes a parsed intent into a subtask DAG.
  *
  * Smart routing tiers:
- *   simple   → 1 primary + synthesis          = 2 subtasks  (~30s)
- *   standard → 1 primary + 1 consultant + synthesis = 3 subtasks (~60s)
- *   complex  → 2 primaries + 1 consultant each + synthesis = 5 subtasks (~90s)
+ *   simple   → 1 primary + synthesis                              = 2 subtasks  (~30s)
+ *   standard → 1 primary + 1 consultant + synthesis               = 3 subtasks  (~60s)
+ *   complex  → 1 primary + 2 consultants + synthesis              = 4 subtasks  (~90s)
+ *             (for code: GPT-4o plans → Perplexity researches → Claude guides → Arivarangam codes)
  *
  * Hard cap: never more than 4 specialist subtasks before synthesis.
  * User sees only the Arivarangam AI synthesis — specialist work is internal.
@@ -105,7 +113,7 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
     })
     categoryToIndex.set(category, subtasks.length - 1)
 
-    // Add 1 consultant for standard/complex tasks (skip for simple, image, voice, translation)
+    // Add consultants for standard/complex tasks (skip for simple, image, voice, translation)
     const skipConsult = ['image', 'voice', 'translation'].includes(category)
     const addConsult  = !skipConsult && complexity !== 'simple'
 
@@ -121,6 +129,22 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
           inputInstruction: buildConsultationInstruction(category, intent, consultantModel),
           role:             'INITIAL',
         })
+      }
+
+      // For complex code tasks: add Claude as second consultant (implementation guidance)
+      if (complexity === 'complex') {
+        const secondConsultant = SECOND_CONSULTATION_MAP[category]
+        if (secondConsultant && secondConsultant !== primaryModel && secondConsultant !== consultantModel) {
+          subtasks.push({
+            title:            buildSubtaskTitle(category, intent, secondConsultant, 'consult'),
+            category,
+            assignedModel:    secondConsultant,
+            dependsOn,
+            executionOrder:   subtasks.length,
+            inputInstruction: buildConsultationInstruction(category, intent, secondConsultant),
+            role:             'INITIAL',
+          })
+        }
       }
     }
   }
@@ -251,6 +275,9 @@ function buildConsultationInstruction(
     return `Provide deep analysis and strategic guidance for: "${intent.goal}". Consider long-term implications, risks, and opportunities.`
   }
   if (model === 'claude-3-5-sonnet') {
+    if (category === 'code') {
+      return `You are the code quality and implementation specialist. For the project: "${intent.goal}". Provide: (1) recommended code patterns and architectural best practices for this specific use case, (2) security considerations and how to implement them, (3) error handling strategies and edge cases to cover, (4) testing approach and what to test, (5) performance optimizations to apply. Write concrete code snippets showing HOW to implement the trickiest parts. Arivarangam AI will use your guidance to write the complete codebase.`
+    }
     return `Provide detailed, high-quality content and technical depth for: "${intent.goal}". Focus on clarity, completeness and actionability.`
   }
   return `Provide your specialist perspective on: "${intent.goal}"`

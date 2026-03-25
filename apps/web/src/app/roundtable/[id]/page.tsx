@@ -538,11 +538,58 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
     async function init() {
       const result = await apiFetch<{ task: TaskInfo }>(`/api/v1/tasks/${id}`)
       if (!result.success || !result.data) { router.push('/dashboard'); return }
-      const t = result.data.task
+      const t = (result.data as any).task
       setTask(t)
       setTaskStatus(t.status)
       if (t.status === 'COMPLETED') setPhase('done')
       else if (t.status === 'FAILED') setPhase('failed')
+
+      // ── Backfill output for already-completed/failed tasks ──────────────
+      // The API returns subtasks+outputs in the same call. Use them to populate
+      // the feed so the user sees results immediately without waiting for SSE.
+      if (t.status === 'COMPLETED' || t.status === 'FAILED') {
+        const subtasks: any[] = t.subtasks || []
+
+        // Build the team sidebar from all subtasks
+        if (subtasks.length > 0) {
+          setTeam(subtasks.map((s: any) => ({
+            subtaskId:      s.id,
+            title:          s.title,
+            model:          s.assignedModel?.replace(/_/g, '-') ?? '',
+            category:       s.category,
+            executionOrder: s.executionOrder,
+          })))
+        }
+
+        // Populate messages from completed subtask outputs
+        const backfilled: Message[] = subtasks
+          .filter((s: any) => s.status === 'COMPLETED' && s.output)
+          .sort((a: any, b: any) => a.executionOrder - b.executionOrder)
+          .map((s: any) => ({
+            id:          s.id,
+            type:        'ai' as const,
+            model:       s.assignedModel?.replace(/_/g, '-'),
+            title:       s.title,
+            output:      s.output ? {
+              type:    s.output.type,
+              content: s.output.content,
+              fileUrl: s.output.fileUrl,
+            } : undefined,
+            timestamp:   new Date(s.completedAt || s.createdAt),
+            role:        s.role,
+            roundNumber: s.roundNumber,
+          }))
+
+        if (backfilled.length > 0) setMessages(backfilled)
+
+        // Show download/GitHub panel if any output contains code
+        const hasCode = subtasks.some((s: any) =>
+          s.output?.content && (s.output.content.includes('```') || s.category === 'code')
+        )
+        if (hasCode && t.status === 'COMPLETED') setHasCodeWorkspace(true)
+
+        return  // no SSE needed for terminal tasks
+      }
 
       if (t.status === 'PENDING' && !hasStarted.current) {
         hasStarted.current = true
