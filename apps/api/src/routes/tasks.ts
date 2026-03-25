@@ -273,11 +273,11 @@ export async function taskRoutes(app: FastifyInstance) {
     // Truncate each output to avoid overwhelming the context window
     const MAX_OUTPUT_CHARS = 800
     const outputSummaries = parentTask.subtasks
-      .filter(s => s.output?.text)
+      .filter(s => s.output?.content)
       .slice(0, 8) // Max 8 specialist outputs to avoid token bloat
       .map(s => {
-        const text = (s.output!.text ?? '').slice(0, MAX_OUTPUT_CHARS)
-        const truncated = (s.output!.text ?? '').length > MAX_OUTPUT_CHARS
+        const text = (s.output!.content ?? '').slice(0, MAX_OUTPUT_CHARS)
+        const truncated = (s.output!.content ?? '').length > MAX_OUTPUT_CHARS
         return `### ${s.title}\n${text}${truncated ? '\n[...truncated]' : ''}`
       })
       .join('\n\n')

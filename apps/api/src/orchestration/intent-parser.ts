@@ -152,7 +152,6 @@ function ruleBasedParse(goal: string): ParsedIntent {
     deliverables: categories.map((c) => deliverableMap[c] || 'Deliverable'),
     language,
     urgency,
-    complexity,
     constraints:  [],
   }
 }

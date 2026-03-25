@@ -158,8 +158,6 @@ const PLATFORM_UPDATES: PlatformUpdate[] = [
           data: {
             userId:      user.id,
             displayName: 'Arivarangam Admin',
-            xp:          10000,
-            tier:        'LEGEND',
           },
         }).catch(() => {})
       } else {
