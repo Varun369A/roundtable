@@ -168,16 +168,20 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
       where: { id: subtaskId },
     })
 
-    if (!subtask || subtask.status !== 'PENDING') {
-      console.warn(`[SubtaskWorker] Subtask ${subtaskId} not in PENDING state, skipping`)
+    if (!subtask) {
+      console.warn(`[SubtaskWorker] Subtask ${subtaskId} not found, skipping`)
       return
     }
 
-    // Mark as in progress
-    await prisma.subtask.update({
-      where: { id: subtaskId },
+    // Atomic claim — prevents duplicate execution when BullMQ re-queues a stalled job
+    const claimed = await prisma.subtask.updateMany({
+      where: { id: subtaskId, status: 'PENDING' },
       data: { status: 'IN_PROGRESS', startedAt: new Date() },
     })
+    if (claimed.count === 0) {
+      console.warn(`[SubtaskWorker] Subtask ${subtaskId} already claimed or not PENDING, skipping`)
+      return
+    }
 
     const start = Date.now()
 
@@ -457,7 +461,7 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         reviewsSubtaskId: subtask.reviewsSubtaskId,
         output: {
           type: output.type,
-          content: translatedContent?.slice(0, 2000) || output.content?.slice(0, 2000),
+          content: translatedContent?.slice(0, 20000) || output.content?.slice(0, 20000),
           fileUrl: output.fileUrl,
         },
         preview: {

@@ -471,6 +471,155 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
   )
 }
 
+// ─── Save to Repo Panel ───────────────────────────────────────────────────────
+
+interface RepoOption { id: string; name: string; category: string }
+
+function SaveToRepoPanel({ taskId, taskTitle, content, category }: {
+  taskId: string; taskTitle: string; content: string; category: string
+}) {
+  const [open, setOpen]         = useState(false)
+  const [repos, setRepos]       = useState<RepoOption[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [saving, setSaving]     = useState(false)
+  const [saved, setSaved]       = useState(false)
+  const [selectedId, setSelectedId] = useState<string>('')
+  const [newRepoName, setNewRepoName] = useState('')
+  const [mode, setMode]         = useState<'pick' | 'new'>('pick')
+  const [error, setError]       = useState<string | null>(null)
+
+  async function openPanel() {
+    if (saved) return
+    setOpen(true)
+    setLoading(true)
+    const res = await apiFetch('/api/v1/repos')
+    if (res.success && res.data) {
+      setRepos(res.data as RepoOption[])
+      if ((res.data as RepoOption[]).length === 0) setMode('new')
+    }
+    setLoading(false)
+  }
+
+  async function save() {
+    setSaving(true)
+    setError(null)
+    try {
+      let repoId = selectedId
+      if (mode === 'new') {
+        if (!newRepoName.trim()) { setError('Enter a repo name'); setSaving(false); return }
+        const cr = await apiFetch('/api/v1/repos', {
+          method: 'POST',
+          body: JSON.stringify({ name: newRepoName.trim(), category, visibility: 'PRIVATE' }),
+        })
+        if (!cr.success) { setError('Failed to create repo'); setSaving(false); return }
+        repoId = (cr.data as any).id
+      }
+      if (!repoId) { setError('Select a repo'); setSaving(false); return }
+      const title = taskTitle.slice(0, 80) || 'Task output'
+      const res = await apiFetch(`/api/v1/repos/${repoId}/items`, {
+        method: 'POST',
+        body: JSON.stringify({ title, category, content }),
+      })
+      if (!res.success) { setError('Failed to save'); setSaving(false); return }
+      setSaved(true)
+      setOpen(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (saved) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-center gap-2 mt-2">
+        <span className="text-emerald-600 text-sm">✓ Saved to repo</span>
+        <Link href="/repos" className="text-xs text-emerald-700 underline ml-auto">View repos →</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-2">
+      {!open ? (
+        <button
+          onClick={openPanel}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-sm font-medium transition-colors"
+        >
+          📁 Save to Repo
+        </button>
+      ) : (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-slate-700">Save output to a Repo</p>
+            <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+          </div>
+          {loading ? (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span className="w-3 h-3 border border-slate-300 border-t-indigo-500 rounded-full animate-spin" /> Loading repos…
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setMode('pick')}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${mode === 'pick' ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  Existing repo
+                </button>
+                <button
+                  onClick={() => setMode('new')}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${mode === 'new' ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  Create new
+                </button>
+              </div>
+
+              {mode === 'pick' && (
+                repos.length === 0 ? (
+                  <p className="text-xs text-slate-400">No repos yet — create one above.</p>
+                ) : (
+                  <select
+                    value={selectedId}
+                    onChange={e => setSelectedId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-indigo-400"
+                  >
+                    <option value="">Select a repo…</option>
+                    {repos.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                )
+              )}
+
+              {mode === 'new' && (
+                <input
+                  value={newRepoName}
+                  onChange={e => setNewRepoName(e.target.value)}
+                  placeholder="New repo name…"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-400"
+                  autoFocus
+                />
+              )}
+
+              {error && <p className="text-xs text-red-500">{error}</p>}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={save}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+                <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-700 text-sm transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Specialist Accordion ─────────────────────────────────────────────────────
 
 function SpecialistAccordion({ messages }: { messages: Message[] }) {
@@ -1373,21 +1522,31 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
               </>
             )}
 
+            {/* Save to Repo — available for all completed tasks */}
+            {taskStatus === 'COMPLETED' && synthesisMsg && (
+              <SaveToRepoPanel
+                taskId={id}
+                taskTitle={task?.originalGoal ?? ''}
+                content={synthesisMsg.output?.content ?? ''}
+                category={task?.template?.category === 'development' ? 'CODE' : 'CONTENT'}
+              />
+            )}
+
+            {/* ── One-click actions — Security Audit + Test Generation ─────────── */}
+            {taskStatus === 'COMPLETED' && task && (
+              <QuickActions taskId={id} onStart={(taskId) => router.push(`/roundtable/${taskId}`)} />
+            )}
+
+            {/* ── Continue Building — shown after task completes ───────────────── */}
+            {(taskStatus === 'COMPLETED' || taskStatus === 'FAILED') && task && (
+              <ContinueBuilding
+                taskId={id}
+                originalGoal={task.originalGoal}
+              />
+            )}
+
             <div className="h-4" />
           </div>
-
-          {/* ── One-click actions — Security Audit + Test Generation ─────────── */}
-          {taskStatus === 'COMPLETED' && task && (
-            <QuickActions taskId={id} onStart={(taskId) => router.push(`/roundtable/${taskId}`)} />
-          )}
-
-          {/* ── Continue Building — shown after task completes ───────────────── */}
-          {(taskStatus === 'COMPLETED' || taskStatus === 'FAILED') && task && (
-            <ContinueBuilding
-              taskId={id}
-              originalGoal={task.originalGoal}
-            />
-          )}
 
           {/* ── Bottom controls ──────────────────────────────────────────────── */}
           <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3 space-y-2">
