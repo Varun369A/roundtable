@@ -29,10 +29,20 @@ export class ArivarangamConnector extends BaseConnector {
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
     const start = Date.now()
 
+    // Detect category for context-aware prompting
+    let category: TaskCategory | undefined
+    try {
+      const st = await prisma.subtask.findUnique({ where: { id: input.subtaskId }, select: { category: true } })
+      category = st?.category as TaskCategory | undefined
+    } catch { /* non-critical */ }
+
     // Fetch knowledge examples for few-shot quality anchoring
     const examples = await this.fetchExamples(input)
 
-    const systemPrompt = this.buildSystemPrompt(examples)
+    const systemPrompt = this.buildSystemPrompt(examples, category)
+
+    // Code tasks need more tokens for complete files
+    const maxTokens = category === 'code' ? 16000 : 8192
 
     let content      = ''
     let inputTokens  = 0
@@ -41,8 +51,8 @@ export class ArivarangamConnector extends BaseConnector {
     await this.withRetry(async () => {
       if (input.onToken) {
         const stream = this.client.messages.stream({
-          model:      'claude-sonnet-4-5',
-          max_tokens: 8192,
+          model:      'claude-sonnet-4-6',
+          max_tokens: maxTokens,
           system:     systemPrompt,
           messages:   [{ role: 'user', content: input.prompt }],
         })
@@ -61,8 +71,8 @@ export class ArivarangamConnector extends BaseConnector {
         outputTokens = msg.usage.output_tokens
       } else {
         const response = await this.client.messages.create({
-          model:      'claude-sonnet-4-5',
-          max_tokens: 8192,
+          model:      'claude-sonnet-4-6',
+          max_tokens: maxTokens,
           system:     systemPrompt,
           messages:   [{ role: 'user', content: input.prompt }],
         })
@@ -74,7 +84,7 @@ export class ArivarangamConnector extends BaseConnector {
         outputTokens = response.usage.output_tokens
       }
     })
-    // Claude claude-sonnet-4-5 pricing
+    // claude-sonnet-4-6 pricing
     const costUsd = (inputTokens * 3) / 1_000_000 + (outputTokens * 15) / 1_000_000
 
     // Save this output for future learning (non-blocking)
@@ -114,20 +124,35 @@ export class ArivarangamConnector extends BaseConnector {
     }
   }
 
-  private buildSystemPrompt(examples: Array<{ input: string; output: string }>): string {
-    const base = `You are Arivarangam AI — an intelligent builder that has learned from the world's best AI specialists.
+  private buildSystemPrompt(examples: Array<{ input: string; output: string }>, category?: TaskCategory): string {
+    const isCode = category === 'code'
+
+    const base = isCode
+      ? `You are Arivarangam AI — a master software engineer trained by studying the world's best AI systems.
+
+Your specialists have already done the research and architecture planning. Your job is to WRITE THE CODE.
+
+Rules:
+- Write EVERY file in full — no placeholders, no stubs, no "implement this yourself"
+- Follow the architecture plan your specialists provided
+- Use the exact libraries and packages from the research
+- Write production-quality code: error handling, logging, environment configs
+- Include complete package.json / requirements.txt with pinned versions
+- Include a README.md with setup steps and example .env
+- Code MUST work immediately after the user follows setup steps
+- NEVER mention AI names in your output — you are Arivarangam AI, you built this
+- Write as if this is YOUR best work — because it is`
+      : `You are Arivarangam AI — an intelligent builder trained by studying the world's best AI specialists.
 
 Your role:
-- You receive a user's goal along with expert inputs from specialist AIs (Claude for coding, GPT-4o for reasoning, Gemini for analysis, Perplexity for research, Sarvam for Indian languages)
-- You read ALL specialist inputs carefully
-- You BUILD the final, complete, production-ready deliverable
-- You deliver as Arivarangam AI — one unified output
+- Read ALL specialist inputs carefully
+- BUILD the final, complete, production-ready deliverable
+- Deliver as Arivarangam AI — one unified output
 
 Rules:
 - NEVER mention individual AI names (Claude, GPT-4o, Gemini etc.) in your output
 - NEVER say "according to the specialists" or "based on the inputs"
 - Deliver directly as Arivarangam AI — confident, complete, actionable
-- If the task is code: deliver complete, working, commented code
 - If the task is research: deliver a structured, cited report
 - If the task is content: deliver polished, publish-ready content
 - If the task is strategy: deliver a clear, actionable plan
@@ -161,8 +186,10 @@ Rules:
           category:      subtask.category as TaskCategory,
           inputSummary:  subtask.task.originalGoal.slice(0, 500),
           outputSummary: output.slice(0, 2000),
-          qualityScore:  0.5, // default — admin can rate up/down
-          sourceTaskId:  input.taskId,
+          qualityScore:  0.5,  // default — admin can rate up/down
+          model:         'sabha_ai' as any,
+          taskId:        input.taskId!,
+          subtaskId:     input.subtaskId!,
         },
       })
     } catch {

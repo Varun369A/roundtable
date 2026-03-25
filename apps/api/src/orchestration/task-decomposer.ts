@@ -14,8 +14,14 @@ export interface SubtaskDefinition {
 // Maps task category → best specialist AI.
 // Arivarangam AI is ALWAYS the final synthesiser — added automatically.
 
+// ─── Specialist roles ────────────────────────────────────────────────────────
+// For CODE tasks: specialists PLAN and RESEARCH — Arivarangam AI WRITES the code.
+// GPT-4o: architecture + step-by-step plan
+// Perplexity: best practices, libraries, real-world examples
+// Arivarangam AI reads their guidance and produces the complete codebase.
+
 export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
-  code:          'claude-3-5-sonnet',   // Claude: best coder
+  code:          'gpt-4o',              // GPT-4o: architecture + plan (Arivarangam codes)
   research:      'perplexity-sonar',    // Perplexity: real-time web research
   content:       'claude-3-5-sonnet',   // Claude: nuanced writing
   strategy:      'gpt-4o',              // GPT-4o: structured reasoning
@@ -31,7 +37,7 @@ export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
 // Consultation is SKIPPED entirely for simple tasks.
 
 const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
-  code:          'perplexity-sonar',   // Research best practices
+  code:          'perplexity-sonar',   // Research: libraries, best practices, real-world examples
   research:      'gemini-2.5-pro',     // Deep analysis
   content:       'perplexity-sonar',   // Facts & references
   strategy:      'perplexity-sonar',   // Market research
@@ -200,7 +206,7 @@ function buildPrimaryInstruction(category: TaskCategory, intent: ParsedIntent): 
       `You are the research specialist. Research "${intent.subject}"${audience}. Find current data, trends, key statistics and insights. Provide a thorough, structured summary with sources.${constraints}`,
 
     code:
-      `You are the coding specialist. Build: "${intent.goal}"${audience}. Write clean, complete, production-ready code with setup instructions and comments.${constraints}`,
+      `You are the architecture and planning specialist. The goal is: "${intent.goal}"${audience}. Do NOT write the full code yet. Instead provide: (1) recommended tech stack with justification, (2) complete file/folder structure, (3) step-by-step implementation plan with what each file does, (4) key algorithms and data flow. Arivarangam AI will write the actual code using your plan.${constraints}`,
 
     content:
       `You are the writing specialist. Write compelling content about "${intent.subject}"${audience}. Deliverables: ${intent.deliverables.join(', ')}.${constraints}`,
@@ -232,6 +238,10 @@ function buildConsultationInstruction(
   model: AIModel,
 ): string {
   if (model === 'perplexity-sonar') {
+    const isCode = ['code', 'general'].includes(category)
+    if (isCode) {
+      return `Research for a coding project: "${intent.goal}". Find: (1) best libraries/frameworks for this use case with npm install commands, (2) any existing open-source solutions or GitHub repos to reference, (3) common pitfalls and how to avoid them, (4) production deployment considerations. Be specific with version numbers and actual package names. Arivarangam AI will use your research to write the code.`
+    }
     return `Research current information, latest best practices, and real-world examples relevant to: "${intent.goal}". Provide facts, statistics and references that will support the final output.`
   }
   if (model === 'gpt-4o') {
@@ -247,6 +257,27 @@ function buildConsultationInstruction(
 }
 
 function buildSynthesisInstruction(intent: ParsedIntent): string {
+  const isCode = intent.categories.includes('code')
+
+  if (isCode) {
+    return `You are Arivarangam AI — the master builder. Your specialists have done the research and architecture planning for: "${intent.goal}".
+
+Read ALL specialist outputs above carefully. Now WRITE THE COMPLETE, PRODUCTION-READY CODE.
+
+Rules:
+- Write EVERY file completely — no placeholders, no "add your logic here", no "TODO"
+- Follow the architecture plan from your specialist exactly
+- Use the specific libraries and packages your research specialist identified
+- Include package.json / requirements.txt with exact versions
+- Include setup instructions and environment variable examples
+- Add clear inline comments explaining non-obvious logic
+- Code must run immediately after following setup steps
+
+Do NOT mention AI names. Do NOT summarize what the specialists said. Just BUILD.
+
+Deliverables: ${intent.deliverables.join(', ') || 'complete, working codebase'}`
+  }
+
   return `You are Arivarangam AI. The specialist AIs above have each contributed their expertise on: "${intent.goal}".
 
 Read ALL the specialist outputs carefully. Now BUILD the final, complete deliverable for the user.
