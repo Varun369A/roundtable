@@ -13,13 +13,18 @@ interface GeminiResponse {
 
 const SYSTEM = 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.'
 
+// GEMINI_API_MODEL: the actual Gemini REST model name.
+// We call gemini-2.5-flash (stable, free-tier compatible) regardless of which
+// logical identifier ('gemini-2.5-pro') is used for routing/DB purposes.
+const GEMINI_API_MODEL = 'gemini-2.5-flash'
+
 export class GeminiConnector extends BaseConnector {
-  readonly model: AIModel = 'gemini-2.5-pro'
+  readonly model: AIModel = 'gemini-2.5-pro'   // routing/DB identifier
   readonly provider = 'google'
 
   async execute(input: ConnectorInput): Promise<ConnectorOutput> {
-    const apiKey = input.userApiKey || process.env.GOOGLE_AI_API_KEY
-    if (!apiKey) throw new Error('GOOGLE_AI_API_KEY not set')
+    const apiKey = input.userApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY
+    if (!apiKey) throw new Error('GEMINI_API_KEY not set')
 
     const start = Date.now()
     const body  = JSON.stringify({
@@ -34,7 +39,7 @@ export class GeminiConnector extends BaseConnector {
     return this.withRetry(async () => {
       // ── Streaming mode ──────────────────────────────────────────────────────
       if (input.onToken) {
-        const streamUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${apiKey}&alt=sse`
+        const streamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_API_MODEL}:streamGenerateContent?key=${apiKey}&alt=sse`
         const response  = await fetch(streamUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -76,7 +81,7 @@ export class GeminiConnector extends BaseConnector {
       }
 
       // ── Non-streaming ────────────────────────────────────────────────────────
-      const apiUrl  = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`
+      const apiUrl  = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_API_MODEL}:generateContent?key=${apiKey}`
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,6 +100,6 @@ export class GeminiConnector extends BaseConnector {
   }
 
   async isAvailable(): Promise<boolean> {
-    return Boolean(process.env.GOOGLE_AI_API_KEY)
+    return Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY)
   }
 }
