@@ -23,6 +23,7 @@ import fs from 'fs'
 import path from 'path'
 import { prisma } from '@arivarangam/db'
 import { exportFineTuneDataset } from './dataset-exporter'
+import { broadcastModelUpgrade } from './update-propagator'
 
 // Base model for fine-tuning — Haiku is cost-effective and fast to train
 const FINE_TUNE_BASE_MODEL = 'claude-haiku-4-5-20251001'
@@ -324,7 +325,11 @@ async function deployFineTunedModel(anthropicJobId: string, newModelId: string):
   // Invalidate the model cache so Sabha connector picks up new model immediately
   invalidateModelCache()
 
-  console.log(`[FineTuneManager] ✓ Deployed fine-tuned model: ${newModelId} (v${currentVersion + 1})`)
+  const newVersion = currentVersion + 1
+  console.log(`[FineTuneManager] ✓ Deployed fine-tuned model: ${newModelId} (v${newVersion})`)
+
+  // Notify ALL users that Arivarangam AI just got smarter (non-blocking)
+  broadcastModelUpgrade(newVersion, newModelId).catch(() => {})
 }
 
 async function markJobFailed(jobId: string, errorMessage: string): Promise<void> {

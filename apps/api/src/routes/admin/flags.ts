@@ -73,6 +73,26 @@ export async function adminFlagRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: flag })
   })
 
+  // POST /:key/enable-all — remove any rollout gating, enable for every user
+  app.post('/:key/enable-all', async (request, reply) => {
+    const { key } = request.params as { key: string }
+
+    const flag = await prisma.featureFlag.update({
+      where: { key },
+      data: {
+        enabled: true,
+        config:  {},  // clear allowlist and rolloutPercent — globally on
+      },
+    }).catch(() => null)
+
+    if (!flag) {
+      return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: `Flag "${key}" not found` } })
+    }
+
+    await invalidateFlag(key)
+    return reply.send({ success: true, data: { key, enabled: true, message: 'Flag enabled for all users' } })
+  })
+
   app.delete('/:key', async (request, reply) => {
     const { key } = request.params as { key: string }
     await prisma.featureFlag.delete({ where: { key } }).catch(() => {})

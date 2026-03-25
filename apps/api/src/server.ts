@@ -62,6 +62,7 @@ import { marketingRoutes } from './routes/marketing'
 import { passportRoutes } from './routes/passport'
 import { seedBuiltInPacks } from './lib/vertical-pack-manager'
 import { startCronWorkers } from './jobs'
+import { runUpdatePropagator } from './lib/update-propagator'
 import { registerHttpMetrics } from './middleware/http-metrics'
 import { redis } from './lib/redis'
 import { taskWorker, subtaskWorker } from './jobs'
@@ -337,6 +338,11 @@ const start = async () => {
     } catch (cronErr) {
       app.log.error(cronErr, 'Cron workers failed to start — API continues without them')
     }
+
+    // Propagate any pending updates to all users (non-blocking, idempotent)
+    runUpdatePropagator().catch((err) =>
+      app.log.error(err, 'Update propagator failed — API continues normally')
+    )
 
   } catch (err) {
     app.log.error(err)

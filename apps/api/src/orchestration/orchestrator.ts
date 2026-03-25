@@ -115,15 +115,23 @@ export async function orchestrateTask(taskId: string): Promise<void> {
       subtaskDefinitions = decomposeTask(intent)
     }
 
-    // Override models with user's routing preferences
+    // Override primary specialist with user's routing preferences.
+    // Only the FIRST subtask per category (the architect/primary slot) is swapped —
+    // the supporting specialists (researcher, implementer etc.) always use the
+    // matrix defaults so multi-specialist routing still works correctly.
     const userPrefs = await prisma.userRoutingPreference.findMany({
       where: { userId: task.userId },
     })
     const prefMap = new Map(userPrefs.map((p) => [p.taskCategory, p.preferredModel]))
 
+    const overriddenCategories = new Set<string>()
     for (const def of subtaskDefinitions) {
+      if (def.role === 'SYNTHESIS') continue  // never override Arivarangam AI
       const override = prefMap.get(def.category)
-      if (override) def.assignedModel = override as any
+      if (override && !overriddenCategories.has(def.category)) {
+        def.assignedModel = override as any
+        overriddenCategories.add(def.category)  // only apply once per category
+      }
     }
 
     // Guard: reject DAGs with cycles before touching the DB
