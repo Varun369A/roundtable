@@ -10,11 +10,24 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   metadataBase: new URL('https://arivarangam.com'),
   title: {
-    default: 'Arivarangam — One Platform. Every AI.',
+    default: 'Arivarangam — AI Platform for Web Development, App Development & Business',
     template: '%s | Arivarangam',
   },
-  description: 'Arivarangam coordinates Claude, GPT-4, Gemini, Midjourney and 10+ AI models to complete your goals together. The AI roundtable for Indian professionals.',
-  keywords: ['AI platform', 'multi AI', 'ChatGPT alternative', 'Claude AI', 'AI automation', 'Arivarangam', 'Indian AI platform'],
+  description: 'Build websites, mobile apps, marketing campaigns, and business strategies using Claude, GPT-4o, Gemini and 10+ AI specialists working together. Free to start. Made for India.',
+  keywords: [
+    // Core service keywords people actually search
+    'AI web development', 'AI app development', 'AI mobile app builder',
+    'website development AI', 'software development AI tool',
+    'AI for developers', 'AI coding assistant', 'build web app with AI',
+    // Business use cases
+    'AI marketing tool', 'AI content creation', 'AI business strategy',
+    'AI for startups', 'AI for freelancers', 'AI productivity tool',
+    // Comparison / discovery
+    'ChatGPT alternative India', 'AI platform India', 'multi AI platform',
+    'Claude GPT Gemini together', 'best AI tool for developers India',
+    // Brand
+    'Arivarangam', 'Arivarangam AI', 'AI roundtable',
+  ],
   authors: [{ name: 'Arivarangam' }],
   creator: 'Arivarangam',
   publisher: 'Arivarangam',
@@ -28,14 +41,14 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: 'https://arivarangam.com',
     siteName: 'Arivarangam',
-    title: 'Arivarangam — One Platform. Every AI.',
-    description: 'Coordinate Claude, GPT-4, Gemini and 10+ AIs on one roundtable. Built for India.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Arivarangam — One Platform. Every AI.' }],
+    title: 'Arivarangam — AI Platform for Web Development, App Development & Business',
+    description: 'Build websites, mobile apps, marketing campaigns and more. Claude, GPT-4o, Gemini and 10+ AI specialists work together on your goals. Free to start.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Arivarangam — AI Platform for Web & App Development' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Arivarangam — One Platform. Every AI.',
-    description: 'Coordinate Claude, GPT-4, Gemini and 10+ AIs on one roundtable. Built for India.',
+    title: 'Arivarangam — AI Platform for Web Development, App Development & Business',
+    description: 'Build websites, mobile apps, marketing campaigns and more. Claude, GPT-4o, Gemini and 10+ AI specialists work together. Free to start.',
     images: ['/og-image.png'],
     creator: '@sabhaai',
   },
