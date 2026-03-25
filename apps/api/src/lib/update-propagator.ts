@@ -2,24 +2,30 @@
  * Update Propagator
  *
  * Runs once on every API server startup.
- * Ensures ALL users — new and existing — have the current platform defaults.
+ * Ensures the entire platform is in a consistent state after every deployment.
  *
- * This is how manual code deployments reach existing users:
- *   - New feature flags → enabled for everyone (no rollout gating)
- *   - Minimum credit floor → users below the floor get topped up
- *   - ArivarangamAIState singleton → guaranteed to exist
- *   - DomainConfidence rows → created for any missing categories
+ * THREE LAYERS of update delivery (same model as Stripe, Linear, Vercel):
  *
- * Each propagation step is idempotent: safe to run on every restart.
- * All steps are non-blocking and logged — a failure in one step never
- * prevents the others from running.
+ *  Layer 1 — Platform globals (this file):
+ *    Feature flags at 100% rollout, AI state singleton, domain confidence rows.
+ *    These are system-wide settings, not per-user.
  *
- * To add a new propagation step: add a function and call it in `runAll()`.
+ *  Layer 2 — Per-user infrastructure (lib/user-infrastructure.ts):
+ *    Every user's wallet, workspace, passport, terms acceptance, etc.
+ *    Applied in bulk on startup, AND on every login (Redis-cached, ~0.1ms).
+ *    To add a new per-user update: add one entry to PLATFORM_UPDATES in
+ *    user-infrastructure.ts and bump INFRA_VERSION — done.
+ *
+ *  Layer 3 — Real-time broadcast (broadcastModelUpgrade below):
+ *    Triggered by fine-tune-manager when Arivarangam AI deploys a new model.
+ *    Sends an in-app notification to every active user.
+ *
+ * All steps are idempotent: safe to run on every restart.
+ * A failure in one step never prevents others from running.
  */
 import { prisma } from '@arivarangam/db'
 import { createNotification } from './notifications'
-
-const MIN_SIGNUP_CREDITS = 50  // keep in sync with grantSignupBonus in credits.ts
+import { applyAllUsersInfrastructure } from './user-infrastructure'
 
 // ─── Entry point (called from server startup) ─────────────────────────────────
 
@@ -27,26 +33,27 @@ export async function runUpdatePropagator(): Promise<void> {
   console.log('[UpdatePropagator] Running startup propagation...')
 
   await Promise.allSettled([
+    // Layer 1: platform globals
     ensureArivarangamState(),
     ensureAllFlagsGloballyEnabled(),
     ensureDomainConfidenceRows(),
-    ensureMinimumCreditsFloor(),
+    // Layer 2: per-user infrastructure (wallet, workspace, passport, terms, etc.)
+    applyAllUsersInfrastructure(),
   ])
 
   console.log('[UpdatePropagator] Done.')
 }
 
-// ─── Steps ────────────────────────────────────────────────────────────────────
+// ─── Platform global steps ────────────────────────────────────────────────────
 
 /**
  * Guarantee the global Arivarangam AI state singleton exists.
- * Safe to run repeatedly — upsert is idempotent.
  */
 async function ensureArivarangamState(): Promise<void> {
   try {
     await prisma.arivarangamAIState.upsert({
       where:  { id: 'singleton' },
-      update: {},  // don't overwrite existing values
+      update: {},  // never overwrite training state
       create: { id: 'singleton' },
     })
   } catch (err: any) {
@@ -56,21 +63,17 @@ async function ensureArivarangamState(): Promise<void> {
 
 /**
  * Ensure all enabled feature flags have 100% rollout.
- * If a flag is enabled=true but has rolloutPercent < 100, lift it to 100.
- * This means once we flip a flag ON, it applies to EVERY user — no partial rollout.
  *
- * Rationale: partial rollout is useful during canary testing; once a feature is
- * confirmed stable and the flag is enabled, every user should benefit.
+ * Rationale: once a flag is flipped ON, every user should benefit immediately.
+ * Partial rollout is useful during canary testing; once the flag is enabled,
+ * the rolloutPercent gate is redundant and should be lifted.
  */
 async function ensureAllFlagsGloballyEnabled(): Promise<void> {
   try {
-    const flags = await prisma.featureFlag.findMany({
-      where: { enabled: true },
-    })
+    const flags = await prisma.featureFlag.findMany({ where: { enabled: true } })
 
     for (const flag of flags) {
       const config = (flag.config as any) ?? {}
-      // If rolloutPercent is set and less than 100, lift it to 100
       if (typeof config.rolloutPercent === 'number' && config.rolloutPercent < 100) {
         await prisma.featureFlag.update({
           where: { key: flag.key },
@@ -85,82 +88,24 @@ async function ensureAllFlagsGloballyEnabled(): Promise<void> {
 }
 
 /**
- * Create DomainConfidence rows for any TaskCategory that doesn't have one yet.
- * This ensures the admin dashboard shows all domains even before learning begins.
+ * Create DomainConfidence rows for every TaskCategory.
+ * Ensures the admin dashboard shows all domains even before learning begins.
  */
 async function ensureDomainConfidenceRows(): Promise<void> {
   try {
     const CATEGORIES = ['code', 'research', 'content', 'strategy', 'data_analysis', 'image', 'voice', 'translation', 'general']
-    const existing   = await prisma.domainConfidence.findMany({ select: { category: true } })
+    const existing    = await prisma.domainConfidence.findMany({ select: { category: true } })
     const existingSet = new Set(existing.map((r) => r.category))
 
     for (const category of CATEGORIES) {
       if (!existingSet.has(category as any)) {
         await prisma.domainConfidence.create({
-          data: {
-            id:       `dc_${category}`,
-            category: category as any,
-          },
-        }).catch(() => {})  // ignore unique conflict if concurrent startup
+          data: { id: `dc_${category}`, category: category as any },
+        }).catch(() => {})  // ignore unique conflict on concurrent startup
       }
     }
   } catch (err: any) {
     console.error('[UpdatePropagator] ensureDomainConfidenceRows failed:', err.message)
-  }
-}
-
-/**
- * Ensure every active user has at least MIN_SIGNUP_CREDITS total credits
- * accumulated from bonuses. Users who signed up before the bonus was
- * introduced, or whose bonus was never applied, are topped up.
- *
- * This uses the credit ledger: only top up if the sum of SIGNUP_BONUS
- * transactions for a user is zero (bonus was never granted).
- */
-async function ensureMinimumCreditsFloor(): Promise<void> {
-  try {
-    // Find users who never received a signup bonus
-    const usersWithBonus = await prisma.creditTransaction.findMany({
-      where:  { type: 'SIGNUP_BONUS' },
-      select: { userId: true },
-    })
-    const usersWithBonusSet = new Set(usersWithBonus.map((t) => t.userId))
-
-    const allActiveUsers = await prisma.user.findMany({
-      where:  { status: 'ACTIVE' },
-      select: { id: true },
-    })
-
-    const missing = allActiveUsers.filter((u) => !usersWithBonusSet.has(u.id))
-    if (missing.length === 0) return
-
-    console.log(`[UpdatePropagator] Granting signup bonus to ${missing.length} users who missed it`)
-
-    const BATCH = 50
-    for (let i = 0; i < missing.length; i += BATCH) {
-      const batch = missing.slice(i, i + BATCH)
-      await Promise.allSettled(
-        batch.map((u) =>
-          prisma.$transaction([
-            prisma.creditWallet.upsert({
-              where:  { userId: u.id },
-              update: { balance: { increment: MIN_SIGNUP_CREDITS } },
-              create: { userId: u.id, balance: MIN_SIGNUP_CREDITS },
-            }),
-            prisma.creditTransaction.create({
-              data: {
-                userId:      u.id,
-                amount:      MIN_SIGNUP_CREDITS,
-                type:        'SIGNUP_BONUS',
-                description: 'Welcome bonus — platform update',
-              },
-            }),
-          ])
-        )
-      )
-    }
-  } catch (err: any) {
-    console.error('[UpdatePropagator] ensureMinimumCreditsFloor failed:', err.message)
   }
 }
 
@@ -183,11 +128,11 @@ export async function broadcastModelUpgrade(version: number, modelId: string): P
       await Promise.allSettled(
         batch.map((u) =>
           createNotification({
-            userId: u.id,
-            type:   'system_alert',
-            title:  `Arivarangam AI just got smarter`,
-            body:   `Your AI has been upgraded to v${version} — trained on thousands of real tasks. Every task you run now benefits from this knowledge.`,
-            link:   '/dashboard',
+            userId:   u.id,
+            type:     'system_alert',
+            title:    'Arivarangam AI just got smarter',
+            body:     `Your AI has been upgraded to v${version} — trained on thousands of real tasks. Every task you run now benefits from this knowledge.`,
+            link:     '/dashboard',
             metadata: { modelVersion: version, modelId },
           })
         )

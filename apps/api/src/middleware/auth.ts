@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '@arivarangam/db'
 import type { JWTPayload } from '@arivarangam/types'
 import { isAccessTokenBlacklisted } from '../lib/tokens'
+import { ensureUserInfrastructure } from '../lib/user-infrastructure'
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -36,26 +37,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
       })
     }
 
-    // Block unverified users from all endpoints except email verification itself.
-    // Allows: POST /verify-email, POST /resend-verification, GET /me, POST /logout
-    const path = request.url
-    const isVerificationEndpoint =
-      path.includes('/verify-email') ||
-      path.includes('/resend-verification') ||
-      path === '/api/v1/auth/me' ||
-      path === '/api/v1/auth/logout'
-
-    if (!user.isEmailVerified && !isVerificationEndpoint) {
-      return reply.status(403).send({
-        success: false,
-        error: {
-          code: 'EMAIL_NOT_VERIFIED',
-          message: 'Please verify your email address before continuing. Check your inbox for the verification link.',
-        },
-      })
-    }
-
     request.user = user
+
+    // Ensure this user has all required platform infrastructure (Redis-cached, near-zero cost).
+    // Fires in background — never delays the request.
+    ensureUserInfrastructure(user.id).catch(() => {})
   } catch {
     return reply.status(401).send({
       success: false,

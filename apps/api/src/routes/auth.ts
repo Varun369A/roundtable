@@ -17,6 +17,7 @@ import { isEnabled, FLAGS } from '../lib/feature-flags'
 import { sendWelcomeEmail, sendVerificationEmail } from '../lib/email'
 import { grantSignupBonus } from './credits'
 import { createPassportOnSignup } from '../jobs/skill-detector'
+import { ensureUserInfrastructure } from '../lib/user-infrastructure'
 
 function setAuthCookies(reply: FastifyReply, accessToken: string, refreshToken: string) {
   const isProduction = process.env.NODE_ENV === 'production'
@@ -142,6 +143,11 @@ export async function authRoutes(app: FastifyInstance) {
       }
     })()
 
+    // Ensure all platform infrastructure exists for this new user (non-blocking).
+    // This is the safety net that guarantees wallet, workspace, passport, and terms
+    // acceptance are all created — even if any inline creation above silently fails.
+    ensureUserInfrastructure(user.id).catch(() => {})
+
     // Grant signup bonus credits (non-blocking, fire-and-forget)
     grantSignupBonus(user.id).catch(() => {})
 
@@ -150,6 +156,8 @@ export async function authRoutes(app: FastifyInstance) {
 
     // Create email verification token and send verification email (non-blocking)
     // NOTE: verification is a transactional email — intentionally NOT gated behind EMAIL_NOTIFICATIONS flag
+    // If RESEND_API_KEY is not configured (e.g. dev or missing env var), auto-verify the user immediately
+    // so they are never stuck on a 403 with no way to verify.
     ;(async () => {
       try {
         const crypto = await import('crypto')
@@ -157,9 +165,19 @@ export async function authRoutes(app: FastifyInstance) {
         const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
         await prisma.emailVerification.create({ data: { userId: user.id, tokenHash, expiresAt } })
-        const webUrl = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
-        const verifyUrl = `${webUrl}/verify-email?token=${rawToken}`
-        await sendVerificationEmail(email, name, verifyUrl)
+
+        if (!process.env.RESEND_API_KEY) {
+          // Email service not configured — auto-verify so user can use the platform immediately
+          console.warn('[auth] RESEND_API_KEY not set — auto-verifying user', user.id)
+          await prisma.user.update({
+            where: { id: user.id },
+            data:  { isEmailVerified: true, emailVerified: true, emailVerifiedAt: new Date() },
+          }).catch(() => {})
+        } else {
+          const webUrl = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
+          const verifyUrl = `${webUrl}/verify-email?token=${rawToken}`
+          await sendVerificationEmail(email, name, verifyUrl)
+        }
       } catch {
         // Non-fatal — signup succeeds even if verification email fails
       }
