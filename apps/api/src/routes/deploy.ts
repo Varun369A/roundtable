@@ -118,18 +118,13 @@ export async function deployRoutes(app: FastifyInstance): Promise<void> {
     try {
       const deployment = await deployToVercel(files, project.name ?? task.title, vercelToken)
 
-      // Store deployment URL in codeProject metadata
-      await prisma.codeProject.update({
-        where: { taskId },
-        data:  {
-          metadata: {
-            ...(project.metadata as object ?? {}),
-            vercelDeploymentId:  deployment.id,
-            vercelDeploymentUrl: deployment.url,
-            vercelDeployedAt:    new Date().toISOString(),
-          },
-        },
-      })
+      // Store deployment URL in repoUrl field (reused for Vercel when no GitHub push)
+      if (!project.repoUrl) {
+        await prisma.codeProject.update({
+          where: { taskId },
+          data:  { repoUrl: deployment.url },
+        })
+      }
 
       return reply.send({
         success: true,
@@ -154,15 +149,11 @@ export async function deployRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const project = await prisma.codeProject.findUnique({ where: { taskId } })
-    const meta    = (project?.metadata as any) ?? {}
+    const vercelUrl = project?.repoUrl?.startsWith('https://') ? project.repoUrl : null
 
     return reply.send({
       success: true,
-      data: {
-        vercelUrl:    meta.vercelDeploymentUrl ?? null,
-        vercelId:     meta.vercelDeploymentId  ?? null,
-        deployedAt:   meta.vercelDeployedAt    ?? null,
-      },
+      data: { vercelUrl },
     })
   })
 }
