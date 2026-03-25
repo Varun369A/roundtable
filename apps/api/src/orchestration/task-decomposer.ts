@@ -26,22 +26,22 @@ export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
   general:       'gpt-4o',              // GPT-4o: broad reasoning
 }
 
-// ─── Who else consults on each category ─────────────────────────────────────
-// For each category, which additional specialists provide input BEFORE synthesis.
+// ─── Who consults on each category ───────────────────────────────────────────
+// MAX 1 consultant per category (not 2). Keeps total subtasks ≤ 5.
+// Consultation is SKIPPED entirely for simple tasks.
 
-const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel[]>> = {
-  code:          ['perplexity-sonar', 'gpt-4o'],    // Research best practices, plan logic
-  research:      ['gemini-2.5-pro', 'gpt-4o'],       // Deep analysis, structure
-  content:       ['perplexity-sonar', 'gpt-4o'],     // Facts, structure
-  strategy:      ['perplexity-sonar', 'gemini-2.5-pro'], // Market research, analysis
-  data_analysis: ['perplexity-sonar', 'gpt-4o'],     // Benchmark data, reasoning
-  general:       ['perplexity-sonar', 'claude-3-5-sonnet'], // Research + writing
+const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
+  code:          'perplexity-sonar',   // Research best practices
+  research:      'gemini-2.5-pro',     // Deep analysis
+  content:       'perplexity-sonar',   // Facts & references
+  strategy:      'perplexity-sonar',   // Market research
+  data_analysis: 'gpt-4o',            // Structured reasoning
+  general:       'perplexity-sonar',   // Research support
 }
 
 // ─── Dependency rules ────────────────────────────────────────────────────────
-// Which categories must wait for which.
 const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
-  content:       ['research', 'strategy'],
+  content:       ['research'],
   strategy:      ['research'],
   data_analysis: ['research'],
   translation:   ['content'],
@@ -50,18 +50,23 @@ const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
 /**
  * Decomposes a parsed intent into a subtask DAG.
  *
- * Flow for every task:
- *   1. Primary specialist runs (category expert)
- *   2. Consultation specialists run in parallel (research, reasoning, analysis)
- *   3. Arivarangam AI synthesises all outputs into the final deliverable
+ * Smart routing tiers:
+ *   simple   → 1 primary + synthesis          = 2 subtasks  (~30s)
+ *   standard → 1 primary + 1 consultant + synthesis = 3 subtasks (~60s)
+ *   complex  → 2 primaries + 1 consultant each + synthesis = 5 subtasks (~90s)
  *
- * User only sees Arivarangam AI's final output.
+ * Hard cap: never more than 4 specialist subtasks before synthesis.
+ * User sees only the Arivarangam AI synthesis — specialist work is internal.
  */
 export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
   const subtasks: SubtaskDefinition[] = []
 
-  // Sort categories so dependencies come first
-  const sortedCategories = topologicalSort(intent.categories)
+  const complexity = (intent as any).complexity ?? 'standard'
+
+  // Cap categories: simple=1, standard=1, complex=2
+  const maxCategories = complexity === 'complex' ? 2 : 1
+  const sortedCategories = topologicalSort(intent.categories).slice(0, maxCategories)
+
   const categoryToIndex = new Map<TaskCategory, number>()
 
   for (let i = 0; i < sortedCategories.length; i++) {
@@ -82,7 +87,7 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
       }
     }
 
-    // Add primary specialist subtask
+    // Add primary specialist
     subtasks.push({
       title:            buildSubtaskTitle(category, intent, primaryModel, 'primary'),
       category,
@@ -94,12 +99,13 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
     })
     categoryToIndex.set(category, subtasks.length - 1)
 
-    // Add consultation specialists (skip for image/voice/translation — single-AI tasks)
-    if (!['image', 'voice', 'translation'].includes(category)) {
-      const consultants = (CONSULTATION_MAP[category] || []).filter(
-        (m) => m !== primaryModel
-      )
-      for (const consultantModel of consultants) {
+    // Add 1 consultant for standard/complex tasks (skip for simple, image, voice, translation)
+    const skipConsult = ['image', 'voice', 'translation'].includes(category)
+    const addConsult  = !skipConsult && complexity !== 'simple'
+
+    if (addConsult) {
+      const consultantModel = CONSULTATION_MAP[category]
+      if (consultantModel && consultantModel !== primaryModel) {
         subtasks.push({
           title:            buildSubtaskTitle(category, intent, consultantModel, 'consult'),
           category,
@@ -113,8 +119,7 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
     }
   }
 
-  // Always add Arivarangam AI as the final synthesiser
-  // Depends on ALL specialist subtasks above
+  // Always add Arivarangam AI as final synthesiser (depends on ALL specialists)
   const allPreviousIndices = subtasks.map((_, i) => String(i))
 
   subtasks.push({

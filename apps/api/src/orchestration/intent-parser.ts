@@ -7,81 +7,62 @@ const client = new Anthropic({
 
 const INTENT_SYSTEM_PROMPT = `You are an intent analysis engine for Arivarangam, an AI orchestration platform.
 
-Given a user's goal, extract structured intent as JSON. Be precise and practical.
+Given a user's goal, extract structured intent as JSON. Be precise — pick the MINIMUM categories needed.
 
-Task categories available:
-- research: finding information, market data, competitor analysis, fact-checking
-- copywriting: writing copy, content, articles, emails, scripts, taglines
-- strategy: planning, frameworks, roadmaps, decision-making
-- images: generating visuals, logos, illustrations, mockups
-- video: video scripts, storyboards, video generation prompts
-- audio: voiceovers, podcasts, music, sound design
-- presentation: decks, slides, reports
-- code: programming, automation, data processing
-- translation: language conversion, localization
-- data_analysis: charts, statistics, data interpretation
+Task categories (pick 1-2 MAX, only the most relevant):
+- research: finding information, market data, competitor analysis, fact-checking, news
+- content: writing copy, articles, blogs, emails, scripts, documentation
+- strategy: planning, frameworks, roadmaps, decision-making, go-to-market
+- code: programming, building apps, APIs, automation, full-stack development
+- data_analysis: charts, statistics, dashboards, metrics, data interpretation
+- image: generating visuals, logos, illustrations, mockups
+- voice: voiceovers, podcasts, audio narration
+- translation: language conversion, localization (Indian languages)
 - general: anything that doesn't fit above
 
-AI Models available for routing:
-- claude-3-5-sonnet: best for reasoning, writing, code, strategy
-- gpt-4o: great for structured tasks, vision, data
-- perplexity-sonar: real-time web search and research
-- dalle-3: image generation
-- elevenlabs: voice/audio generation
-- sarvam-1: Indian language translation
-- midjourney-v6: high quality artistic images
-- stability-xl: image generation
-- gemini-pro: multimodal tasks
-- gamma: presentation/deck creation
-- runway-gen3: video generation
+Complexity detection:
+- "simple": single focused deliverable, short prompt
+- "standard": 2-3 related deliverables, medium complexity
+- "complex": enterprise/production-ready/comprehensive/full system with multiple interdependent parts
 
-Respond ONLY with valid JSON matching this exact schema:
+IMPORTANT: Never return more than 2 categories. If task is code + research, return only ["code"] as code is primary.
+If task needs both content and strategy, return the most important one.
+
+Respond ONLY with valid JSON:
 {
-  "goal": "concise restatement of the goal",
-  "categories": ["array of relevant TaskCategory values"],
-  "subject": "the main subject/topic",
-  "audience": "target audience if mentioned, null otherwise",
-  "deliverables": ["list of concrete outputs the user needs"],
-  "language": "ISO language code (en, hi, ta, te, etc.)",
+  "goal": "concise restatement",
+  "categories": ["1 or 2 categories max"],
+  "subject": "main subject/topic (under 50 chars)",
+  "audience": "target audience or null",
+  "deliverables": ["list of concrete outputs"],
+  "language": "ISO language code (en/hi/ta/te)",
   "urgency": "low | normal | high",
-  "constraints": ["any constraints mentioned like budget, time, tone, format"]
+  "complexity": "simple | standard | complex",
+  "constraints": ["any constraints mentioned"]
 }`
 
 export async function parseIntent(userGoal: string): Promise<ParsedIntent> {
-  // Try AI-based parsing first
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        system: INTENT_SYSTEM_PROMPT,
-        messages: [
-          {
-            role: 'user',
-            content: `Parse this goal: "${userGoal}"`,
-          },
-        ],
+        model:      'claude-sonnet-4-5',
+        max_tokens: 512,
+        system:     INTENT_SYSTEM_PROMPT,
+        messages:   [{ role: 'user', content: `Parse this goal: "${userGoal.slice(0, 1000)}"` }],
       })
 
       const content = message.content[0]
       if (content.type === 'text') {
         try {
-          // Strip markdown code fences if Claude wraps the JSON
           const rawText = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-          const parsed = JSON.parse(rawText) as ParsedIntent
-          return parsed
-        } catch (parseErr) {
-          console.warn('[IntentParser] JSON parse failed, using minimal fallback:', parseErr)
-          const rawText = content.text
-          return {
-            goal: rawText,
-            categories: ['general'],
-            subject: rawText.substring(0, 100),
-            deliverables: [],
-            language: 'en',
-            urgency: 'normal',
-            constraints: [],
+          const parsed  = JSON.parse(rawText) as ParsedIntent
+          // Hard cap: never more than 2 categories
+          if (parsed.categories?.length > 2) {
+            parsed.categories = parsed.categories.slice(0, 2)
           }
+          return parsed
+        } catch {
+          // fall through to rule-based
         }
       }
     } catch (err) {
@@ -89,105 +70,89 @@ export async function parseIntent(userGoal: string): Promise<ParsedIntent> {
     }
   }
 
-  // Rule-based fallback — always works, no API needed
   return ruleBasedParse(userGoal)
 }
 
 function ruleBasedParse(goal: string): ParsedIntent {
   const lower = goal.toLowerCase()
-  const categories: TaskCategory[] = []
 
-  const categoryKeywords: Record<TaskCategory, string[]> = {
-    research:      ['research', 'find', 'search', 'data', 'market', 'competitor', 'analysis', 'study', 'information', 'facts'],
-    copywriting:   ['write', 'copy', 'content', 'article', 'blog', 'email', 'script', 'caption', 'tagline', 'description'],
-    strategy:      ['strategy', 'plan', 'roadmap', 'framework', 'approach', 'campaign', 'launch'],
-    images:        ['image', 'visual', 'logo', 'design', 'illustration', 'mockup', 'photo', 'picture', 'graphic'],
-    video:         ['video', 'reel', 'clip', 'film', 'animation', 'ad', 'advertisement'],
-    audio:         ['audio', 'voice', 'voiceover', 'podcast', 'music', 'sound', 'narration'],
-    presentation:  ['presentation', 'deck', 'slide', 'pitch', 'report'],
-    code:          ['code', 'build', 'develop', 'program', 'automate', 'app', 'website', 'api', 'script'],
-    translation:   ['translate', 'hindi', 'tamil', 'telugu', 'kannada', 'marathi', 'bengali', 'language'],
-    data_analysis: ['analyze', 'chart', 'graph', 'statistics', 'dashboard', 'metrics', 'insights'],
-    general:       [],
-  }
+  // Priority-ordered: first match wins (avoids multi-category sprawl)
+  const priorityRules: [TaskCategory, string[]][] = [
+    ['code',          ['code', 'build', 'develop', 'program', 'automate', 'app', 'website', 'api', 'backend', 'frontend', 'full-stack', 'fullstack']],
+    ['image',         ['image', 'visual', 'logo', 'design', 'illustration', 'mockup', 'photo', 'graphic', 'generate image']],
+    ['voice',         ['voice', 'voiceover', 'podcast', 'audio', 'narration', 'tts']],
+    ['translation',   ['translate', 'hindi', 'tamil', 'telugu', 'kannada', 'marathi', 'bengali']],
+    ['data_analysis', ['dashboard', 'chart', 'graph', 'statistics', 'metrics', 'analytics', 'insights', 'visualize data']],
+    ['strategy',      ['strategy', 'plan', 'roadmap', 'framework', 'go-to-market', 'launch plan', 'business plan']],
+    ['research',      ['research', 'find', 'search', 'market data', 'competitor', 'news', 'information', 'facts']],
+    ['content',       ['write', 'article', 'blog', 'email', 'content', 'copy', 'script', 'documentation']],
+  ]
 
-  for (const [category, keywords] of Object.entries(categoryKeywords) as [TaskCategory, string[]][]) {
+  let primaryCategory: TaskCategory = 'general'
+  let secondaryCategory: TaskCategory | null = null
+
+  for (const [category, keywords] of priorityRules) {
     if (keywords.some((kw) => lower.includes(kw))) {
-      categories.push(category)
+      if (primaryCategory === 'general') {
+        primaryCategory = category
+      } else if (!secondaryCategory && category !== primaryCategory) {
+        secondaryCategory = category
+        break // stop after 2
+      }
     }
   }
 
-  if (categories.length === 0) categories.push('general')
+  const categories: TaskCategory[] = secondaryCategory
+    ? [primaryCategory, secondaryCategory]
+    : [primaryCategory]
 
-  // Detect language
-  const hindiChars = /[\u0900-\u097F]/
-  const tamilChars = /[\u0B80-\u0BFF]/
+  // Complexity from prompt length + keywords
+  const complexKeywords = ['enterprise', 'production', 'comprehensive', 'full system', 'complete', 'end-to-end', 'scalable', 'full-stack']
+  const isComplex = complexKeywords.some((kw) => lower.includes(kw)) || goal.length > 500
+  const isSimple  = goal.length < 100 && categories.length === 1
+
+  const complexity: 'simple' | 'standard' | 'complex' =
+    isComplex ? 'complex' : isSimple ? 'simple' : 'standard'
+
+  // Language detection
+  const hindiChars  = /[\u0900-\u097F]/
+  const tamilChars  = /[\u0B80-\u0BFF]/
   const teluguChars = /[\u0C00-\u0C7F]/
   let language = 'en'
-  if (hindiChars.test(goal)) language = 'hi'
-  else if (tamilChars.test(goal)) language = 'ta'
+  if (hindiChars.test(goal))  language = 'hi'
+  else if (tamilChars.test(goal))  language = 'ta'
   else if (teluguChars.test(goal)) language = 'te'
 
-  // Extract deliverables from categories
-  const deliverableMap: Record<TaskCategory, string> = {
-    research:      'Research report',
-    copywriting:   'Written content',
-    strategy:      'Strategy document',
-    images:        'Visual assets',
-    video:         'Video content',
-    audio:         'Audio file',
-    presentation:  'Presentation deck',
-    code:          'Code/application',
-    translation:   'Translated content',
-    data_analysis: 'Data analysis report',
-    general:       'Deliverable',
-  }
-
-  const deliverables = categories.map((c) => deliverableMap[c])
-
-  // Urgency detection
-  const urgencyHigh = ['urgent', 'asap', 'immediately', 'today', 'rush', 'quickly']
-  const urgencyLow = ['eventually', 'whenever', 'no rush', 'flexible', 'sometime']
+  const urgencyHigh = ['urgent', 'asap', 'immediately', 'today', 'rush']
+  const urgencyLow  = ['eventually', 'no rush', 'flexible', 'sometime']
   let urgency: 'low' | 'normal' | 'high' = 'normal'
   if (urgencyHigh.some((w) => lower.includes(w))) urgency = 'high'
   else if (urgencyLow.some((w) => lower.includes(w))) urgency = 'low'
 
-  // Subject: first noun phrase (simplified)
-  const words = goal.split(' ').filter((w) => w.length > 3)
-  const subject = words.slice(0, 4).join(' ') || goal.slice(0, 50)
+  const words   = goal.split(' ').filter((w) => w.length > 3)
+  const subject = words.slice(0, 5).join(' ') || goal.slice(0, 50)
+
+  const deliverableMap: Record<TaskCategory, string> = {
+    research:      'Research report',
+    content:       'Written content',
+    strategy:      'Strategy document',
+    image:         'Visual assets',
+    voice:         'Audio file',
+    translation:   'Translated content',
+    code:          'Code / Application',
+    data_analysis: 'Data analysis report',
+    general:       'Deliverable',
+  }
 
   return {
-    goal: goal.slice(0, 200),
+    goal:         goal.slice(0, 200),
     categories,
     subject,
-    audience: extractAudience(lower),
-    deliverables,
+    audience:     null,
+    deliverables: categories.map((c) => deliverableMap[c] || 'Deliverable'),
     language,
     urgency,
-    constraints: extractConstraints(lower),
+    complexity,
+    constraints:  [],
   }
-}
-
-function extractAudience(lower: string): string | undefined {
-  const audiencePatterns = [
-    /targeting\s+([^,\.]+)/,
-    /for\s+(students?|professionals?|developers?|marketers?|founders?|enterprises?|startups?|businesses?)/,
-    /audience[:\s]+([^,\.]+)/,
-  ]
-  for (const pattern of audiencePatterns) {
-    const match = lower.match(pattern)
-    if (match) return match[1].trim()
-  }
-  return undefined
-}
-
-function extractConstraints(lower: string): string[] {
-  const constraints: string[] = []
-  const budgetMatch = lower.match(/budget[:\s]+([^,\.]+)/)
-  if (budgetMatch) constraints.push(`Budget: ${budgetMatch[1].trim()}`)
-  const tonePatterns = ['professional', 'casual', 'formal', 'friendly', 'humorous', 'serious']
-  for (const tone of tonePatterns) {
-    if (lower.includes(tone)) constraints.push(`Tone: ${tone}`)
-  }
-  return constraints
 }

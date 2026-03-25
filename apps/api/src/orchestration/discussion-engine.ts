@@ -186,7 +186,7 @@ export async function checkRound1Complete(taskId: string): Promise<string[] | nu
     select: { id: true, status: true },
   })
 
-  if (subtasks.length < 2) return null  // need at least 2 AIs for a discussion
+  if (subtasks.length < 3) return null  // need at least 3 AIs for a review round (complex tasks only)
 
   const allComplete = subtasks.every(
     (s) => s.status === 'COMPLETED' || s.status === 'SKIPPED' || s.status === 'FAILED'

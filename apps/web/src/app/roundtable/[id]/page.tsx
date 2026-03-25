@@ -465,6 +465,37 @@ function DeliveryPanel({ taskId, hasCode }: { taskId: string; hasCode: boolean }
   )
 }
 
+// ─── Specialist Accordion ─────────────────────────────────────────────────────
+
+function SpecialistAccordion({ messages }: { messages: Message[] }) {
+  const [open, setOpen] = useState(false)
+  const completed = messages.filter((m) => !m.isError).length
+  const errors    = messages.filter((m) => m.isError).length
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50/70 overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-100 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs shrink-0">⚙</div>
+          <span className="text-xs font-semibold text-slate-600">
+            {completed} specialist{completed !== 1 ? 's' : ''} contributed
+            {errors > 0 && <span className="text-red-400 ml-1">({errors} error{errors !== 1 ? 's' : ''})</span>}
+          </span>
+        </div>
+        <span className="text-[10px] text-slate-400 font-medium">{open ? 'hide ↑' : 'view ↓'}</span>
+      </button>
+      {open && (
+        <div className="border-t border-slate-200 space-y-2 p-2">
+          {messages.map((m) => <ActivityEntry key={m.id} message={m} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RoundtablePage({ params }: { params: Promise<{ id: string }> }) {
@@ -677,8 +708,11 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
   const statusCfg  = STATUS_LABEL[taskStatus] || STATUS_LABEL.PENDING
   const isLive     = ['ROUTING', 'IN_PROGRESS'].includes(taskStatus)
-  const activityMessages = messages.filter((m) => m.type !== 'routing_card')
-  const synthesisMsg = messages.find((m) => m.role === 'SYNTHESIS')
+  const activityMessages   = messages.filter((m) => m.type !== 'routing_card')
+  const synthesisMsg       = messages.find((m) => m.role === 'SYNTHESIS')
+  const specialistMessages = activityMessages.filter((m) => m.type === 'ai' && m.role !== 'SYNTHESIS')
+  const systemMessages     = activityMessages.filter((m) => m.type === 'system')
+  const synthesisMessages  = activityMessages.filter((m) => m.role === 'SYNTHESIS')
 
   return (
     <div className="h-screen flex flex-col bg-white text-slate-900 overflow-hidden">
@@ -784,7 +818,18 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
               </div>
             )}
 
-            {activityMessages.map((msg) => (
+            {/* System event dividers */}
+            {systemMessages.map((msg) => (
+              <ActivityEntry key={msg.id} message={msg} />
+            ))}
+
+            {/* Specialist work — collapsed accordion (INITIAL + REVIEW) */}
+            {specialistMessages.length > 0 && (
+              <SpecialistAccordion messages={specialistMessages} />
+            )}
+
+            {/* Synthesis — always shown prominently */}
+            {synthesisMessages.map((msg) => (
               <ActivityEntry key={msg.id} message={msg} />
             ))}
 
