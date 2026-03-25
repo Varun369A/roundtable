@@ -145,7 +145,15 @@ export async function creditsRoutes(app: FastifyInstance) {
         },
       })
 
-      return reply.send({ success: true, data: { referral: referralCode } })
+      // Shape response to match frontend Referral interface
+      const referral = referralCode
+        ? {
+            code:          referralCode.code,
+            referralCount: referralCode.usageCount,
+            creditsEarned: referralCode.referrals.filter((r: any) => r.rewardPaid).length * (referralCode.rewardCredits ?? 100),
+          }
+        : null
+      return reply.send({ success: true, data: { referral } })
     }
   )
 

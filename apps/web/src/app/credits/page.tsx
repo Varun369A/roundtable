@@ -152,10 +152,10 @@ function PurchaseModal({
               <div>
                 <p className="font-semibold text-slate-900">{pack.name}</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">
-                  {pack.credits.toLocaleString('en-IN')}
-                  {pack.bonusCredits > 0 && (
+                  {(pack.credits ?? 0).toLocaleString('en-IN')}
+                  {(pack.bonusCredits ?? 0) > 0 && (
                     <span className="text-emerald-600 text-base font-semibold ml-1.5">
-                      +{pack.bonusCredits.toLocaleString('en-IN')} bonus
+                      +{(pack.bonusCredits ?? 0).toLocaleString('en-IN')} bonus
                     </span>
                   )}
                 </p>
@@ -170,7 +170,7 @@ function PurchaseModal({
                     : 'bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700'
                 } disabled:opacity-40`}
               >
-                {purchasing === pack.id ? 'Opening…' : `₹${pack.priceInr.toLocaleString('en-IN')}`}
+                {purchasing === pack.id ? 'Opening…' : `₹${(pack.priceInr ?? 0).toLocaleString('en-IN')}`}
               </button>
             </div>
           ))}
@@ -352,7 +352,7 @@ export default function CreditsPage() {
                   <p className="text-xs text-slate-500">people referred</p>
                 </div>
                 <div className="text-center sm:text-right">
-                  <p className="text-2xl font-bold text-emerald-600">{referral.creditsEarned.toLocaleString('en-IN')}</p>
+                  <p className="text-2xl font-bold text-emerald-600">{(referral.creditsEarned ?? 0).toLocaleString('en-IN')}</p>
                   <p className="text-xs text-slate-500">credits earned</p>
                 </div>
               </div>
@@ -417,11 +417,11 @@ export default function CreditsPage() {
                   <div>
                     <p className="font-semibold text-slate-900">{pack.name}</p>
                     <p className="text-3xl font-bold text-slate-900 mt-2">
-                      {pack.credits.toLocaleString('en-IN')}
+                      {(pack.credits ?? 0).toLocaleString('en-IN')}
                     </p>
-                    {pack.bonusCredits > 0 && (
+                    {(pack.bonusCredits ?? 0) > 0 && (
                       <p className="text-emerald-600 text-sm font-semibold">
-                        +{pack.bonusCredits.toLocaleString('en-IN')} bonus credits
+                        +{(pack.bonusCredits ?? 0).toLocaleString('en-IN')} bonus credits
                       </p>
                     )}
                     <p className="text-xs text-slate-500 mt-0.5">credits</p>
@@ -434,7 +434,7 @@ export default function CreditsPage() {
                         : 'bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
-                    ₹{pack.priceInr.toLocaleString('en-IN')}
+                    ₹{(pack.priceInr ?? 0).toLocaleString('en-IN')}
                   </button>
                 </div>
               ))}
@@ -496,11 +496,11 @@ export default function CreditsPage() {
                         <td className="px-4 py-3 text-slate-600 text-xs hidden sm:table-cell max-w-[200px] truncate">
                           {tx.description}
                         </td>
-                        <td className={`px-4 py-3 text-right font-semibold text-sm ${tx.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {tx.amount >= 0 ? '+' : ''}{tx.amount.toLocaleString('en-IN')}
+                        <td className={`px-4 py-3 text-right font-semibold text-sm ${(tx.amount ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {(tx.amount ?? 0) >= 0 ? '+' : ''}{(tx.amount ?? 0).toLocaleString('en-IN')}
                         </td>
                         <td className="px-4 py-3 text-right text-slate-500 text-xs hidden md:table-cell">
-                          {tx.balanceAfter.toLocaleString('en-IN')}
+                          {(tx.balanceAfter ?? 0).toLocaleString('en-IN')}
                         </td>
                         <td className="px-4 py-3 text-right text-slate-400 text-xs hidden md:table-cell whitespace-nowrap">
                           {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
