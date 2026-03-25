@@ -162,6 +162,7 @@ export async function orchestrateTask(taskId: string): Promise<void> {
             category: def.category,
             assignedModel: toPrismaModel(def.assignedModel) as any,
             status: 'PENDING',
+            role: def.role,          // CRITICAL: synthesis must be SYNTHESIS not INITIAL
             executionOrder: def.executionOrder,
             dependsOn: [], // resolved below
             inputPrompt: def.inputInstruction,

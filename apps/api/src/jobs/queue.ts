@@ -532,7 +532,22 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Process-level lock: prevents two concurrent workers completing at the same
+// time from both calling createReviewSubtasks / createSynthesisSubtask and
+// creating duplicate rounds for the same task.
+const enqueueInProgress = new Set<string>()
+
 async function enqueueNextSubtasks(taskId: string): Promise<void> {
+  if (enqueueInProgress.has(taskId)) return
+  enqueueInProgress.add(taskId)
+  try {
+    await _enqueueNextSubtasks(taskId)
+  } finally {
+    enqueueInProgress.delete(taskId)
+  }
+}
+
+async function _enqueueNextSubtasks(taskId: string): Promise<void> {
   const readyIds = await getReadySubtasks(taskId)
 
   if (readyIds.length === 0) {
