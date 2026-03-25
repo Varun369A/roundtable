@@ -170,14 +170,14 @@ export default function PricingPage() {
                 )}
                 <div className="text-xs text-slate-400 mb-4">~{pack.tasks} tasks</div>
                 <button
-                  onClick={() => router.push('/credits')}
+                  onClick={() => router.push(`/credits?pack=${pack.id}`)}
                   className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
                     pack.highlight
                       ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                       : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                   }`}
                 >
-                  Buy credits
+                  Buy {pack.label} Pack →
                 </button>
               </div>
             ))}

@@ -20,17 +20,12 @@ const MODEL_TO_PROVIDER: Partial<Record<AIModel, string>> = {
   'claude-3-5-sonnet': 'anthropic',
   'claude-3-opus':     'anthropic',
   'gpt-4o':            'openai',
-  'gpt-4-turbo':       'openai',
-  'dalle-3':           'openai',
-  'gemini-pro':        'google',
+  'gpt-image-1':       'openai',
+  'gemini-2.5-pro':    'google',
   'perplexity-sonar':  'perplexity',
   'elevenlabs':        'elevenlabs',
-  'stability-xl':      'stability',
-  'groq':              'groq',
-  'cohere':            'cohere',
   'sarvam-1':          'sarvam',
-  'runway-gen3':       'runway',
-  'midjourney-v6':     'midjourney',
+  'whisper':           'openai',
 }
 
 /**

@@ -209,7 +209,7 @@ async function startFineTune(reason: 'milestone' | 'manual'): Promise<string> {
 async function runPipeline(jobId: string, reason: string): Promise<void> {
   // ── Step 1: Check minimum sample requirements ─────────────────────────────
   const readyCount = await prisma.arivarangamKnowledge.count({
-    where: { qualityScore: { gte: MIN_QUALITY_THRESHOLD }, specialistContext: { not: null } },
+    where: { qualityScore: { gte: MIN_QUALITY_THRESHOLD }, specialistContext: { not: 'DbNull' as any } },
   })
 
   if (readyCount < MIN_SAMPLES_TO_TRAIN) {

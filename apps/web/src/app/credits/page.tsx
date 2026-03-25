@@ -184,6 +184,13 @@ function PurchaseModal({
 
 export default function CreditsPage() {
   const router = useRouter()
+  // Auto-open purchase modal when arriving from pricing page with ?pack=xxx
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('pack')) setShowPurchase(true)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [referral, setReferral] = useState<Referral | null>(null)
   const [packs, setPacks] = useState<CreditPack[]>([])

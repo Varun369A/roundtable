@@ -412,6 +412,7 @@ function decomposeFromTemplate(
     title: `${agent.role}: ${goal.slice(0, 40)}${goal.length > 40 ? '...' : ''}`,
     category: agent.category as TaskCategory,
     assignedModel: agent.model as AIModel,
+    role: 'INITIAL' as const,
     executionOrder: i,
     dependsOn: agent.dependsOnPrevious && i > 0 ? [String(i - 1)] : [],
     inputInstruction: agent.instruction,

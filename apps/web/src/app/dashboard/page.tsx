@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api'
 import NotificationBell from '@/components/NotificationBell'
 import CreditBadge from '@/components/credits/CreditBadge'
 import SessionExpiryWarning from '@/components/auth/SessionExpiryWarning'
+import { CreditEstimate } from '@/components/roundtable/CreditEstimate'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -534,6 +535,16 @@ export default function DashboardPage() {
                   }}
                 />
               </div>
+
+              {/* Live credit estimate — shows as user types */}
+              {!userProfile?.isAdmin && (
+                <div className="mb-3">
+                  <CreditEstimate
+                    goal={goal}
+                    templateId={selectedTemplate?.id}
+                  />
+                </div>
+              )}
 
               {/* Low-credit warning — hidden for admin */}
               {creditBalance !== null && creditBalance < 50 && !userProfile?.isAdmin && (

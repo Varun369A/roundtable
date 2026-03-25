@@ -48,16 +48,11 @@ const REVIEWER_MAP: Partial<Record<AIModel, AIModel>> = {
   'claude-3-5-sonnet': 'gpt-4o',
   'claude-3-opus':     'gpt-4o',
   'gpt-4o':            'claude-3-5-sonnet',
-  'gpt-4-turbo':       'claude-3-5-sonnet',
-  'gemini-pro':        'claude-3-5-sonnet',
-  'perplexity-sonar':  'claude-3-5-sonnet',  // Claude reviews the research
-  'midjourney-v6':     'claude-3-5-sonnet',  // Claude writes a critique / caption
-  'dalle-3':           'claude-3-5-sonnet',
-  'stability-xl':      'claude-3-5-sonnet',
+  'gemini-2.5-pro':    'claude-3-5-sonnet',
+  'perplexity-sonar':  'claude-3-5-sonnet',
+  'gpt-image-1':       'claude-3-5-sonnet',
   'sarvam-1':          'claude-3-5-sonnet',
-  'gamma':             'gpt-4o',
-  'groq':              'claude-3-5-sonnet',
-  'cohere':            'gpt-4o',
+  'whisper':           'claude-3-5-sonnet',
 }
 
 function getReviewerModel(originalModel: AIModel): AIModel {

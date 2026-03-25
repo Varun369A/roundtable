@@ -158,7 +158,6 @@ const PLATFORM_UPDATES: PlatformUpdate[] = [
           data: {
             userId:      user.id,
             displayName: 'Arivarangam Admin',
-            level:       10,
             xp:          10000,
             tier:        'LEGEND',
           },

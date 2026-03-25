@@ -38,7 +38,7 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
   if (!res.ok) {
     const err = await res.text()
     console.error('[email] Resend error:', err)
-    // Don't throw — email failure is non-fatal
+    throw new Error(`Resend ${res.status}: ${err}`)
   }
 }
 

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTaskStream, StreamEvent } from '@/hooks/useTaskStream'
 import { ClarificationModal } from '@/components/roundtable/ClarificationModal'
 import { SteeringInput } from '@/components/roundtable/SteeringInput'
+import { ContinueBuilding } from '@/components/roundtable/ContinueBuilding'
 import { SessionPanel } from '@/components/roundtable/SessionPanel'
 import { VoiceInputButton } from '@/components/roundtable/VoiceInputButton'
 import { OutputViewer, getModelConfig } from '@/components/roundtable'
@@ -516,6 +517,13 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const [steeringText, setSteeringText]           = useState('')
   const [showReviewModal, setShowReviewModal]     = useState(false)
   const [reviewToast, setReviewToast]             = useState(false)
+  // ── Live preview + file browser
+  const [viewMode, setViewMode]                   = useState<'feed' | 'preview' | 'files'>('feed')
+  const [livePreviewDoc, setLivePreviewDoc]       = useState<string | null>(null)
+  const [projectFiles, setProjectFiles]           = useState<{ path: string; content: string; language: string }[]>([])
+  const [selectedFilePath, setSelectedFilePath]   = useState<string | null>(null)
+  const [filesLoading, setFilesLoading]           = useState(false)
+  const [filesLoaded, setFilesLoaded]             = useState(false)
   const feedRef    = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
 
@@ -532,6 +540,32 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const addSystemMessage = (text: string) => {
     setMessages((prev) => [...prev, { id: `sys-${Date.now()}`, type: 'system', title: text, timestamp: new Date() }])
   }
+
+  /** Build a sandboxed HTML doc from any content with ```html / ```css / ```js blocks */
+  const buildPreviewDocFromContent = useCallback((content: string): string | null => {
+    const html = extractBlock(content, 'html')
+    const css  = extractBlock(content, 'css')
+    const js   = extractBlock(content, 'javascript') || extractBlock(content, 'js') || extractBlock(content, 'tsx') || extractBlock(content, 'jsx')
+    if (!html && !css) return null
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif}${css}</style></head><body>${html || '<div id="app"></div>'}<script>${js}</script></body></html>`
+  }, [])
+
+  const loadProjectFiles = useCallback(async () => {
+    if (filesLoaded) return
+    setFilesLoading(true)
+    try {
+      const res = await apiFetch<{ project: { files: { path: string; content: string; language: string }[] } | null }>(
+        `/api/v1/code-projects/${id}`
+      )
+      if (res.success && res.data?.project?.files?.length) {
+        setProjectFiles(res.data.project.files)
+        if (!selectedFilePath) setSelectedFilePath(res.data.project.files[0]?.path ?? null)
+      }
+    } finally {
+      setFilesLoaded(true)
+      setFilesLoading(false)
+    }
+  }, [id, filesLoaded, selectedFilePath])
 
   // Load task + auto-start
   useEffect(() => {
@@ -581,6 +615,21 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           }))
 
         if (backfilled.length > 0) setMessages(backfilled)
+
+        // Build live preview from synthesis output (best previewable content)
+        const synthSubtask = subtasks.find((s: any) => s.role === 'SYNTHESIS' && s.output?.content)
+        if (synthSubtask?.output?.content) {
+          const doc = buildPreviewDocFromContent(synthSubtask.output.content)
+          if (doc) setLivePreviewDoc(doc)
+        } else {
+          // Try any completed subtask with html/css
+          for (const s of [...subtasks].reverse()) {
+            if (s.output?.content) {
+              const doc = buildPreviewDocFromContent(s.output.content)
+              if (doc) { setLivePreviewDoc(doc); break }
+            }
+          }
+        }
 
         // Show download/GitHub panel if any output contains code
         const hasCode = subtasks.some((s: any) =>
@@ -689,6 +738,11 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
             roundNumber: event.roundNumber,
           },
         ])
+        // Auto-update live preview if this subtask has HTML/CSS
+        if ((event.output as any)?.content) {
+          const doc = buildPreviewDocFromContent((event.output as any).content)
+          if (doc) setLivePreviewDoc(doc)
+        }
         break
 
       case 'subtask_failed':
@@ -748,7 +802,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         addSystemMessage('Steering applied ✓')
         break
     }
-  }, [scrollToBottom])
+  }, [scrollToBottom, buildPreviewDocFromContent])
 
   const isTerminal = ['COMPLETED', 'FAILED', 'CANCELLED'].includes(taskStatus)
   const { connected } = useTaskStream({ taskId: id, onEvent: handleStreamEvent, enabled: !!task && !isTerminal })
@@ -854,8 +908,143 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         {/* ── Right main: streaming feed ─────────────────────────────────────── */}
         <div className="flex-1 flex flex-col min-h-0">
 
+          {/* ── Tab bar ─────────────────────────────────────────────────────── */}
+          <div className="shrink-0 flex items-center gap-1 px-4 pt-2 pb-0 border-b border-slate-100 bg-white">
+            <button
+              onClick={() => setViewMode('feed')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${
+                viewMode === 'feed'
+                  ? 'bg-white border border-b-white border-slate-200 text-slate-800 -mb-px'
+                  : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Activity
+            </button>
+            {livePreviewDoc && (
+              <button
+                onClick={() => setViewMode('preview')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${
+                  viewMode === 'preview'
+                    ? 'bg-white border border-b-white border-slate-200 text-indigo-700 -mb-px'
+                    : 'text-slate-400 hover:text-indigo-600'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Preview
+              </button>
+            )}
+            {hasCodeWorkspace && (
+              <button
+                onClick={() => { setViewMode('files'); loadProjectFiles() }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${
+                  viewMode === 'files'
+                    ? 'bg-white border border-b-white border-slate-200 text-slate-800 -mb-px'
+                    : 'text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                Files
+              </button>
+            )}
+          </div>
+
+          {/* ── Live Preview panel ───────────────────────────────────────────── */}
+          {viewMode === 'preview' && livePreviewDoc && (
+            <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
+              <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-slate-100 border-b border-slate-200">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                  </div>
+                  <span className="text-xs text-slate-500 font-medium ml-1">Live Preview</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400">Sandboxed · auto-refreshes</span>
+                  <button
+                    onClick={() => {
+                      const w = window.open('', '_blank')
+                      if (w) { w.document.write(livePreviewDoc); w.document.close() }
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-600 transition-colors"
+                  >
+                    ↗ Pop out
+                  </button>
+                </div>
+              </div>
+              <iframe
+                key={livePreviewDoc}
+                srcDoc={livePreviewDoc}
+                sandbox="allow-scripts allow-same-origin"
+                className="flex-1 w-full"
+                style={{ border: 'none' }}
+                title="Live Preview"
+              />
+            </div>
+          )}
+
+          {/* ── File browser panel ───────────────────────────────────────────── */}
+          {viewMode === 'files' && (
+            <div className="flex-1 flex min-h-0">
+              {/* File tree */}
+              <div className="w-56 shrink-0 border-r border-slate-200 bg-slate-50 overflow-y-auto py-2">
+                {filesLoading ? (
+                  <div className="px-4 py-8 text-center text-xs text-slate-400">Loading files…</div>
+                ) : projectFiles.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-slate-400">No files assembled yet.</div>
+                ) : (
+                  <div className="space-y-0.5 px-1">
+                    {projectFiles.map((f) => (
+                      <button
+                        key={f.path}
+                        onClick={() => setSelectedFilePath(f.path)}
+                        className={`w-full text-left px-2 py-1.5 rounded text-xs font-mono truncate transition-colors ${
+                          selectedFilePath === f.path
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : 'text-slate-600 hover:bg-slate-200'
+                        }`}
+                        title={f.path}
+                      >
+                        {f.path}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* File content */}
+              <div className="flex-1 overflow-y-auto bg-[#1e1e2e]">
+                {selectedFilePath ? (() => {
+                  const file = projectFiles.find((f) => f.path === selectedFilePath)
+                  if (!file) return null
+                  return (
+                    <div className="h-full">
+                      <div className="sticky top-0 flex items-center gap-2 px-4 py-2 bg-[#181825] border-b border-white/10">
+                        <span className="text-xs text-slate-400 font-mono">{file.path}</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(file.content)
+                          }}
+                          className="ml-auto text-[10px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <pre className="p-4 text-xs text-slate-200 font-mono leading-relaxed whitespace-pre overflow-x-auto">
+                        {file.content}
+                      </pre>
+                    </div>
+                  )
+                })() : (
+                  <div className="flex items-center justify-center h-full text-xs text-slate-500">
+                    Select a file to view
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Feed scroll area */}
-          <div ref={feedRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-2 scroll-smooth">
+          <div ref={feedRef} className={`flex-1 overflow-y-auto px-4 py-4 space-y-2 scroll-smooth ${viewMode !== 'feed' ? 'hidden' : ''}`}>
 
             {activityMessages.length === 0 && streamingTexts.size === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center py-20">
@@ -895,6 +1084,14 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
             <div className="h-4" />
           </div>
+
+          {/* ── Continue Building — shown after task completes ───────────────── */}
+          {(taskStatus === 'COMPLETED' || taskStatus === 'FAILED') && task && (
+            <ContinueBuilding
+              taskId={id}
+              originalGoal={task.originalGoal}
+            />
+          )}
 
           {/* ── Bottom controls ──────────────────────────────────────────────── */}
           <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3 space-y-2">

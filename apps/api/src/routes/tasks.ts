@@ -212,6 +212,209 @@ export async function taskRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { task } })
   })
 
+  // ─── POST /:id/continue — Create a continuation task from a completed one ─────
+  // Allows iterative building: user says "add auth", new task gets full context
+  // from the parent task's outputs injected into the goal.
+  app.post('/:id/continue', { preHandler: [enforcePlanLimits] }, async (request, reply) => {
+    const { id: parentTaskId } = request.params as { id: string }
+    const userId = request.user!.id
+
+    const bodySchema = z.object({
+      message: z.string().min(5).max(2000),
+    })
+    const body = bodySchema.safeParse(request.body)
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+      })
+    }
+
+    // Fetch parent task — must be owned by user and COMPLETED or FAILED
+    const parentTask = await prisma.task.findFirst({
+      where: { id: parentTaskId, userId },
+      include: {
+        subtasks: {
+          where: { status: 'COMPLETED' },
+          include: { output: true },
+          orderBy: { executionOrder: 'asc' },
+        },
+      },
+    })
+
+    if (!parentTask) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Task not found' },
+      })
+    }
+
+    if (!['COMPLETED', 'FAILED'].includes(parentTask.status)) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'TASK_NOT_DONE', message: 'Task must be completed before continuing' },
+      })
+    }
+
+    // Firewall scan the user continuation message
+    const rawMessage = sanitizeText(body.data.message)
+    const fwResult = await firewall(rawMessage, { context: 'user_input', blockOnRiskScore: 90 })
+    if (!fwResult.allowed) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: 'FIREWALL_BLOCKED',
+          message: 'Your input was blocked for security reasons.',
+        },
+      })
+    }
+
+    // Build context summary from parent task's completed outputs
+    // Truncate each output to avoid overwhelming the context window
+    const MAX_OUTPUT_CHARS = 800
+    const outputSummaries = parentTask.subtasks
+      .filter(s => s.output?.text)
+      .slice(0, 8) // Max 8 specialist outputs to avoid token bloat
+      .map(s => {
+        const text = (s.output!.text ?? '').slice(0, MAX_OUTPUT_CHARS)
+        const truncated = (s.output!.text ?? '').length > MAX_OUTPUT_CHARS
+        return `### ${s.title}\n${text}${truncated ? '\n[...truncated]' : ''}`
+      })
+      .join('\n\n')
+
+    // Compose the enriched continuation goal
+    // The AI receives full context from the previous task + the new instruction
+    const continuationGoal = [
+      `[CONTINUATION OF PREVIOUS WORK]`,
+      ``,
+      `Original task: ${parentTask.originalGoal.slice(0, 300)}`,
+      ``,
+      `What was built previously:`,
+      outputSummaries || '(No outputs available)',
+      ``,
+      `─────────────────────────`,
+      `NEW INSTRUCTION: ${fwResult.sanitized}`,
+      ``,
+      `Build upon the previous work. Maintain consistency with what was already created. Focus entirely on the new instruction above.`,
+    ].join('\n')
+
+    const title = truncateTitle(`[Continued] ${fwResult.sanitized}`, 80)
+
+    const newTask = await prisma.task.create({
+      data: {
+        userId,
+        workspaceId: parentTask.workspaceId,
+        templateId:  parentTask.templateId,
+        title,
+        originalGoal: continuationGoal,
+        status: 'PENDING',
+        visibility: parentTask.visibility as any,
+        contextObject: {
+          taskId:            '',
+          originalGoal:      continuationGoal,
+          templateId:        parentTask.templateId,
+          userProfile:       { language: 'en' },
+          completedSubtasks: [],
+          activeConstraints: [],
+          parentTaskId,
+          isContinuation:    true,
+          continuationOf:    parentTask.originalGoal.slice(0, 200),
+        },
+        ipAddress: request.ip,
+        userAgent:  request.headers['user-agent'],
+      },
+    })
+
+    // Patch contextObject with the real taskId
+    await prisma.task.update({
+      where: { id: newTask.id },
+      data: {
+        contextObject: {
+          ...(newTask.contextObject as object),
+          taskId: newTask.id,
+        },
+      },
+    })
+
+    await prisma.usageStats.upsert({
+      where:  { userId },
+      update: { totalTasksCreated: { increment: 1 } },
+      create: { userId, totalTasksCreated: 1 },
+    })
+
+    metrics.tasksCreated.inc()
+
+    // Fire-and-forget orchestration
+    orchestrateTask(newTask.id).catch(() => {})
+
+    return reply.status(201).send({
+      success: true,
+      data: { task: newTask, parentTaskId },
+    })
+  })
+
+  // ─── GET /:id/estimate — Estimate credit cost before running ─────────────────
+  // Returns an estimate so users never get surprised by their bill (unlike Bolt)
+  app.get('/:id/estimate', async (request, reply) => {
+    // This endpoint is for NEW tasks — id here is actually the goal hash or templateId
+    // but for simplicity we re-expose this as a standalone POST /estimate route below
+    return reply.status(404).send({ success: false, error: { code: 'USE_POST_ESTIMATE' } })
+  })
+
+  // ─── POST /estimate — Estimate credits for a task before creating it ──────────
+  app.post('/estimate', async (request, reply) => {
+    const schema = z.object({
+      goal:       z.string().min(5).max(4000),
+      templateId: z.string().optional(),
+    })
+    const body = schema.safeParse(request.body)
+    if (!body.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: body.error.issues[0].message },
+      })
+    }
+
+    let subtaskCount = 4  // default auto-mode estimate
+    let hasDiscussionEngine = true
+    let templateName: string | null = null
+
+    if (body.data.templateId) {
+      const template = await prisma.roundtableTemplate.findUnique({
+        where: { id: body.data.templateId },
+        select: { name: true, agents: true },
+      })
+      if (template) {
+        templateName = template.name
+        const agents = template.agents as any[]
+        subtaskCount = Array.isArray(agents) ? agents.length : 4
+      }
+    }
+
+    // Credit formula: matches credit-manager.ts calculateTaskCredits
+    const base = subtaskCount * 10
+    const withDiscussion = hasDiscussionEngine ? Math.ceil(base * 1.5) : base
+    const minimum = Math.max(withDiscussion, 10)
+
+    return reply.send({
+      success: true,
+      data: {
+        estimate: {
+          credits:             minimum,
+          subtaskCount,
+          hasDiscussionEngine,
+          templateName,
+          breakdown: {
+            base,
+            discussionMultiplier: hasDiscussionEngine ? '×1.5' : '×1',
+            total:                minimum,
+          },
+          label: `~${minimum} credits`,
+        },
+      },
+    })
+  })
+
   // ─── DELETE /:id — Delete a task (hard delete for user) ───────────────────────
   app.delete('/:id', async (request, reply) => {
     const { id } = request.params as { id: string }

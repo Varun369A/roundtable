@@ -148,7 +148,7 @@ function ruleBasedParse(goal: string): ParsedIntent {
     goal:         goal.slice(0, 200),
     categories,
     subject,
-    audience:     null,
+    audience:     undefined,
     deliverables: categories.map((c) => deliverableMap[c] || 'Deliverable'),
     language,
     urgency,

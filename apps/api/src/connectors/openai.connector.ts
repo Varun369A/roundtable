@@ -3,13 +3,11 @@ import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector
 import type { AIModel } from '@arivarangam/types'
 
 const MODEL_MAP: Partial<Record<AIModel, string>> = {
-  'gpt-4o':      'gpt-4o',
-  'gpt-4-turbo': 'gpt-4-turbo',
+  'gpt-4o': 'gpt-4o',
 }
 
 const PRICING: Record<string, { input: number; output: number }> = {
-  'gpt-4o':      { input: 5.0,  output: 15.0 },
-  'gpt-4-turbo': { input: 10.0, output: 30.0 },
+  'gpt-4o': { input: 5.0, output: 15.0 },
 }
 
 const SYSTEM = 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.'

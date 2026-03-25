@@ -48,7 +48,7 @@ export async function exportFineTuneDataset(opts: ExportOptions = {}): Promise<E
 
   const where: any = {
     qualityScore:    { gte: minQuality },
-    specialistContext: { not: null },
+    specialistContext: { not: 'DbNull' as any },
   }
   if (opts.categories && opts.categories.length > 0) {
     where.category = { in: opts.categories }
@@ -138,11 +138,11 @@ export async function exportFineTuneDataset(opts: ExportOptions = {}): Promise<E
 export async function getExportReadiness(minQuality = 0.7) {
   const [total, byCategory, recentExports] = await Promise.all([
     prisma.arivarangamKnowledge.count({
-      where: { qualityScore: { gte: minQuality }, specialistContext: { not: null } },
+      where: { qualityScore: { gte: minQuality }, specialistContext: { not: 'DbNull' as any } },
     }),
     prisma.arivarangamKnowledge.groupBy({
       by:    ['category'],
-      where: { qualityScore: { gte: minQuality }, specialistContext: { not: null } },
+      where: { qualityScore: { gte: minQuality }, specialistContext: { not: 'DbNull' as any } },
       _count: { id: true },
     }),
     prisma.fineTuneExport.findMany({
@@ -154,7 +154,7 @@ export async function getExportReadiness(minQuality = 0.7) {
 
   return {
     readySamples: total,
-    byCategory:   byCategory.map((r) => ({ category: r.category, count: r._count.id })),
+    byCategory:   byCategory.map((r) => ({ category: r.category, count: (r._count as any).id ?? 0 })),
     recentExports,
     recommendation: total >= 500  ? 'Ready for fine-tuning — strong dataset'
                   : total >= 100  ? 'Growing — fine-tune viable but more data recommended'

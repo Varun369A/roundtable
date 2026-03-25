@@ -176,7 +176,16 @@ export async function authRoutes(app: FastifyInstance) {
         } else {
           const webUrl = process.env.WEB_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://arivarangam.com'
           const verifyUrl = `${webUrl}/verify-email?token=${rawToken}`
-          await sendVerificationEmail(email, name, verifyUrl)
+          try {
+            await sendVerificationEmail(email, name, verifyUrl)
+          } catch {
+            // Email send failed — auto-verify so user is never stuck
+            console.warn('[auth] Verification email failed — auto-verifying user', user.id)
+            await prisma.user.update({
+              where: { id: user.id },
+              data:  { isEmailVerified: true, emailVerified: true, emailVerifiedAt: new Date() },
+            }).catch(() => {})
+          }
         }
       } catch {
         // Non-fatal — signup succeeds even if verification email fails

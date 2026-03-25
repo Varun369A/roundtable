@@ -595,7 +595,7 @@ export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
         dependsOnPrevious: true,
       },
       {
-        model: 'gpt-4-turbo',
+        model: 'gpt-4o',
         role: 'Financial Modeler',
         category: 'data_analysis',
         instruction: 'Create detailed financial projections: 3-year P&L forecast, cash flow model, unit economics (CAC, LTV, payback period), break-even analysis, and funding requirements.',
@@ -801,14 +801,14 @@ export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
         dependsOnPrevious: false,
       },
       {
-        model: 'gemini-pro',
+        model: 'gemini-2.5-pro',
         role: 'Secondary Researcher',
         category: 'research',
         instruction: 'Research additional dimensions: regulatory environment, technology disruptions, international comparisons, expert opinions, and future projections.',
         dependsOnPrevious: false,
       },
       {
-        model: 'gpt-4-turbo',
+        model: 'gpt-4o',
         role: 'Data Analyst',
         category: 'data_analysis',
         instruction: 'Analyze all research data: identify patterns, calculate market metrics, create data tables, and draw statistically sound conclusions. Flag any conflicting data.',
