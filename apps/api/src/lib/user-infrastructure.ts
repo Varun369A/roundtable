@@ -25,6 +25,7 @@
 import { prisma } from '@arivarangam/db'
 import { redis } from './redis'
 import { createPassportOnSignup } from '../jobs/skill-detector'
+import { creditWallet } from './credit-manager'
 
 // ─── VERSION — bump when you add a new entry to PLATFORM_UPDATES ─────────────
 // Changing this invalidates every user's Redis cache, forcing a re-check.
@@ -88,16 +89,8 @@ const PLATFORM_UPDATES: PlatformUpdate[] = [
         ? 'Admin unlimited credits'
         : 'Welcome bonus — thanks for joining Arivarangam!'
 
-      await prisma.$transaction([
-        prisma.creditWallet.upsert({
-          where:  { userId: user.id },
-          update: { balance: { increment: amount } },
-          create: { userId: user.id, balance: amount, lifetimeEarned: amount },
-        }),
-        prisma.creditTransaction.create({
-          data: { userId: user.id, amount, type: 'SIGNUP_BONUS', description },
-        }),
-      ])
+      // creditWallet handles balanceAfter, walletId, and lifetimeEarned correctly
+      await creditWallet(user.id, amount, 'SIGNUP_BONUS', description)
     },
   },
 
