@@ -67,11 +67,14 @@ enum AIModel {
 
 enum TaskCategory {
   research
-  copywriting
+  copywriting    // legacy — kept for backward compat
+  content        // writing, blogs, articles, copy
   strategy
-  images
+  images         // legacy — kept for backward compat
+  image          // image generation
   video
-  audio
+  audio          // legacy — kept for backward compat
+  voice          // TTS / audio generation
   presentation
   code
   translation

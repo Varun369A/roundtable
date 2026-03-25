@@ -255,15 +255,22 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         output.content = outputScan.sanitized
       }
 
+      // Guard: task may have been cancelled while AI was running (cascade-deletes subtask)
+      const stillExists = await prisma.subtask.findUnique({ where: { id: subtaskId }, select: { id: true } })
+      if (!stillExists) {
+        console.warn(`[SubtaskWorker] Subtask ${subtaskId} was deleted mid-flight (task cancelled). Discarding output.`)
+        return
+      }
+
       // Save output to DB
       await prisma.subtaskOutput.create({
         data: {
           subtaskId,
           type: output.type,
-          content:      output.content,
-          fileUrl:      output.fileUrl,
+          content:       output.content,
+          fileUrl:       output.fileUrl,
           fileSizeBytes: output.fileSizeBytes,
-          metadata:     (output.metadata || {}) as any,
+          metadata:      (output.metadata || {}) as any,
         },
       })
 
@@ -534,7 +541,12 @@ async function enqueueNextSubtasks(taskId: string): Promise<void> {
     if (!(await hasReviewRound(taskId))) {
       const round1Complete = await checkRound1Complete(taskId)
       if (round1Complete) {
-        const reviewIds = await createReviewSubtasks(taskId)
+        let reviewIds: string[] = []
+        try {
+          reviewIds = await createReviewSubtasks(taskId)
+        } catch (reviewErr) {
+          console.warn(`[DiscussionEngine] createReviewSubtasks failed for ${taskId}, skipping review round:`, reviewErr)
+        }
         if (reviewIds.length > 0) {
           await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
             event: 'discussion_round_started',
