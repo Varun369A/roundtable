@@ -17,6 +17,29 @@ import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@arivarangam/db'
 import type { AIModel, TaskCategory } from '@arivarangam/types'
 
+// ─── Model format converters ──────────────────────────────────────────────────
+// DB stores enum keys with underscores (claude_3_5_sonnet).
+// Connector format uses hyphens/dots (claude-3-5-sonnet).
+const PRISMA_TO_CONNECTOR: Record<string, AIModel> = {
+  claude_3_5_sonnet: 'claude-3-5-sonnet',
+  claude_3_opus:     'claude-3-opus',
+  gpt_4o:            'gpt-4o',
+  gemini_2_5_pro:    'gemini-2.5-pro',
+  perplexity_sonar:  'perplexity-sonar',
+  sabha_ai:          'sabha-ai',
+  sarvam_1:          'sarvam-1',
+  gpt_image_1:       'gpt-image-1',
+}
+const CONNECTOR_TO_PRISMA: Record<string, string> = Object.fromEntries(
+  Object.entries(PRISMA_TO_CONNECTOR).map(([k, v]) => [v, k])
+)
+function toConnector(prismaModel: string): AIModel {
+  return PRISMA_TO_CONNECTOR[prismaModel] ?? (prismaModel.replace(/_/g, '-') as AIModel)
+}
+function toPrisma(connectorModel: string): string {
+  return CONNECTOR_TO_PRISMA[connectorModel] ?? connectorModel.replace(/[.\-]/g, '_')
+}
+
 // ─── Reviewer assignment ──────────────────────────────────────────────────────
 
 // Which model should review the output of a given model?
@@ -217,14 +240,17 @@ export async function createReviewSubtasks(taskId: string): Promise<string[]> {
     const content = targetSubtask.output?.content
     if (!content || content.length < 100) continue  // skip trivial outputs
 
-    const reviewerModel = getReviewerModel(targetSubtask.assignedModel as AIModel)
+    // DB stores Prisma format (underscores); getReviewerModel expects connector format (hyphens)
+    const connectorModel  = toConnector(targetSubtask.assignedModel)
+    const reviewerConnector = getReviewerModel(connectorModel)
+    const reviewerPrisma  = toPrisma(reviewerConnector)
 
     const reviewSubtask = await prisma.subtask.create({
       data: {
         taskId,
         title: `Peer Review: ${targetSubtask.title}`,
         category: targetSubtask.category,
-        assignedModel: reviewerModel as any,
+        assignedModel: reviewerPrisma as any,
         status: 'PENDING',
         role: 'REVIEW',
         roundNumber: 2,
@@ -318,7 +344,7 @@ export async function createSynthesisSubtask(taskId: string): Promise<string | n
       taskId,
       title: 'Roundtable Synthesis',
       category: 'general',
-      assignedModel: synthesisModel as any,
+      assignedModel: toPrisma(synthesisModel) as any,
       status: 'PENDING',
       role: 'SYNTHESIS',
       roundNumber: 3,

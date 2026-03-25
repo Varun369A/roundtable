@@ -672,7 +672,8 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
     }
   }, [scrollToBottom])
 
-  const { connected } = useTaskStream({ taskId: id, onEvent: handleStreamEvent, enabled: !!task })
+  const isTerminal = ['COMPLETED', 'FAILED', 'CANCELLED'].includes(taskStatus)
+  const { connected } = useTaskStream({ taskId: id, onEvent: handleStreamEvent, enabled: !!task && !isTerminal })
 
   const statusCfg  = STATUS_LABEL[taskStatus] || STATUS_LABEL.PENDING
   const isLive     = ['ROUTING', 'IN_PROGRESS'].includes(taskStatus)
