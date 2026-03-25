@@ -169,8 +169,16 @@ async function main() {
       isAdmin: true,
       emailVerified: true,
       isEmailVerified: true,
+      usageStats: { create: {} },  // required for task stats tracking
     },
   })
+
+  // Ensure usageStats exists for admin (idempotent — safe if already exists)
+  await prisma.usageStats.upsert({
+    where:  { userId: admin.id },
+    update: {},
+    create: { userId: admin.id },
+  }).catch(() => {})
 
   // Create admin's personal workspace
   const adminSlug = `admin-workspace`
@@ -205,10 +213,49 @@ async function main() {
 
   // Grant admin unlimited credits (1,000,000)
   await prisma.creditWallet.upsert({
-    where: { userId: admin.id },
+    where:  { userId: admin.id },
     update: { balance: 1000000 },
     create: { userId: admin.id, balance: 1000000, lifetimeEarned: 1000000 },
   })
+
+  // Ensure admin has a SIGNUP_BONUS record so the update propagator
+  // doesn't incorrectly top-up admin's credit balance on every restart
+  const existingBonus = await prisma.creditTransaction.findFirst({
+    where: { userId: admin.id, type: 'SIGNUP_BONUS' },
+  })
+  if (!existingBonus) {
+    await prisma.creditTransaction.create({
+      data: {
+        userId:      admin.id,
+        amount:      1000000,
+        type:        'SIGNUP_BONUS',
+        description: 'Admin unlimited credits',
+      },
+    }).catch(() => {})
+  }
+
+  // Ensure admin has accepted current terms (so no 403 on login)
+  const latestTerms = await prisma.termsVersion.findFirst({ orderBy: { effectiveAt: 'desc' } })
+  if (latestTerms) {
+    await prisma.userTermsAcceptance.upsert({
+      where:  { userId_termsVersionId: { userId: admin.id, termsVersionId: latestTerms.id } },
+      update: {},
+      create: { userId: admin.id, termsVersionId: latestTerms.id, ipAddress: '127.0.0.1', userAgent: 'seed' },
+    }).catch(() => {})
+  }
+
+  // Ensure admin has an Arivarangam Passport
+  await prisma.arivarangamPassport.upsert({
+    where:  { userId: admin.id },
+    update: {},
+    create: {
+      userId:      admin.id,
+      displayName: 'Arivarangam Admin',
+      level:       10,
+      xp:          10000,
+      tier:        'LEGEND',
+    },
+  }).catch(() => {})
 
   console.log(`Admin user seeded: ${adminEmail}`)
 
@@ -218,6 +265,8 @@ async function main() {
 
   const templates = getBuiltInTemplates()
 
+  let newTemplates = 0
+  let updatedTemplates = 0
   for (const template of templates) {
     const existing = await prisma.roundtableTemplate.findFirst({
       where: { name: template.name, isBuiltIn: true },
@@ -232,10 +281,24 @@ async function main() {
           agents: template.agents as object,
         },
       })
+      newTemplates++
+    } else {
+      // Always update agents, description, tags so code changes propagate to all users
+      await prisma.roundtableTemplate.update({
+        where: { id: existing.id },
+        data: {
+          description:     template.description,
+          agents:          template.agents as object,
+          examplePrompts:  template.examplePrompts,
+          tags:            template.tags,
+          isPublic:        true,
+        },
+      })
+      updatedTemplates++
     }
   }
 
-  console.log(`Seeded ${templates.length} Roundtable templates.`)
+  console.log(`Seeded ${newTemplates} new + updated ${updatedTemplates} existing Roundtable templates.`)
 
   // ─── Feature flags ──────────────────────────────────────────────────────────
   console.log('Seeding feature flags...')
