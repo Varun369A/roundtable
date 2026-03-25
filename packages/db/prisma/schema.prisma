@@ -393,6 +393,11 @@ model Task {
   versions            TaskVersion[]
   corrections         TaskCorrection[]
 
+  // Continuation chain — links tasks created via "Continue Building"
+  parentTaskId  String?
+  parentTask    Task?   @relation("TaskContinuation", fields: [parentTaskId], references: [id])
+  childTasks    Task[]  @relation("TaskContinuation")
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])

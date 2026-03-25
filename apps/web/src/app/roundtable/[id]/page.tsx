@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false, loading: () => (
+  <div className="flex items-center justify-center h-full bg-[#1e1e2e] text-slate-500 text-xs">Loading editor…</div>
+)})
 import { useTaskStream, StreamEvent } from '@/hooks/useTaskStream'
 import { ClarificationModal } from '@/components/roundtable/ClarificationModal'
 import { SteeringInput } from '@/components/roundtable/SteeringInput'
@@ -524,6 +529,18 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const [selectedFilePath, setSelectedFilePath]   = useState<string | null>(null)
   const [filesLoading, setFilesLoading]           = useState(false)
   const [filesLoaded, setFilesLoaded]             = useState(false)
+  // ── Runtime error detection
+  const [previewErrors, setPreviewErrors]         = useState<{ message: string; line?: number; stack?: string }[]>([])
+  const [showErrorPanel, setShowErrorPanel]       = useState(false)
+  const [fixingError, setFixingError]             = useState(false)
+  // ── Version history
+  const [versionHistory, setVersionHistory]       = useState<{ id: string; title: string; status: string; isRoot: boolean }[]>([])
+  const [showVersionMenu, setShowVersionMenu]     = useState(false)
+  // ── Vercel deploy
+  const [deployUrl, setDeployUrl]                 = useState<string | null>(null)
+  const [deploying, setDeploying]                 = useState(false)
+  const [showTokenInput, setShowTokenInput]       = useState(false)
+  const [vercelToken, setVercelToken]             = useState('')
   const feedRef    = useRef<HTMLDivElement>(null)
   const hasStarted = useRef(false)
 
@@ -541,13 +558,15 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
     setMessages((prev) => [...prev, { id: `sys-${Date.now()}`, type: 'system', title: text, timestamp: new Date() }])
   }
 
-  /** Build a sandboxed HTML doc from any content with ```html / ```css / ```js blocks */
+  /** Build a sandboxed HTML doc with injected error reporter for runtime error detection */
   const buildPreviewDocFromContent = useCallback((content: string): string | null => {
     const html = extractBlock(content, 'html')
     const css  = extractBlock(content, 'css')
     const js   = extractBlock(content, 'javascript') || extractBlock(content, 'js') || extractBlock(content, 'tsx') || extractBlock(content, 'jsx')
     if (!html && !css) return null
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif}${css}</style></head><body>${html || '<div id="app"></div>'}<script>${js}</script></body></html>`
+    // Inject error handler BEFORE user scripts so all errors are caught
+    const errorReporter = `<script>(function(){window.onerror=function(m,s,l,c,e){window.parent.postMessage({type:'sabha-preview-error',message:m,line:l,col:c,stack:e&&e.stack},'*');return true};window.addEventListener('unhandledrejection',function(e){window.parent.postMessage({type:'sabha-preview-error',message:e.reason&&e.reason.message||String(e.reason),stack:e.reason&&e.reason.stack},'*')})})();</script>`
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">${errorReporter}<style>*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif}${css}</style></head><body>${html || '<div id="app"></div>'}<script>${js}</script></body></html>`
   }, [])
 
   const loadProjectFiles = useCallback(async () => {
@@ -567,7 +586,91 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
     }
   }, [id, filesLoaded, selectedFilePath])
 
-  // Load task + auto-start
+  /** Auto-fix: send the first runtime error back through the continue endpoint */
+  const handleAutoFix = useCallback(async () => {
+    if (!previewErrors.length || fixingError) return
+    const err = previewErrors[0]
+    setFixingError(true)
+    try {
+      const message = `Fix this runtime JavaScript error in the preview:\n\nError: ${err.message}${err.line ? ` (line ${err.line})` : ''}${err.stack ? `\n\nStack:\n${err.stack.slice(0, 400)}` : ''}\n\nFind and fix the root cause in the code. Do not just wrap in try/catch.`
+      const res = await apiFetch<{ task: { id: string } }>(`/api/v1/tasks/${id}/continue`, {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+      })
+      if (res.success && res.data?.task?.id) {
+        window.location.href = `/roundtable/${res.data.task.id}`
+      }
+    } catch {
+      // non-fatal
+    } finally {
+      setFixingError(false)
+    }
+  }, [id, previewErrors, fixingError])
+
+  /** Deploy to Vercel */
+  const handleVercelDeploy = useCallback(async (token: string) => {
+    setDeploying(true)
+    try {
+      const res = await apiFetch<{ deploymentUrl: string }>(`/api/v1/deploy/vercel/${id}`, {
+        method: 'POST',
+        body: JSON.stringify({ token: token || undefined }),
+      })
+      if (res.success && res.data?.deploymentUrl) {
+        setDeployUrl(res.data.deploymentUrl)
+        setShowTokenInput(false)
+        setVercelToken('')
+      }
+    } catch {
+      // non-fatal
+    } finally {
+      setDeploying(false)
+    }
+  }, [id])
+
+  // ── Listen for runtime errors from Live Preview iframe via postMessage
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'sabha-preview-error') {
+        const { message, line, stack } = e.data
+        setPreviewErrors((prev) => {
+          // Deduplicate — don't add the same error repeatedly
+          if (prev.some((p) => p.message === message)) return prev
+          return [...prev, { message, line, stack }]
+        })
+        setShowErrorPanel(true)
+      }
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
+  }, [])
+
+  // ── Clear preview errors when a new preview doc is generated
+  useEffect(() => {
+    setPreviewErrors([])
+    setShowErrorPanel(false)
+  }, [livePreviewDoc])
+
+  // ── Load version history when task is terminal
+  useEffect(() => {
+    if (!['COMPLETED', 'FAILED'].includes(taskStatus)) return
+    apiFetch<{ history: { id: string; title: string; status: string; isRoot: boolean }[] }>(
+      `/api/v1/tasks/${id}/history`
+    ).then((res) => {
+      if (res.success && res.data?.history && res.data.history.length > 1) {
+        setVersionHistory(res.data.history)
+      }
+    }).catch(() => {})
+  }, [id, taskStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load deployment info when task completes with code workspace
+  useEffect(() => {
+    if (taskStatus !== 'COMPLETED' || !hasCodeWorkspace) return
+    apiFetch<{ vercelUrl: string | null }>(`/api/v1/deploy/${id}`).then((res) => {
+      if (res.success && res.data?.vercelUrl) setDeployUrl(res.data.vercelUrl)
+    }).catch(() => {})
+  }, [id, taskStatus, hasCodeWorkspace]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load task + auto-start
   useEffect(() => {
     async function init() {
       const result = await apiFetch<{ task: TaskInfo }>(`/api/v1/tasks/${id}`)
@@ -827,6 +930,40 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
           <div className="h-4 w-px bg-slate-200" />
           <p className="flex-1 text-sm font-medium truncate text-slate-700">{task?.originalGoal || '…'}</p>
           <div className="flex items-center gap-3 shrink-0">
+            {/* Version history dropdown */}
+            {versionHistory.length > 1 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowVersionMenu((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  v{versionHistory.findIndex((v) => v.id === id) + 1}/{versionHistory.length}
+                  <span className="text-[10px]">▾</span>
+                </button>
+                {showVersionMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
+                    <div className="px-3 py-2 border-b border-slate-100 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Version History</div>
+                    {versionHistory.map((v, i) => (
+                      <a
+                        key={v.id}
+                        href={`/roundtable/${v.id}`}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs hover:bg-slate-50 transition-colors ${v.id === id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700'}`}
+                      >
+                        <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold shrink-0">
+                          {i + 1}
+                        </span>
+                        <span className="truncate flex-1">{v.title.replace('[Continued] ', '')}</span>
+                        <span className={`text-[9px] px-1 py-0.5 rounded-full ${
+                          v.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-600' :
+                          v.status === 'FAILED'    ? 'bg-red-100 text-red-500' :
+                                                     'bg-amber-100 text-amber-600'
+                        }`}>{v.status === 'COMPLETED' ? '✓' : v.status === 'FAILED' ? '✕' : '…'}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {/* Connection indicator */}
             <div className={`w-1.5 h-1.5 rounded-full transition-colors ${connected ? 'bg-emerald-400' : 'bg-slate-300'}`} title={connected ? 'Connected' : 'Reconnecting…'} />
 
@@ -949,7 +1086,7 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
           {/* ── Live Preview panel ───────────────────────────────────────────── */}
           {viewMode === 'preview' && livePreviewDoc && (
-            <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
+            <div className="flex-1 flex flex-col min-h-0 bg-slate-50 relative">
               <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-slate-100 border-b border-slate-200">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
@@ -958,6 +1095,14 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                     <div className="w-3 h-3 rounded-full bg-green-400" />
                   </div>
                   <span className="text-xs text-slate-500 font-medium ml-1">Live Preview</span>
+                  {previewErrors.length > 0 && (
+                    <button
+                      onClick={() => setShowErrorPanel((v) => !v)}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-semibold hover:bg-red-200 transition-colors"
+                    >
+                      ⚠ {previewErrors.length} error{previewErrors.length > 1 ? 's' : ''}
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-slate-400">Sandboxed · auto-refreshes</span>
@@ -972,6 +1117,35 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                   </button>
                 </div>
               </div>
+
+              {/* Runtime error panel */}
+              {showErrorPanel && previewErrors.length > 0 && (
+                <div className="shrink-0 bg-red-950 border-b border-red-800 px-4 py-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-red-300">Runtime Errors</span>
+                    <button onClick={() => setShowErrorPanel(false)} className="text-red-400 hover:text-red-200 text-xs">✕</button>
+                  </div>
+                  {previewErrors.slice(0, 3).map((err, i) => (
+                    <div key={i} className="text-[11px] text-red-200 font-mono bg-red-900/50 rounded px-2 py-1 leading-relaxed">
+                      {err.message}{err.line ? ` (line ${err.line})` : ''}
+                    </div>
+                  ))}
+                  {taskStatus === 'COMPLETED' && (
+                    <button
+                      onClick={handleAutoFix}
+                      disabled={fixingError}
+                      className="mt-1 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+                    >
+                      {fixingError ? (
+                        <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Launching auto-fix…</>
+                      ) : (
+                        <><span>✦</span> Auto-fix with AI</>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <iframe
                 key={livePreviewDoc}
                 srcDoc={livePreviewDoc}
@@ -1011,28 +1185,40 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
                   </div>
                 )}
               </div>
-              {/* File content */}
-              <div className="flex-1 overflow-y-auto bg-[#1e1e2e]">
+              {/* File content — Monaco editor */}
+              <div className="flex-1 flex flex-col min-h-0 bg-[#1e1e2e]">
                 {selectedFilePath ? (() => {
                   const file = projectFiles.find((f) => f.path === selectedFilePath)
                   if (!file) return null
                   return (
-                    <div className="h-full">
-                      <div className="sticky top-0 flex items-center gap-2 px-4 py-2 bg-[#181825] border-b border-white/10">
-                        <span className="text-xs text-slate-400 font-mono">{file.path}</span>
+                    <>
+                      <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-[#181825] border-b border-white/10">
+                        <span className="text-xs text-slate-400 font-mono truncate flex-1">{file.path}</span>
                         <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(file.content)
-                          }}
-                          className="ml-auto text-[10px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 transition-colors"
+                          onClick={() => navigator.clipboard.writeText(file.content)}
+                          className="text-[10px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 transition-colors shrink-0"
                         >
                           Copy
                         </button>
                       </div>
-                      <pre className="p-4 text-xs text-slate-200 font-mono leading-relaxed whitespace-pre overflow-x-auto">
-                        {file.content}
-                      </pre>
-                    </div>
+                      <div className="flex-1 min-h-0">
+                        <MonacoEditor
+                          height="100%"
+                          language={file.language || 'plaintext'}
+                          value={file.content}
+                          theme="vs-dark"
+                          options={{
+                            readOnly: true,
+                            minimap: { enabled: false },
+                            fontSize: 12,
+                            lineNumbers: 'on',
+                            scrollBeyondLastLine: false,
+                            wordWrap: 'on',
+                            automaticLayout: true,
+                          }}
+                        />
+                      </div>
+                    </>
                   )
                 })() : (
                   <div className="flex items-center justify-center h-full text-xs text-slate-500">
@@ -1079,7 +1265,49 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
             {/* Delivery panel for code workspaces */}
             {hasCodeWorkspace && taskStatus === 'COMPLETED' && (
-              <DeliveryPanel taskId={id} hasCode />
+              <>
+                <DeliveryPanel taskId={id} hasCode />
+                {/* Vercel deploy */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 mt-2">
+                  <p className="text-xs font-semibold text-slate-600 mb-2">Deploy to Vercel</p>
+                  {deployUrl ? (
+                    <a href={deployUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
+                      ✓ View deployment →
+                    </a>
+                  ) : showTokenInput ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={vercelToken}
+                        onChange={(e) => setVercelToken(e.target.value)}
+                        placeholder="Vercel token (vercel.com/account/tokens)"
+                        type="password"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-400"
+                        onKeyDown={(e) => e.key === 'Enter' && handleVercelDeploy(vercelToken)}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleVercelDeploy(vercelToken)}
+                        disabled={deploying || !vercelToken.trim()}
+                        className="px-3 py-2 rounded-lg bg-black hover:bg-neutral-800 disabled:opacity-40 text-white text-xs font-semibold transition-colors"
+                      >
+                        {deploying ? <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" /> : 'Deploy'}
+                      </button>
+                      <button onClick={() => setShowTokenInput(false)} className="px-2 py-2 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 text-xs">✕</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowTokenInput(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-sm font-semibold transition-colors"
+                    >
+                      ▲ Deploy to Vercel
+                    </button>
+                  )}
+                  {!deployUrl && !showTokenInput && (
+                    <p className="text-[10px] text-slate-400 mt-1.5">Need a token? vercel.com/account/tokens</p>
+                  )}
+                </div>
+              </>
             )}
 
             <div className="h-4" />

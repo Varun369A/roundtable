@@ -60,6 +60,7 @@ import { repositoryRoutes } from './routes/repositories'
 import { moderationRoutes } from './routes/moderation'
 import { marketingRoutes } from './routes/marketing'
 import { passportRoutes } from './routes/passport'
+import { deployRoutes } from './routes/deploy'
 import { seedBuiltInPacks } from './lib/vertical-pack-manager'
 import { startCronWorkers } from './jobs'
 import { runUpdatePropagator } from './lib/update-propagator'
@@ -268,6 +269,7 @@ const start = async () => {
     await app.register(moderationRoutes,         { prefix: '/api/v1' })
     await app.register(marketingRoutes,          { prefix: '/api/v1' })
     await app.register(passportRoutes,           { prefix: '/api/v1' })
+    await app.register(deployRoutes,             { prefix: '/api/v1' })
 
     // ── Global error handler ───────────────────────────────────────────────────
 

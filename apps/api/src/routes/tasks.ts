@@ -309,6 +309,7 @@ export async function taskRoutes(app: FastifyInstance) {
         originalGoal: continuationGoal,
         status: 'PENDING',
         visibility: parentTask.visibility as any,
+        parentTaskId,
         contextObject: {
           taskId:            '',
           originalGoal:      continuationGoal,
@@ -351,6 +352,53 @@ export async function taskRoutes(app: FastifyInstance) {
       success: true,
       data: { task: newTask, parentTaskId },
     })
+  })
+
+  // ─── GET /:id/history — Version history chain for a task ────────────────────
+  // Returns the full continuation chain: root → ... → current task
+  // Used by the version history dropdown in the roundtable UI
+  app.get('/:id/history', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const userId = request.user!.id
+
+    // Verify task belongs to user
+    const task = await prisma.task.findFirst({
+      where: { id, userId },
+      select: { id: true, parentTaskId: true, title: true, status: true, createdAt: true, originalGoal: true },
+    })
+    if (!task) {
+      return reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Task not found' } })
+    }
+
+    // Walk up to find root task
+    const chain: { id: string; title: string; status: string; createdAt: Date; isRoot: boolean }[] = []
+    let current: { id: string; parentTaskId: string | null; title: string; status: string; createdAt: Date } | null = task as any
+    const visited = new Set<string>()
+
+    while (current && !visited.has(current.id)) {
+      visited.add(current.id)
+      chain.unshift({ id: current.id, title: current.title, status: current.status, createdAt: current.createdAt, isRoot: !current.parentTaskId })
+      if (!current.parentTaskId) break
+      current = await prisma.task.findFirst({
+        where: { id: current.parentTaskId, userId },
+        select: { id: true, parentTaskId: true, title: true, status: true, createdAt: true },
+      })
+    }
+
+    // Also get direct children (newer versions)
+    const children = await prisma.task.findMany({
+      where: { parentTaskId: id, userId },
+      select: { id: true, title: true, status: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    for (const child of children) {
+      if (!visited.has(child.id)) {
+        chain.push({ id: child.id, title: child.title, status: child.status, createdAt: child.createdAt, isRoot: false })
+      }
+    }
+
+    return reply.send({ success: true, data: { history: chain, currentId: id } })
   })
 
   // ─── GET /:id/estimate — Estimate credit cost before running ─────────────────
