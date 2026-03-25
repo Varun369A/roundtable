@@ -137,17 +137,17 @@ export default function FeedbackWidget() {
         </div>
       )}
 
-      {/* Trigger button */}
+      {/* Trigger button — compact icon only */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${
+        title="Send feedback"
+        className={`w-9 h-9 rounded-full shadow-lg text-base flex items-center justify-center transition-all ${
           open
             ? 'bg-indigo-600 text-white'
             : 'bg-[#1a1a1f] border border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
         }`}
       >
-        <span>💬</span>
-        <span>Feedback</span>
+        💬
       </button>
     </div>
   )
