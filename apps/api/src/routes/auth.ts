@@ -14,7 +14,7 @@ import { requireAuth } from '../middleware/auth'
 import { metrics } from '../lib/metrics'
 import { checkLoginRateLimit, recordLoginFailure, clearLoginFailures } from '../middleware/auth-rate-limit'
 import { isEnabled, FLAGS } from '../lib/feature-flags'
-import { sendWelcomeEmail, sendVerificationEmail } from '../lib/email'
+import { sendWelcomeEmail, sendVerificationEmail, sendAdminNewUserNotification } from '../lib/email'
 import { grantSignupBonus } from './credits'
 import { createPassportOnSignup } from '../jobs/skill-detector'
 import { ensureUserInfrastructure } from '../lib/user-infrastructure'
@@ -187,6 +187,23 @@ export async function authRoutes(app: FastifyInstance) {
     if (await isEnabled(FLAGS.EMAIL_NOTIFICATIONS)) {
       sendWelcomeEmail({ to: email, name }).catch(() => {})
     }
+
+    // Notify admin of new signup (non-blocking, fire-and-forget)
+    ;(async () => {
+      try {
+        const { prisma: db } = await import('@arivarangam/db')
+        const totalUsers = await db.user.count({ where: { status: 'ACTIVE' } })
+        await sendAdminNewUserNotification({
+          userName:    name,
+          userEmail:   email,
+          userId:      user.id,
+          totalUsers,
+          signupTime:  new Date(),
+        })
+      } catch {
+        // Non-fatal — signup succeeds even if admin notification fails
+      }
+    })()
 
     // Issue tokens
     const accessToken = app.jwt.sign({ sub: user.id, email: user.email, tier: user.tier })

@@ -232,6 +232,33 @@ export async function sendPaymentFailedEmail(to: string, name: string | null, pl
   })
 }
 
+export async function sendAdminNewUserNotification(opts: {
+  userName: string
+  userEmail: string
+  userId: string
+  totalUsers: number
+  signupTime: Date
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@arivarangam.com'
+  const time = opts.signupTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
+
+  await sendEmail({
+    to: adminEmail,
+    subject: `🎉 New signup — ${opts.userName} (${opts.userEmail})`,
+    html: wrapHtml(`
+      <h1>New user signed up</h1>
+      <p>A new user just created an account on Arivarangam.</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0">
+        <tr><td style="padding:8px 0;color:#71717a;font-size:13px">Name</td><td style="padding:8px 0;color:#fff;font-size:13px"><strong>${opts.userName}</strong></td></tr>
+        <tr><td style="padding:8px 0;color:#71717a;font-size:13px">Email</td><td style="padding:8px 0;color:#fff;font-size:13px">${opts.userEmail}</td></tr>
+        <tr><td style="padding:8px 0;color:#71717a;font-size:13px">Time (IST)</td><td style="padding:8px 0;color:#fff;font-size:13px">${time}</td></tr>
+        <tr><td style="padding:8px 0;color:#71717a;font-size:13px">Total users</td><td style="padding:8px 0;color:#6366f1;font-size:13px"><strong>${opts.totalUsers}</strong></td></tr>
+      </table>
+      <a href="${BASE_URL}/admin/users" class="btn">View in Admin →</a>
+    `),
+  })
+}
+
 export async function sendAccountDeletionEmail(to: string, name: string | null): Promise<void> {
   await sendEmail({
     to,
