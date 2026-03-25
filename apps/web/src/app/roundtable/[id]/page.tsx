@@ -844,20 +844,21 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
         <ClarificationModal
           taskId={id}
           questions={clarifications}
-          onAnswered={() => {
+          onComplete={() => {
             setShowClarification(false)
             setTaskStatus('IN_PROGRESS')
             addSystemMessage('Continuing with your answers…')
           }}
-          onClose={() => setShowClarification(false)}
         />
       )}
 
       {showReviewModal && (
         <RequestReviewModal
           taskId={id}
+          taskTitle={task?.originalGoal ?? ''}
+          isOpen={showReviewModal}
           onClose={() => setShowReviewModal(false)}
-          onSubmit={() => {
+          onSuccess={() => {
             setShowReviewModal(false)
             setReviewToast(true)
             setTimeout(() => setReviewToast(false), 3000)
