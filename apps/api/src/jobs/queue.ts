@@ -203,15 +203,39 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         }
       }
 
-      // Execute via connector
+      // ── Streaming token emitter — throttled to 80ms batches to avoid Redis flood ──
+      const channel = `arivarangam:task:${taskId}`
+      let   tokenBuf  = ''
+      let   flushTimer: ReturnType<typeof setTimeout> | null = null
+      const flushTokens = () => {
+        if (tokenBuf) {
+          redis.publish(channel, JSON.stringify({ event: 'subtask_token', subtaskId, chunk: tokenBuf })).catch(() => {})
+          tokenBuf = ''
+        }
+        flushTimer = null
+      }
+      const onToken = (chunk: string) => {
+        tokenBuf += chunk
+        if (!flushTimer) flushTimer = setTimeout(flushTokens, 80)
+      }
+
+      // Notify UI that this subtask is now actively streaming
+      await redis.publish(channel, JSON.stringify({ event: 'subtask_streaming', subtaskId, model: connectorModel }))
+
+      // Execute via connector (streaming)
       const output = await connectorRegistry.execute(connectorModel, {
         prompt: fullPrompt,
         model: connectorModel,
         taskId,
         subtaskId,
         userApiKey,
-        options: { maxTokens: 4096 },
+        onToken,
+        options: { maxTokens: 8192 },
       })
+
+      // Flush any remaining buffered tokens
+      if (flushTimer) clearTimeout(flushTimer)
+      flushTokens()
 
       // ── AI Output Firewall: scan for injected threats / PII in AI-generated text ──
       // blockOnRiskScore=90 (higher threshold for AI outputs — models don't inject;

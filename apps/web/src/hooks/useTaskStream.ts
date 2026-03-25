@@ -6,6 +6,8 @@ export type StreamEventType =
   | 'connected'
   | 'routing_decided'
   | 'subtask_started'
+  | 'subtask_streaming'   // NEW: subtask just started streaming tokens
+  | 'subtask_token'       // NEW: token chunk from streaming AI
   | 'subtask_completed'
   | 'subtask_failed'
   | 'task_completed'
@@ -32,11 +34,13 @@ export interface StreamEvent {
   event: StreamEventType
   taskId?: string
   subtaskId?: string
-  subtaskIds?: string[]       // for discussion_round_started
+  subtaskIds?: string[]
   title?: string
   model?: string
   status?: string
   originalGoal?: string
+  // subtask_token
+  chunk?: string
   // routing_decided fields
   team?: TeamMember[]
   intentCategories?: string[]
@@ -44,7 +48,7 @@ export interface StreamEvent {
   role?: 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
   roundNumber?: number
   reviewsSubtaskId?: string
-  round?: number              // for discussion_round_started
+  round?: number
   output?: {
     type: 'text' | 'image' | 'audio' | 'video' | 'json'
     content?: string
@@ -56,11 +60,11 @@ export interface StreamEvent {
     type: 'code' | 'image' | 'document' | 'article' | 'research' | 'learning' | 'text'
     html: string
   }
-  errors?: string[]           // for auto_fix_started
-  originalSubtaskId?: string  // for auto_fix_started
-  questions?: any[]           // for clarification_needed
-  message?: string            // for steering_received / steering_applied
-  sessionId?: string          // for session_created
+  errors?: string[]
+  originalSubtaskId?: string
+  questions?: any[]
+  message?: string
+  sessionId?: string
 }
 
 interface UseTaskStreamOptions {
@@ -71,81 +75,78 @@ interface UseTaskStreamOptions {
 
 export function useTaskStream({ taskId, onEvent, enabled = true }: UseTaskStreamOptions) {
   const [connected, setConnected] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const esRef = useRef<EventSource | null>(null)
-  const onEventRef = useRef(onEvent)
-  onEventRef.current = onEvent
+  const [error, setError]         = useState<string | null>(null)
+  const esRef                     = useRef<EventSource | null>(null)
+  const reconnectTimer            = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const unmountedRef              = useRef(false)
+  const onEventRef                = useRef(onEvent)
+  onEventRef.current              = onEvent
+
+  const ALL_EVENTS: StreamEventType[] = [
+    'connected', 'routing_decided',
+    'subtask_started', 'subtask_streaming', 'subtask_token',
+    'subtask_completed', 'subtask_failed',
+    'task_completed', 'task_failed', 'task_cancelled',
+    'auto_fix_started', 'discussion_round_started',
+    'synthesis_started', 'synthesis_complete',
+    'clarification_needed', 'steering_received', 'steering_applied', 'session_created',
+  ]
 
   const connect = useCallback(() => {
-    if (!enabled || !taskId) return
+    if (unmountedRef.current || !enabled || !taskId) return
+
+    // Clean up existing connection
+    if (esRef.current) {
+      esRef.current.close()
+      esRef.current = null
+    }
 
     const token = localStorage.getItem('accessToken')
     if (!token) return
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    // Pass token as query param — the browser EventSource API cannot set custom headers
-    const url = `${apiUrl}/api/v1/stream/task/${taskId}?token=${encodeURIComponent(token)}`
-
-    const es = new EventSource(url, { withCredentials: false })
+    const url    = `${apiUrl}/api/v1/stream/task/${taskId}?token=${encodeURIComponent(token)}`
+    const es     = new EventSource(url, { withCredentials: false })
     esRef.current = es
 
-    const eventTypes: StreamEventType[] = [
-      'connected',
-      'routing_decided',
-      'subtask_started',
-      'subtask_completed',
-      'subtask_failed',
-      'task_completed',
-      'task_failed',
-      'task_cancelled',
-      'auto_fix_started',
-      'discussion_round_started',
-      'synthesis_started',
-      'synthesis_complete',
-      'clarification_needed',
-      'steering_received',
-      'steering_applied',
-      'session_created',
-    ]
-
-    for (const eventType of eventTypes) {
+    for (const eventType of ALL_EVENTS) {
       es.addEventListener(eventType, (e: MessageEvent) => {
+        if (unmountedRef.current) return
         try {
           const data = JSON.parse(e.data) as StreamEvent
           onEventRef.current({ ...data, event: eventType })
-        } catch {
-          // Silently ignore malformed SSE payloads
-        }
+        } catch { /* ignore malformed */ }
       })
     }
 
     es.onopen = () => {
+      if (unmountedRef.current) return
       setConnected(true)
       setError(null)
     }
 
     es.onerror = () => {
+      if (unmountedRef.current) return
       setConnected(false)
-      // Auto-reconnect after 3 seconds if the connection was closed
-      setTimeout(() => {
-        if (esRef.current?.readyState === EventSource.CLOSED) {
-          connect()
-        }
-      }, 3000)
-    }
-
-    return () => {
       es.close()
       esRef.current = null
-      setConnected(false)
+      // Exponential back-off reconnect: 2s → 4s → 8s (max)
+      const delay = Math.min(8000, 2000)
+      reconnectTimer.current = setTimeout(() => {
+        if (!unmountedRef.current) connect()
+      }, delay)
     }
   }, [taskId, enabled])
 
   useEffect(() => {
-    const cleanup = connect()
+    unmountedRef.current = false
+    connect()
     return () => {
-      cleanup?.()
+      unmountedRef.current = true
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
       esRef.current?.close()
+      esRef.current = null
+      setConnected(false)
     }
   }, [connect])
 

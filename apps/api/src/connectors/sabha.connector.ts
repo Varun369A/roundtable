@@ -34,22 +34,46 @@ export class ArivarangamConnector extends BaseConnector {
 
     const systemPrompt = this.buildSystemPrompt(examples)
 
-    const response = await this.withRetry(async () => {
-      return this.client.messages.create({
-        model:      'claude-sonnet-4-5',
-        max_tokens: 8192,
-        system:     systemPrompt,
-        messages:   [{ role: 'user', content: input.prompt }],
-      })
+    let content      = ''
+    let inputTokens  = 0
+    let outputTokens = 0
+
+    await this.withRetry(async () => {
+      if (input.onToken) {
+        const stream = this.client.messages.stream({
+          model:      'claude-sonnet-4-5',
+          max_tokens: 8192,
+          system:     systemPrompt,
+          messages:   [{ role: 'user', content: input.prompt }],
+        })
+        for await (const event of stream) {
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta' &&
+            event.delta.text
+          ) {
+            input.onToken(event.delta.text)
+            content += event.delta.text
+          }
+        }
+        const msg = await stream.finalMessage()
+        inputTokens  = msg.usage.input_tokens
+        outputTokens = msg.usage.output_tokens
+      } else {
+        const response = await this.client.messages.create({
+          model:      'claude-sonnet-4-5',
+          max_tokens: 8192,
+          system:     systemPrompt,
+          messages:   [{ role: 'user', content: input.prompt }],
+        })
+        content = response.content
+          .filter((b) => b.type === 'text')
+          .map((b) => (b as Anthropic.TextBlock).text)
+          .join('\n')
+        inputTokens  = response.usage.input_tokens
+        outputTokens = response.usage.output_tokens
+      }
     })
-
-    const content = response.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as Anthropic.TextBlock).text)
-      .join('\n')
-
-    const inputTokens  = response.usage.input_tokens
-    const outputTokens = response.usage.output_tokens
     // Claude claude-sonnet-4-5 pricing
     const costUsd = (inputTokens * 3) / 1_000_000 + (outputTokens * 15) / 1_000_000
 

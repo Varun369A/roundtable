@@ -7,11 +7,12 @@ const MODEL_MAP: Partial<Record<AIModel, string>> = {
   'gpt-4-turbo': 'gpt-4-turbo',
 }
 
-// Pricing per 1M tokens
 const PRICING: Record<string, { input: number; output: number }> = {
   'gpt-4o':      { input: 5.0,  output: 15.0 },
   'gpt-4-turbo': { input: 10.0, output: 30.0 },
 }
+
+const SYSTEM = 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.'
 
 export class OpenAIConnector extends BaseConnector {
   readonly model: AIModel
@@ -28,39 +29,65 @@ export class OpenAIConnector extends BaseConnector {
     const apiKey = input.userApiKey || process.env.OPENAI_API_KEY
     if (!apiKey) throw new Error('OPENAI_API_KEY not set')
 
-    const start = Date.now()
+    const start    = Date.now()
     const apiModel = MODEL_MAP[this.model] || 'gpt-4o'
-    // Reuse the singleton client unless a user-provided key was given
-    const client = input.userApiKey ? new OpenAI({ apiKey }) : this.client
+    const client   = input.userApiKey ? new OpenAI({ apiKey }) : this.client
+    const pricing  = PRICING[apiModel] || PRICING['gpt-4o']
+
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM },
+      { role: 'user',   content: input.prompt },
+    ]
 
     return this.withRetry(async () => {
-      const response = await client.chat.completions.create({
-        model: apiModel,
-        max_tokens: input.options?.maxTokens || 4096,
-        temperature: input.options?.temperature || 0.7,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output.',
-          },
-          { role: 'user', content: input.prompt },
-        ],
-      }, { signal: AbortSignal.timeout(60_000) })
+      // ── Streaming mode ──────────────────────────────────────────────────────
+      if (input.onToken) {
+        const stream = await client.chat.completions.create({
+          model:      apiModel,
+          max_tokens: input.options?.maxTokens || 4096,
+          temperature: input.options?.temperature || 0.7,
+          messages,
+          stream:      true,
+          stream_options: { include_usage: true },
+        })
 
-      const choice = response.choices[0]
+        let fullContent = ''
+        let inputTokens  = 0
+        let outputTokens = 0
+
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content || ''
+          if (delta) {
+            input.onToken(delta)
+            fullContent += delta
+          }
+          if (chunk.usage) {
+            inputTokens  = chunk.usage.prompt_tokens     || 0
+            outputTokens = chunk.usage.completion_tokens || 0
+          }
+        }
+
+        const costUsd = (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output
+        return { type: 'text', content: fullContent, inputTokens, outputTokens, costUsd, latencyMs: Date.now() - start }
+      }
+
+      // ── Non-streaming ────────────────────────────────────────────────────────
+      const response = await client.chat.completions.create(
+        {
+          model:       apiModel,
+          max_tokens:  input.options?.maxTokens || 4096,
+          temperature: input.options?.temperature || 0.7,
+          messages,
+        },
+        { signal: AbortSignal.timeout(120_000) },
+      )
+
+      const choice       = response.choices[0]
       const inputTokens  = response.usage?.prompt_tokens     || 0
       const outputTokens = response.usage?.completion_tokens || 0
-      const pricing      = PRICING[apiModel] || PRICING['gpt-4o']
       const costUsd      = (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output
 
-      return {
-        type: 'text',
-        content: choice.message.content || '',
-        inputTokens,
-        outputTokens,
-        costUsd,
-        latencyMs: Date.now() - start,
-      }
+      return { type: 'text', content: choice.message.content || '', inputTokens, outputTokens, costUsd, latencyMs: Date.now() - start }
     })
   }
 

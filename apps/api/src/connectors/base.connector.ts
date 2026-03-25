@@ -6,6 +6,8 @@ export interface ConnectorInput {
   taskId: string
   subtaskId: string
   userApiKey?: string
+  /** Called with each token chunk as the AI streams its response */
+  onToken?: (chunk: string) => void
   options?: {
     maxTokens?: number
     temperature?: number
