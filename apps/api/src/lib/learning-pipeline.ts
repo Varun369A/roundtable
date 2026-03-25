@@ -13,6 +13,7 @@
 import { prisma } from '@arivarangam/db'
 import type { TaskCategory } from '@arivarangam/types'
 import { updateDomainConfidence } from './confidence-tracker'
+import { checkMilestoneAndTrigger } from './fine-tune-manager'
 
 export interface SpecialistRecord {
   model:   string
@@ -95,12 +96,18 @@ export async function recordTaskLearning(taskId: string): Promise<void> {
     // Update per-domain confidence metrics (non-blocking)
     updateDomainConfidence(category).catch(() => {})
 
-    // Increment global knowledge count
-    prisma.arivarangamAIState.upsert({
+    // Increment global knowledge count + get new total
+    const updatedState = await prisma.arivarangamAIState.upsert({
       where:  { id: 'singleton' },
       update: { knowledgeCount: { increment: 1 }, lastLearnedAt: new Date() },
       create: { id: 'singleton', knowledgeCount: 1, lastLearnedAt: new Date() },
-    }).catch(() => {})
+      select: { knowledgeCount: true },
+    }).catch(() => null)
+
+    // Check if we've hit a milestone → auto fine-tune (non-blocking)
+    if (updatedState) {
+      checkMilestoneAndTrigger(updatedState.knowledgeCount).catch(() => {})
+    }
 
   } catch {
     // Learning pipeline must never block task completion

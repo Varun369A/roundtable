@@ -898,15 +898,51 @@ model FineTuneExport {
 }
 
 model ArivarangamAIState {
-  id              String        @id @default("singleton")
-  status          ArivarangamAIStatus @default(LEARNING)
-  knowledgeCount  Int           @default(0)
-  readyThreshold  Int           @default(50)
-  enabledAt       DateTime?
-  lastLearnedAt   DateTime?
-  updatedAt       DateTime      @updatedAt
+  id                   String              @id @default("singleton")
+  status               ArivarangamAIStatus @default(LEARNING)
+  knowledgeCount       Int                 @default(0)
+  readyThreshold       Int                 @default(50)
+  enabledAt            DateTime?
+  lastLearnedAt        DateTime?
+  updatedAt            DateTime            @updatedAt
+
+  // ── Auto fine-tune fields ────────────────────────────────────────────────
+  // The live model Arivarangam uses. Starts as claude-sonnet-4-6.
+  // Automatically updated to the fine-tuned model ID when a job completes.
+  currentModelId       String              @default("claude-sonnet-4-6")
+
+  // BullMQ / Anthropic job tracking
+  pendingFineTuneJobId String?             // Anthropic fine-tuning job ID in progress
+  pendingFineTuneFileId String?            // Uploaded JSONL file ID
+  fineTuneStatus       String              @default("idle")  // idle | uploading | training | succeeded | failed
+  fineTuneStartedAt    DateTime?
+  lastFineTuneAt       DateTime?           // last successful fine-tune
+  lastFineTuneModel    String?             // previous model (rollback target)
+  fineTuneVersion      Int                 @default(0)       // increments each time
+
+  // Milestone trigger: auto fine-tune fires when knowledgeCount reaches this
+  nextMilestone        Int                 @default(1000)    // first trigger at 1000
 
   @@map("arivarangam_ai_state")
+}
+
+// ── Fine-tune job log ─────────────────────────────────────────────────────────
+model FineTuneJob {
+  id            String    @id @default(cuid())
+  anthropicJobId String?  @unique   // returned by Anthropic API
+  anthropicFileId String?           // uploaded training file ID
+  status        String    @default("pending")  // pending | uploading | training | succeeded | failed | rolled_back
+  baseModel     String                         // model used as base
+  newModelId    String?                        // fine-tuned model ID (set on success)
+  sampleCount   Int
+  minQuality    Float
+  triggerReason String    @default("milestone") // milestone | manual
+  errorMessage  String?
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  deployedAt    DateTime?
+
+  @@map("fine_tune_jobs")
 }
 
 // ─── Project Environment Variables ───────────────────────────────────────────

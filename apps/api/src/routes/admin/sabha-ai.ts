@@ -21,6 +21,7 @@ import { createNotification } from '../../lib/notifications'
 import { getAllDomainConfidence } from '../../lib/confidence-tracker'
 import { exportFineTuneDataset, getExportReadiness } from '../../lib/dataset-exporter'
 import { rateKnowledgeRecord } from '../../lib/learning-pipeline'
+import { getFineTuneStatus, triggerManualFineTune, rollbackModel } from '../../lib/fine-tune-manager'
 
 export async function sabhaAIRoutes(app: FastifyInstance) {
 
@@ -185,6 +186,49 @@ export async function sabhaAIRoutes(app: FastifyInstance) {
         take:    20,
       })
       return reply.send({ success: true, data: { exports } })
+    }
+  )
+
+  // ── GET /fine-tune/status ─────────────────────────────────────────────────────
+  // Current model version, training progress, job history
+  app.get(
+    '/fine-tune/status',
+    { preHandler: [requireAuth, requireAdmin] },
+    async (_req: FastifyRequest, reply: FastifyReply) => {
+      const status = await getFineTuneStatus()
+      return reply.send({ success: true, data: status })
+    }
+  )
+
+  // ── POST /fine-tune/trigger ───────────────────────────────────────────────────
+  // Manually kick off a fine-tune (don't wait for milestone)
+  app.post(
+    '/fine-tune/trigger',
+    { preHandler: [requireAuth, requireAdmin] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const jobId = await triggerManualFineTune(request.user!.id)
+        app.log.info({ adminId: request.user!.id, jobId }, '[sabha-ai] Manual fine-tune triggered')
+        return reply.send({ success: true, data: { jobId } })
+      } catch (err: any) {
+        return reply.status(400).send({ success: false, error: { code: 'FINETUNE_ERROR', message: err.message } })
+      }
+    }
+  )
+
+  // ── POST /fine-tune/rollback ──────────────────────────────────────────────────
+  // Revert to the previous model version if the new one has issues
+  app.post(
+    '/fine-tune/rollback',
+    { preHandler: [requireAuth, requireAdmin] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        await rollbackModel()
+        app.log.warn({ adminId: request.user!.id }, '[sabha-ai] Model rolled back by admin')
+        return reply.send({ success: true })
+      } catch (err: any) {
+        return reply.status(400).send({ success: false, error: { code: 'ROLLBACK_ERROR', message: err.message } })
+      }
     }
   )
 

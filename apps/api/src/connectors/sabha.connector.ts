@@ -24,6 +24,7 @@ import { prisma } from '@arivarangam/db'
 import type { TaskCategory } from '@arivarangam/types'
 import { BaseConnector, type ConnectorInput, type ConnectorOutput } from './base.connector'
 import { getStageForCategory, type LearningStage } from '../lib/confidence-tracker'
+import { getCurrentModelId } from '../lib/fine-tune-manager'
 
 export class ArivarangamConnector extends BaseConnector {
   readonly model    = 'sabha-ai' as const
@@ -58,6 +59,9 @@ export class ArivarangamConnector extends BaseConnector {
     // Code tasks and independent mode need more tokens
     const maxTokens = category === 'code' || stage === 'INDEPENDENT' ? 16000 : 8192
 
+    // Use the live model ID — auto-updated when a fine-tune completes
+    const activeModel = await getCurrentModelId()
+
     let content      = ''
     let inputTokens  = 0
     let outputTokens = 0
@@ -65,7 +69,7 @@ export class ArivarangamConnector extends BaseConnector {
     await this.withRetry(async () => {
       if (input.onToken) {
         const stream = this.client.messages.stream({
-          model:      'claude-sonnet-4-6',
+          model:      activeModel,
           max_tokens: maxTokens,
           system:     systemPrompt,
           messages:   [{ role: 'user', content: input.prompt }],
@@ -85,7 +89,7 @@ export class ArivarangamConnector extends BaseConnector {
         outputTokens = msg.usage.output_tokens
       } else {
         const response = await this.client.messages.create({
-          model:      'claude-sonnet-4-6',
+          model:      activeModel,
           max_tokens: maxTokens,
           system:     systemPrompt,
           messages:   [{ role: 'user', content: input.prompt }],
@@ -99,8 +103,11 @@ export class ArivarangamConnector extends BaseConnector {
       }
     })
 
-    // claude-sonnet-4-6 pricing: $3/M input, $15/M output
-    const costUsd = (inputTokens * 3) / 1_000_000 + (outputTokens * 15) / 1_000_000
+    // Pricing: fine-tuned models cost less; claude-sonnet-4-6 baseline rates
+    const isFineTuned = !activeModel.startsWith('claude-sonnet') && !activeModel.startsWith('claude-haiku')
+    const inputRate   = isFineTuned ? 1.25 : 3   // fine-tuned Haiku ~$1.25/M
+    const outputRate  = isFineTuned ? 5    : 15  // fine-tuned Haiku ~$5/M
+    const costUsd = (inputTokens * inputRate) / 1_000_000 + (outputTokens * outputRate) / 1_000_000
 
     return {
       type:      'text',
@@ -109,7 +116,7 @@ export class ArivarangamConnector extends BaseConnector {
       outputTokens,
       costUsd,
       latencyMs: Date.now() - start,
-      metadata:  { provider: 'Arivarangam', stage, examplesUsed: examples.length },
+      metadata:  { provider: 'Arivarangam', stage, activeModel, examplesUsed: examples.length },
     }
   }
 

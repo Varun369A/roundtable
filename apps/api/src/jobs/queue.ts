@@ -19,6 +19,7 @@ import { inferMemoryFromTask } from '../lib/memory-manager'
 import { onWorkflowStepComplete } from '../lib/workflow-executor'
 import { verifyTaskOutputs } from '../lib/quality-verifier'
 import { recordTaskLearning } from '../lib/learning-pipeline'
+import { pollFineTuneJob } from '../lib/fine-tune-manager'
 
 // Prisma stores enum keys (gemini_2_5_pro) but connectors expect the @map value (gemini-2.5-pro)
 // Simple underscore→hyphen works for most models, but version numbers with dots need explicit mapping
@@ -79,6 +80,26 @@ export const subtaskQueue = new Queue<{ subtaskId: string; taskId: string }>('sa
 })
 
 export const queueEvents = new QueueEvents('sabha-subtasks', { connection })
+
+// Fine-tune poller queue — checks Anthropic training job status every 5 minutes
+export const fineTuneQueue = new Queue('sabha-fine-tune', {
+  connection,
+  defaultJobOptions: { removeOnComplete: { count: 50 }, removeOnFail: { count: 50 } },
+})
+
+// Worker for fine-tune polling
+new Worker(
+  'sabha-fine-tune',
+  async () => { await pollFineTuneJob() },
+  { connection, concurrency: 1 }
+)
+
+// Schedule the poller as a repeatable job (every 5 minutes)
+fineTuneQueue.add(
+  'poll',
+  {},
+  { repeat: { every: 5 * 60 * 1000 }, jobId: 'fine-tune-poller' }
+).catch(() => {})
 
 // Dead-letter queue — failed subtasks land here after exhausting BullMQ retries.
 // A separate healing worker processes these (manual review / retry with backoff).
