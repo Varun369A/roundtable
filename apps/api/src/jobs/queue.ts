@@ -491,6 +491,12 @@ export const subtaskWorker = new Worker<{ subtaskId: string; taskId: string }>(
         error: err instanceof Error ? err.message : 'Unknown error',
       }))
 
+      // Notify UI that the whole task failed (so it updates in real-time without refresh)
+      await redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+        event: 'task_failed',
+        taskId,
+      }))
+
       // Push to BullMQ dead-letter queue for healing worker
       const errorCode = (err as NodeJS.ErrnoException).code || 'UNKNOWN'
       const existingAttempts = job.attemptsMade || 0

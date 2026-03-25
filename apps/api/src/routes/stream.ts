@@ -175,6 +175,16 @@ export async function streamRoutes(app: FastifyInstance) {
         }
       }
 
+      // If task is waiting for clarification, replay the questions so the modal shows
+      if (task.status === 'WAITING_CLARIFICATION') {
+        const questions = await prisma.taskClarification.findMany({
+          where:   { taskId: task.id, answeredAt: null, skipped: false },
+          orderBy: { orderIndex: 'asc' },
+          select:  { id: true, question: true, orderIndex: true },
+        })
+        send('clarification_needed', { taskId: task.id, questions })
+      }
+
       // If task already in a terminal state, send the final event and close
       if (
         task.status === 'COMPLETED' ||

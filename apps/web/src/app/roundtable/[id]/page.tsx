@@ -533,7 +533,12 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
   const handleStreamEvent = useCallback((event: StreamEvent) => {
     switch (event.event) {
       case 'connected':
-        if (event.status) setTaskStatus(event.status)
+        if (event.status) {
+          setTaskStatus(event.status)
+          if (event.status === 'FAILED')    setPhase('failed')
+          else if (event.status === 'COMPLETED') setPhase('done')
+          else if (event.status === 'CANCELLED') { /* phase stays as-is */ }
+        }
         break
 
       case 'routing_decided':
