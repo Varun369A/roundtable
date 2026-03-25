@@ -157,6 +157,7 @@ const PLATFORM_UPDATES: PlatformUpdate[] = [
         await prisma.arivarangamPassport.create({
           data: {
             userId:      user.id,
+            username:    'admin',
             displayName: 'Arivarangam Admin',
           },
         }).catch(() => {})
