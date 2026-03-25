@@ -103,17 +103,29 @@ const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
  * Each category has its own specialist matrix — only AIs that genuinely help
  * with that domain are included. Arivarangam AI is always the final builder.
  */
-export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
+export interface DecomposeOptions {
+  maxCredits?: number
+  debateMode?: boolean
+}
+
+export function decomposeTask(intent: ParsedIntent, options?: DecomposeOptions): SubtaskDefinition[] {
   const subtasks: SubtaskDefinition[] = []
 
   const complexity: Complexity = (intent as any).complexity ?? 'standard'
   const complexityRank = COMPLEXITY_RANK[complexity]
+
+  // ── Smart Budget: each specialist ≈ 10 credits, synthesis ≈ 10 credits
+  // maxCredits = 20 → 1 specialist; 30 → 2; 40+ → 3 (full)
+  const maxSpecialists = options?.maxCredits
+    ? Math.max(1, Math.floor((options.maxCredits - 10) / 10))
+    : Infinity
 
   // Cap categories: simple/standard → 1 category, complex → up to 2
   const maxCategories = complexity === 'complex' ? 2 : 1
   const sortedCategories = topologicalSort(intent.categories).slice(0, maxCategories)
 
   const categoryToIndex = new Map<TaskCategory, number>()
+  let specialistsAdded = 0
 
   for (const category of sortedCategories) {
     // Resolve category dependencies
@@ -145,19 +157,29 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
       return true
     })
 
+    // Budget cap: limit total specialists across all categories
+    const slotsAllowed = maxSpecialists === Infinity
+      ? uniqueSlots.length
+      : Math.max(0, maxSpecialists - specialistsAdded)
+    const budgetedSlots = uniqueSlots.slice(0, slotsAllowed)
+
     // Add a subtask for each active specialist
-    for (const slot of uniqueSlots) {
+    for (const slot of budgetedSlots) {
       const isFirst = !categoryToIndex.has(category)
+      const instruction = options?.debateMode
+        ? buildDebateSpecialistInstruction(category, intent, slot)
+        : buildSpecialistInstruction(category, intent, slot)
       subtasks.push({
         title:            buildSubtaskTitle(category, intent, slot.model, isFirst ? 'primary' : 'consult'),
         category,
         assignedModel:    slot.model,
         dependsOn,
         executionOrder:   subtasks.length,
-        inputInstruction: buildSpecialistInstruction(category, intent, slot),
+        inputInstruction: instruction,
         role:             'INITIAL',
       })
       if (isFirst) categoryToIndex.set(category, subtasks.length - 1)
+      specialistsAdded++
     }
   }
 
@@ -170,7 +192,9 @@ export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
     assignedModel:    'sabha-ai',
     dependsOn:        allPreviousIndices,
     executionOrder:   subtasks.length,
-    inputInstruction: buildSynthesisInstruction(intent),
+    inputInstruction: options?.debateMode
+      ? buildDebateSynthesisInstruction(intent)
+      : buildSynthesisInstruction(intent),
     role:             'SYNTHESIS',
   })
 
@@ -293,6 +317,38 @@ function buildSpecialistInstruction(
   }
 
   return `You are a specialist. Complete: "${g}"${audience}.${constraints}`
+}
+
+/**
+ * Debate mode: each specialist argues their perspective forcefully
+ * and identifies weaknesses in other approaches.
+ */
+function buildDebateSpecialistInstruction(
+  category: TaskCategory,
+  intent: ParsedIntent,
+  slot: SpecialistSlot,
+): string {
+  const base = buildSpecialistInstruction(category, intent, slot)
+  return `${base}
+
+DEBATE MODE: Present your perspective as the definitive approach. Explicitly state what other methodologies get wrong. Be specific about risks, tradeoffs, and failure modes that a naive approach would miss. Arivarangam AI will critically evaluate all specialists and synthesise the best final answer.`
+}
+
+function buildDebateSynthesisInstruction(intent: ParsedIntent): string {
+  const isCode = intent.categories.includes('code')
+  return `You are Arivarangam AI — the final arbiter. Your specialists have argued their positions on: "${intent.goal}".
+
+DEBATE MODE: Your job is to:
+1. Identify where specialists AGREE — these are the confident foundations
+2. Identify where specialists DISAGREE or contradict each other — analyse WHY
+3. Make a final, reasoned judgement on the best approach, explaining why you favour certain recommendations over others
+4. Build the complete deliverable incorporating the strongest insights and explicitly discarding the weaker arguments
+
+${isCode ? `Write EVERY file completely — no placeholders. Include package.json with exact versions and setup instructions.` : `Produce a complete, actionable, production-ready deliverable.`}
+
+Do NOT say "specialist A said X". Just synthesise into one authoritative output. Show your reasoning only where the debate affected a significant design decision.
+
+Deliverables: ${intent.deliverables.join(', ') || 'complete, well-reasoned output'}`
 }
 
 function buildSynthesisInstruction(intent: ParsedIntent): string {

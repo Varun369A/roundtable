@@ -502,6 +502,69 @@ function SpecialistAccordion({ messages }: { messages: Message[] }) {
   )
 }
 
+// ─── Quick Actions (Security Audit / Test Generation) ────────────────────────
+
+function QuickActions({ taskId, onStart }: { taskId: string; onStart: (newTaskId: string) => void }) {
+  const [running, setRunning] = useState<string | null>(null)
+
+  async function run(actionKey: string, message: string) {
+    if (running) return
+    setRunning(actionKey)
+    try {
+      const res = await fetch(`/api/v1/tasks/${taskId}/continue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+        body: JSON.stringify({ message }),
+      })
+      const data = await res.json()
+      if (data.success) onStart(data.data.task.id)
+    } catch { /* ignore */ } finally {
+      setRunning(null)
+    }
+  }
+
+  const ACTIONS = [
+    {
+      key: 'security',
+      icon: '🔒',
+      label: 'Security Audit',
+      prompt: 'Perform a thorough security audit of the code above. Check for OWASP Top 10 vulnerabilities, authentication flaws, SQL injection, XSS, CSRF, insecure dependencies, hardcoded secrets, and improper error handling. Provide a prioritised list of issues with severity ratings and concrete remediation steps.',
+    },
+    {
+      key: 'tests',
+      icon: '🧪',
+      label: 'Generate Tests',
+      prompt: 'Write comprehensive tests for the code above. Include unit tests for all functions, integration tests for API endpoints, and edge case tests. Use the appropriate testing framework (Jest/Vitest for JS/TS, pytest for Python). Aim for >80% coverage and include mock strategies for external dependencies.',
+    },
+    {
+      key: 'docs',
+      icon: '📄',
+      label: 'Generate Docs',
+      prompt: 'Write complete developer documentation for the project above. Include: README with setup instructions, API reference with request/response examples, architecture overview, environment variable reference, deployment guide, and a contributing guide. Use clear markdown formatting.',
+    },
+  ]
+
+  return (
+    <div className="shrink-0 px-4 py-2 border-t border-slate-100">
+      <p className="text-[10px] text-slate-400 mb-2 font-medium uppercase tracking-wide">One-click actions</p>
+      <div className="flex gap-2">
+        {ACTIONS.map((a) => (
+          <button
+            key={a.key}
+            onClick={() => run(a.key, a.prompt)}
+            disabled={!!running}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 transition-colors disabled:opacity-50"
+            title={a.prompt.slice(0, 80) + '…'}
+          >
+            {running === a.key ? <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" /> : <span>{a.icon}</span>}
+            {a.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RoundtablePage({ params }: { params: Promise<{ id: string }> }) {
@@ -1312,6 +1375,11 @@ export default function RoundtablePage({ params }: { params: Promise<{ id: strin
 
             <div className="h-4" />
           </div>
+
+          {/* ── One-click actions — Security Audit + Test Generation ─────────── */}
+          {taskStatus === 'COMPLETED' && task && (
+            <QuickActions taskId={id} onStart={(taskId) => router.push(`/roundtable/${taskId}`)} />
+          )}
 
           {/* ── Continue Building — shown after task completes ───────────────── */}
           {(taskStatus === 'COMPLETED' || taskStatus === 'FAILED') && task && (

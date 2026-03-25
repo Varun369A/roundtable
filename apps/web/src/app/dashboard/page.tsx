@@ -227,6 +227,88 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
   )
 }
 
+// ─── Domain Expert Packs ──────────────────────────────────────────────────────
+
+const DOMAIN_PACKS = [
+  {
+    id: 'legal',
+    icon: '⚖️',
+    name: 'Legal',
+    tagline: 'Indian law & compliance',
+    prefix: 'Legal analysis required. Apply Indian law (IPC, Contract Act, IT Act, Companies Act as applicable), regulatory compliance requirements, and legal risk assessment. ',
+  },
+  {
+    id: 'medical',
+    icon: '🏥',
+    name: 'Medical',
+    tagline: 'Clinical evidence-based',
+    prefix: 'Medical/health analysis required. Base all recommendations on peer-reviewed clinical evidence, standard medical guidelines (ICMR/WHO), and include appropriate safety caveats. ',
+  },
+  {
+    id: 'finance',
+    icon: '📊',
+    name: 'Finance',
+    tagline: 'Risk, ROI & markets',
+    prefix: 'Financial analysis required. Include risk assessment, ROI projections, market analysis, regulatory compliance (SEBI/RBI as applicable), and quantitative modelling. ',
+  },
+  {
+    id: 'engineering',
+    icon: '⚙️',
+    name: 'Engineering',
+    tagline: 'System design & scale',
+    prefix: 'Engineering analysis required. Cover system architecture, scalability (capacity planning, load estimates), fault tolerance, security posture, and operational considerations. ',
+  },
+]
+
+function DomainPacks({ onSelect }: { onSelect: (prefix: string) => void }) {
+  const [active, setActive] = useState<string | null>(null)
+
+  function handlePack(pack: typeof DOMAIN_PACKS[0]) {
+    if (active === pack.id) {
+      setActive(null)
+    } else {
+      setActive(pack.id)
+      onSelect(pack.prefix)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-slate-500">Domain Expert Packs</p>
+        {active && (
+          <button
+            onClick={() => setActive(null)}
+            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            Clear ✕
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {DOMAIN_PACKS.map((pack) => (
+          <button
+            key={pack.id}
+            onClick={() => handlePack(pack)}
+            className={`text-left p-3 rounded-xl border transition-all ${
+              active === pack.id
+                ? 'bg-indigo-50 border-indigo-300 shadow-sm'
+                : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-indigo-200 hover:shadow-sm'
+            }`}
+          >
+            <span className="text-xl block mb-1.5">{pack.icon}</span>
+            <p className="text-xs font-medium text-slate-800 leading-tight">{pack.name}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{pack.tagline}</p>
+            {active === pack.id && (
+              <span className="inline-block mt-1.5 text-[9px] font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded">Active</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Workspace Badge ──────────────────────────────────────────────────────────
 
 function WorkspaceBadge({ workspaces, active, onSwitch }: {
@@ -301,6 +383,10 @@ export default function DashboardPage() {
   const [verificationResent, setVerificationResent] = useState(false)
   const [creditBalance, setCreditBalance] = useState<number | null>(null)
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
+  const [maxCredits, setMaxCredits] = useState<number | null>(null)
+  const [debateMode, setDebateMode] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [activeDomainPrefix, setActiveDomainPrefix] = useState<string | null>(null)
   const detectTimeout = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
@@ -396,9 +482,12 @@ export default function DashboardPage() {
     setCreateError('')
 
     try {
-      const body: Record<string, unknown> = { goal: goalText, visibility }
+      const finalGoal = activeDomainPrefix ? `${activeDomainPrefix}${goalText}` : goalText
+      const body: Record<string, unknown> = { goal: finalGoal, visibility }
       if (selectedTemplate) body.templateId = selectedTemplate.id
       if (activeWorkspace && visibility === 'workspace') body.workspaceId = activeWorkspace.id
+      if (maxCredits !== null) body.maxCredits = maxCredits
+      if (debateMode) body.debateMode = true
 
       const data = await apiFetch('/api/v1/tasks', {
         method: 'POST',
@@ -506,6 +595,26 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* Active domain pack badge */}
+              {activeDomainPrefix && (
+                <div className="flex items-center gap-2 mb-3 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <span className="text-lg">{DOMAIN_PACKS.find(p => p.prefix === activeDomainPrefix)?.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-emerald-700">
+                      {DOMAIN_PACKS.find(p => p.prefix === activeDomainPrefix)?.name} Expert Pack active
+                    </p>
+                    <p className="text-[10px] text-slate-500">Domain context will be injected automatically</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDomainPrefix(null)}
+                    className="text-slate-400 hover:text-slate-600 text-xs transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               <label htmlFor="goal-input" className="block text-sm text-slate-600 font-medium mb-3">
                 {selectedTemplate
                   ? `Describe your ${selectedTemplate.name.toLowerCase()} goal`
@@ -543,6 +652,74 @@ export default function DashboardPage() {
                     goal={goal}
                     templateId={selectedTemplate?.id}
                   />
+                </div>
+              )}
+
+              {/* Advanced options — budget cap + debate mode */}
+              {!userProfile?.isAdmin && (
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <span className={`transition-transform ${showAdvanced ? 'rotate-90' : ''}`}>▶</span>
+                    Advanced options
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="mt-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+                      {/* Smart Budget */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-medium text-slate-700">
+                            Smart Budget
+                            <span className="ml-1.5 text-slate-400 font-normal">— cap AI spend</span>
+                          </label>
+                          <span className="text-xs text-indigo-600 font-medium">
+                            {maxCredits === null ? 'Auto' : `≤ ${maxCredits} credits`}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={20}
+                          max={200}
+                          step={10}
+                          value={maxCredits ?? 200}
+                          onChange={(e) => {
+                            const v = Number(e.target.value)
+                            setMaxCredits(v >= 200 ? null : v)
+                          }}
+                          className="w-full accent-indigo-600"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                          <span>20 (fast)</span>
+                          <span>Auto (best quality)</span>
+                        </div>
+                      </div>
+
+                      {/* Debate Mode */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-slate-700">Debate Mode</p>
+                          <p className="text-[11px] text-slate-400">AIs argue their case — synthesis picks the winner</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDebateMode((v) => !v)}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                            debateMode ? 'bg-indigo-600' : 'bg-slate-300'
+                          }`}
+                          role="switch"
+                          aria-checked={debateMode}
+                        >
+                          <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                            debateMode ? 'translate-x-4' : 'translate-x-0'
+                          }`} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -601,6 +778,9 @@ export default function DashboardPage() {
                 setGoal(t.examplePrompts[0])
               }
             }} />
+
+            {/* Domain Expert Packs */}
+            <DomainPacks onSelect={(prefix) => setActiveDomainPrefix((p) => p === prefix ? null : prefix)} />
 
             {/* Task History */}
             <div>

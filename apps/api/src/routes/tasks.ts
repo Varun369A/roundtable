@@ -20,6 +20,8 @@ const createTaskSchema = z.object({
   templateId: z.string().optional(),
   workspaceId: z.string().optional(),
   visibility: z.enum(['private', 'workspace']).default('private'),
+  maxCredits: z.number().int().min(20).max(2000).optional(),
+  debateMode: z.boolean().optional(),
 })
 
 export async function taskRoutes(app: FastifyInstance) {
@@ -57,7 +59,7 @@ export async function taskRoutes(app: FastifyInstance) {
     // Generate a short title from the goal — truncate at word boundary
     const title = truncateTitle(sanitizedGoal, 80)
 
-    const { templateId, workspaceId, visibility } = body.data
+    const { templateId, workspaceId, visibility, maxCredits, debateMode } = body.data
 
     // Verify workspace access if provided
     if (workspaceId) {
@@ -99,6 +101,8 @@ export async function taskRoutes(app: FastifyInstance) {
           userProfile: { language: 'en' },
           completedSubtasks: [],
           activeConstraints: [],
+          ...(maxCredits ? { maxCredits } : {}),
+          ...(debateMode ? { debateMode } : {}),
         },
         ipAddress: request.ip,
         userAgent: request.headers['user-agent'],
@@ -116,6 +120,8 @@ export async function taskRoutes(app: FastifyInstance) {
           userProfile: { language: 'en' },
           completedSubtasks: [],
           activeConstraints: [],
+          ...(maxCredits ? { maxCredits } : {}),
+          ...(debateMode ? { debateMode } : {}),
         },
       },
     })

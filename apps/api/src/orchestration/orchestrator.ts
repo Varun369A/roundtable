@@ -32,7 +32,7 @@ function toPrismaModel(model: string): string {
 export async function orchestrateTask(taskId: string): Promise<void> {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { id: true, originalGoal: true, userId: true, templateId: true, status: true },
+    select: { id: true, originalGoal: true, userId: true, templateId: true, status: true, contextObject: true },
   })
 
   if (!task) throw new Error(`Task ${taskId} not found`)
@@ -112,7 +112,11 @@ export async function orchestrateTask(taskId: string): Promise<void> {
     } else {
       // ── Auto mode: AI intent parsing + smart decomposition ───────────────
       intent = await parseIntent(goalForProcessing)
-      subtaskDefinitions = decomposeTask(intent)
+      const ctxObj = (task as any).contextObject as Record<string, any> ?? {}
+      subtaskDefinitions = decomposeTask(intent, {
+        maxCredits: ctxObj.maxCredits ?? undefined,
+        debateMode: ctxObj.debateMode ?? false,
+      })
     }
 
     // Override primary specialist with user's routing preferences.
