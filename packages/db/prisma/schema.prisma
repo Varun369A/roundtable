@@ -838,28 +838,70 @@ enum ArivarangamAIStatus {
   DISABLED  // admin disabled
 }
 
+// How independently Arivarangam operates for a given domain
+enum LearningStage {
+  STUDENT      // follows all specialist guidance (< 40 confidence)
+  ADVISORY     // reasons first, uses specialists to verify (40–74)
+  INDEPENDENT  // leads the work, specialists confirm edge cases (≥ 75)
+}
+
+// Full task-chain training record — the brain data
 model ArivarangamKnowledge {
   id               String       @id @default(cuid())
   category         TaskCategory
-  templateCategory String?      // TemplateCategory value if known
-  inputSummary     String       // first 500 chars of the prompt
-  outputSummary    String       // first 3000 chars of the output
-  model            AIModel      // which AI produced this output
-  qualityScore     Float        @default(0) // 0-1, higher = better example
+  templateCategory String?
+  inputSummary     String       // goal (first 500 chars)
+  outputSummary    String       // synthesis output (first 3000 chars)
+  specialistContext Json?        // full specialist chain: [{model, role, output}]
+  specialistsUsed  String[]     @default([])  // list of model names used
+  complexityLevel  String?      // simple | standard | complex
+  model            AIModel      // always sabha_ai for synthesis records
+  qualityScore     Float        @default(0.5)
+  isFineTuneReady  Boolean      @default(false)
+  exportedAt       DateTime?
   taskId           String
   subtaskId        String       @unique
   createdAt        DateTime     @default(now())
 
   @@index([category])
   @@index([qualityScore])
+  @@index([isFineTuneReady])
   @@map("arivarangam_knowledge")
+}
+
+// Per-domain confidence — drives stage transitions
+model DomainConfidence {
+  id                 String        @id @default(cuid())
+  category           TaskCategory  @unique
+  totalSamples       Int           @default(0)
+  highQualitySamples Int           @default(0)   // score >= 0.7
+  avgQualityScore    Float         @default(0.0)
+  confidenceScore    Float         @default(0.0)  // 0–100 composite
+  stage              LearningStage @default(STUDENT)
+  lastUpdatedAt      DateTime      @default(now())
+
+  @@map("domain_confidence")
+}
+
+// Audit log for each fine-tune export
+model FineTuneExport {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  sampleCount Int
+  categories  String[]
+  minQuality  Float
+  status      String   @default("pending")  // pending | completed | failed
+  triggeredBy String?  // admin userId
+  notes       String?
+
+  @@map("fine_tune_exports")
 }
 
 model ArivarangamAIState {
   id              String        @id @default("singleton")
   status          ArivarangamAIStatus @default(LEARNING)
   knowledgeCount  Int           @default(0)
-  readyThreshold  Int           @default(50)  // examples needed to be "ready"
+  readyThreshold  Int           @default(50)
   enabledAt       DateTime?
   lastLearnedAt   DateTime?
   updatedAt       DateTime      @updatedAt

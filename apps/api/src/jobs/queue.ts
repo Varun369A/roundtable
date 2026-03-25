@@ -18,6 +18,7 @@ import { resolveUserApiKey } from '../lib/key-resolver'
 import { inferMemoryFromTask } from '../lib/memory-manager'
 import { onWorkflowStepComplete } from '../lib/workflow-executor'
 import { verifyTaskOutputs } from '../lib/quality-verifier'
+import { recordTaskLearning } from '../lib/learning-pipeline'
 
 // Prisma stores enum keys (gemini_2_5_pro) but connectors expect the @map value (gemini-2.5-pro)
 // Simple underscore→hyphen works for most models, but version numbers with dots need explicit mapping
@@ -752,6 +753,9 @@ async function _enqueueNextSubtasks(taskId: string): Promise<void> {
         taskId,
         hasCodeWorkspace: task?.template?.category === 'development',
       }))
+
+      // Record this task as a training example (non-blocking — never delays user)
+      recordTaskLearning(taskId).catch(() => {})
     }
     return
   }

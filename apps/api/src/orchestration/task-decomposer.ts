@@ -20,37 +20,69 @@ export interface SubtaskDefinition {
 // Perplexity: best practices, libraries, real-world examples
 // Arivarangam AI reads their guidance and produces the complete codebase.
 
-export const ROUTING_TABLE: Record<TaskCategory, AIModel> = {
-  code:          'gpt-4o',              // GPT-4o: architecture + plan (Arivarangam codes)
-  research:      'perplexity-sonar',    // Perplexity: real-time web research
-  content:       'claude-3-5-sonnet',   // Claude: nuanced writing
-  strategy:      'gpt-4o',              // GPT-4o: structured reasoning
-  data_analysis: 'gemini-2.5-pro',      // Gemini: long-context analysis
-  image:         'gpt-image-1',         // GPT Image 1: generation
-  voice:         'elevenlabs',          // ElevenLabs: TTS
-  translation:   'sarvam-1',            // Sarvam: Indian languages
-  general:       'gpt-4o',              // GPT-4o: broad reasoning
+// ─── Specialist Matrix ────────────────────────────────────────────────────────
+// Each category defines an ordered list of specialist slots.
+// Slots activate based on task complexity:
+//   simple   → only 'simple' slots   → 1 specialist  + Arivarangam (~30s)
+//   standard → simple + standard     → 2 specialists + Arivarangam (~60s)
+//   complex  → all slots             → 3 specialists + Arivarangam (~90s)
+//
+// Arivarangam AI is always the final synthesiser — never listed here.
+
+export type SpecialistRole = 'architect' | 'researcher' | 'analyst' | 'implementer' | 'writer' | 'reviewer'
+type Complexity = 'simple' | 'standard' | 'complex'
+
+export interface SpecialistSlot {
+  model:         AIModel
+  role:          SpecialistRole
+  minComplexity: Complexity
 }
 
-// ─── Who consults on each category ───────────────────────────────────────────
-// MAX 1 consultant per category (not 2). Keeps total subtasks ≤ 5.
-// Exception: code + complex → 2 consultants (Perplexity + Claude).
-// Consultation is SKIPPED entirely for simple tasks.
+const COMPLEXITY_RANK: Record<Complexity, number> = { simple: 0, standard: 1, complex: 2 }
 
-const CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
-  code:          'perplexity-sonar',   // Research: libraries, best practices, real-world examples
-  research:      'gemini-2.5-pro',     // Deep analysis
-  content:       'perplexity-sonar',   // Facts & references
-  strategy:      'perplexity-sonar',   // Market research
-  data_analysis: 'gpt-4o',            // Structured reasoning
-  general:       'perplexity-sonar',   // Research support
+export const SPECIALIST_MATRIX: Record<TaskCategory, SpecialistSlot[]> = {
+  code: [
+    { model: 'gpt-4o',            role: 'architect',   minComplexity: 'simple'   }, // architecture + file structure
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'standard' }, // best libraries, npm packages
+    { model: 'claude-3-5-sonnet', role: 'implementer', minComplexity: 'complex'  }, // code patterns, security, tests
+  ],
+  research: [
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'simple'   }, // real-time web research
+    { model: 'gemini-2.5-pro',    role: 'analyst',     minComplexity: 'standard' }, // deep long-context analysis
+    { model: 'gpt-4o',            role: 'reviewer',    minComplexity: 'complex'  }, // structured synthesis
+  ],
+  content: [
+    { model: 'claude-3-5-sonnet', role: 'writer',      minComplexity: 'simple'   }, // nuanced writing, tone
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'standard' }, // facts, stats, references
+    { model: 'gpt-4o',            role: 'reviewer',    minComplexity: 'complex'  }, // structure, argument review
+  ],
+  strategy: [
+    { model: 'gpt-4o',            role: 'architect',   minComplexity: 'simple'   }, // strategic framework
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'standard' }, // market research
+    { model: 'gemini-2.5-pro',    role: 'analyst',     minComplexity: 'complex'  }, // risk + opportunity analysis
+  ],
+  data_analysis: [
+    { model: 'gemini-2.5-pro',    role: 'analyst',     minComplexity: 'simple'   }, // long-context data analysis
+    { model: 'gpt-4o',            role: 'reviewer',    minComplexity: 'standard' }, // structured interpretation
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'complex'  }, // real-world benchmarks
+  ],
+  general: [
+    { model: 'gpt-4o',            role: 'architect',   minComplexity: 'simple'   }, // broad reasoning
+    { model: 'perplexity-sonar',  role: 'researcher',  minComplexity: 'standard' }, // factual grounding
+    { model: 'claude-3-5-sonnet', role: 'analyst',     minComplexity: 'complex'  }, // depth + nuance
+  ],
+  image:       [{ model: 'gpt-image-1', role: 'architect', minComplexity: 'simple' }],
+  voice:       [{ model: 'elevenlabs',  role: 'architect', minComplexity: 'simple' }],
+  translation: [
+    { model: 'sarvam-1',          role: 'writer',      minComplexity: 'simple'   }, // Indian language translation
+    { model: 'claude-3-5-sonnet', role: 'reviewer',    minComplexity: 'standard' }, // quality + cultural accuracy
+  ],
 }
 
-// For complex code tasks: Claude adds implementation guidance + code patterns
-// GPT-4o plans → Perplexity researches → Claude guides patterns → Arivarangam codes
-const SECOND_CONSULTATION_MAP: Partial<Record<TaskCategory, AIModel>> = {
-  code: 'claude-3-5-sonnet',  // Implementation patterns, code quality, best practices
-}
+// Legacy export — kept for any code that imports ROUTING_TABLE directly
+export const ROUTING_TABLE: Record<TaskCategory, AIModel> = Object.fromEntries(
+  Object.entries(SPECIALIST_MATRIX).map(([cat, slots]) => [cat, slots[0].model])
+) as Record<TaskCategory, AIModel>
 
 // ─── Dependency rules ────────────────────────────────────────────────────────
 const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
@@ -61,91 +93,71 @@ const DEPENDENCY_RULES: Partial<Record<TaskCategory, TaskCategory[]>> = {
 }
 
 /**
- * Decomposes a parsed intent into a subtask DAG.
+ * Decomposes a parsed intent into a subtask DAG using the specialist matrix.
  *
- * Smart routing tiers:
- *   simple   → 1 primary + synthesis                              = 2 subtasks  (~30s)
- *   standard → 1 primary + 1 consultant + synthesis               = 3 subtasks  (~60s)
- *   complex  → 1 primary + 2 consultants + synthesis              = 4 subtasks  (~90s)
- *             (for code: GPT-4o plans → Perplexity researches → Claude guides → Arivarangam codes)
+ * Routing tiers (driven by complexity detected in intent parser):
+ *   simple   → 1 specialist  + Arivarangam  (~30s)
+ *   standard → 2 specialists + Arivarangam  (~60s)
+ *   complex  → 3 specialists + Arivarangam  (~90s)
  *
- * Hard cap: never more than 4 specialist subtasks before synthesis.
- * User sees only the Arivarangam AI synthesis — specialist work is internal.
+ * Each category has its own specialist matrix — only AIs that genuinely help
+ * with that domain are included. Arivarangam AI is always the final builder.
  */
 export function decomposeTask(intent: ParsedIntent): SubtaskDefinition[] {
   const subtasks: SubtaskDefinition[] = []
 
-  const complexity = (intent as any).complexity ?? 'standard'
+  const complexity: Complexity = (intent as any).complexity ?? 'standard'
+  const complexityRank = COMPLEXITY_RANK[complexity]
 
-  // Cap categories: simple=1, standard=1, complex=2
+  // Cap categories: simple/standard → 1 category, complex → up to 2
   const maxCategories = complexity === 'complex' ? 2 : 1
   const sortedCategories = topologicalSort(intent.categories).slice(0, maxCategories)
 
   const categoryToIndex = new Map<TaskCategory, number>()
 
-  for (let i = 0; i < sortedCategories.length; i++) {
-    const category = sortedCategories[i]
-    let primaryModel = ROUTING_TABLE[category]
-
-    // Indian language content → Sarvam handles writing
-    if (intent.language !== 'en' && category === 'content') {
-      primaryModel = 'sarvam-1'
-    }
-
+  for (const category of sortedCategories) {
     // Resolve category dependencies
-    const dependencyCategories = DEPENDENCY_RULES[category] || []
+    const depCategories = DEPENDENCY_RULES[category] || []
     const dependsOn: string[] = []
-    for (const depCategory of dependencyCategories) {
-      if (categoryToIndex.has(depCategory)) {
-        dependsOn.push(String(categoryToIndex.get(depCategory)))
+    for (const depCat of depCategories) {
+      if (categoryToIndex.has(depCat)) {
+        dependsOn.push(String(categoryToIndex.get(depCat)))
       }
     }
 
-    // Add primary specialist
-    subtasks.push({
-      title:            buildSubtaskTitle(category, intent, primaryModel, 'primary'),
-      category,
-      assignedModel:    primaryModel,
-      dependsOn,
-      executionOrder:   subtasks.length,
-      inputInstruction: buildPrimaryInstruction(category, intent),
-      role:             'INITIAL',
+    // Get active specialists for this category × complexity
+    let activeSlots = (SPECIALIST_MATRIX[category] || []).filter(
+      (slot) => COMPLEXITY_RANK[slot.minComplexity] <= complexityRank
+    )
+
+    // Indian language content → swap first writer slot to Sarvam
+    if (intent.language !== 'en' && category === 'content') {
+      activeSlots = activeSlots.map((s, idx) =>
+        idx === 0 ? { ...s, model: 'sarvam-1' as AIModel } : s
+      )
+    }
+
+    // Deduplicate: if two slots resolved to the same model, keep first only
+    const seenModels = new Set<AIModel>()
+    const uniqueSlots = activeSlots.filter((s) => {
+      if (seenModels.has(s.model)) return false
+      seenModels.add(s.model)
+      return true
     })
-    categoryToIndex.set(category, subtasks.length - 1)
 
-    // Add consultants for standard/complex tasks (skip for simple, image, voice, translation)
-    const skipConsult = ['image', 'voice', 'translation'].includes(category)
-    const addConsult  = !skipConsult && complexity !== 'simple'
-
-    if (addConsult) {
-      const consultantModel = CONSULTATION_MAP[category]
-      if (consultantModel && consultantModel !== primaryModel) {
-        subtasks.push({
-          title:            buildSubtaskTitle(category, intent, consultantModel, 'consult'),
-          category,
-          assignedModel:    consultantModel,
-          dependsOn,
-          executionOrder:   subtasks.length,
-          inputInstruction: buildConsultationInstruction(category, intent, consultantModel),
-          role:             'INITIAL',
-        })
-      }
-
-      // For complex code tasks: add Claude as second consultant (implementation guidance)
-      if (complexity === 'complex') {
-        const secondConsultant = SECOND_CONSULTATION_MAP[category]
-        if (secondConsultant && secondConsultant !== primaryModel && secondConsultant !== consultantModel) {
-          subtasks.push({
-            title:            buildSubtaskTitle(category, intent, secondConsultant, 'consult'),
-            category,
-            assignedModel:    secondConsultant,
-            dependsOn,
-            executionOrder:   subtasks.length,
-            inputInstruction: buildConsultationInstruction(category, intent, secondConsultant),
-            role:             'INITIAL',
-          })
-        }
-      }
+    // Add a subtask for each active specialist
+    for (const slot of uniqueSlots) {
+      const isFirst = !categoryToIndex.has(category)
+      subtasks.push({
+        title:            buildSubtaskTitle(category, intent, slot.model, isFirst ? 'primary' : 'consult'),
+        category,
+        assignedModel:    slot.model,
+        dependsOn,
+        executionOrder:   subtasks.length,
+        inputInstruction: buildSpecialistInstruction(category, intent, slot),
+        role:             'INITIAL',
+      })
+      if (isFirst) categoryToIndex.set(category, subtasks.length - 1)
     }
   }
 
@@ -220,67 +232,67 @@ function buildDeliverableLabel(category: TaskCategory): string {
 
 // ─── Instruction builders ─────────────────────────────────────────────────────
 
-function buildPrimaryInstruction(category: TaskCategory, intent: ParsedIntent): string {
-  const audience = intent.audience ? ` for ${intent.audience}` : ''
-  const constraints = intent.constraints.length > 0
-    ? ` Constraints: ${intent.constraints.join(', ')}.` : ''
-
-  const map: Record<TaskCategory, string> = {
-    research:
-      `You are the research specialist. Research "${intent.subject}"${audience}. Find current data, trends, key statistics and insights. Provide a thorough, structured summary with sources.${constraints}`,
-
-    code:
-      `You are the architecture and planning specialist. The goal is: "${intent.goal}"${audience}. Do NOT write the full code yet. Instead provide: (1) recommended tech stack with justification, (2) complete file/folder structure, (3) step-by-step implementation plan with what each file does, (4) key algorithms and data flow. Arivarangam AI will write the actual code using your plan.${constraints}`,
-
-    content:
-      `You are the writing specialist. Write compelling content about "${intent.subject}"${audience}. Deliverables: ${intent.deliverables.join(', ')}.${constraints}`,
-
-    strategy:
-      `You are the strategy specialist. Create a strategic framework for "${intent.goal}"${audience}. Include positioning, key messages, execution approach, and success metrics.${constraints}`,
-
-    data_analysis:
-      `You are the analysis specialist. Analyze data about "${intent.subject}"${audience}. Identify patterns, insights, and actionable recommendations.${constraints}`,
-
-    image:
-      `You are the image generation specialist. Generate high-quality visuals for "${intent.subject}"${audience}.${constraints}`,
-
-    voice:
-      `You are the voice specialist. Generate natural, engaging voiceover for "${intent.subject}"${audience}.${constraints}`,
-
-    translation:
-      `You are the language specialist. Translate the following content to ${intent.language}, maintaining tone and cultural relevance: "${intent.goal}"${constraints}`,
-
-    general:
-      `You are the primary specialist. Complete: "${intent.goal}"${audience}.${constraints}`,
-  }
-  return map[category] || `Complete: ${intent.goal}`
-}
-
-function buildConsultationInstruction(
+/**
+ * Unified instruction builder — uses the slot role + model to craft
+ * a precise prompt that matches each specialist's actual strength.
+ */
+function buildSpecialistInstruction(
   category: TaskCategory,
   intent: ParsedIntent,
-  model: AIModel,
+  slot: SpecialistSlot,
 ): string {
-  if (model === 'perplexity-sonar') {
-    const isCode = ['code', 'general'].includes(category)
-    if (isCode) {
-      return `Research for a coding project: "${intent.goal}". Find: (1) best libraries/frameworks for this use case with npm install commands, (2) any existing open-source solutions or GitHub repos to reference, (3) common pitfalls and how to avoid them, (4) production deployment considerations. Be specific with version numbers and actual package names. Arivarangam AI will use your research to write the code.`
-    }
-    return `Research current information, latest best practices, and real-world examples relevant to: "${intent.goal}". Provide facts, statistics and references that will support the final output.`
-  }
-  if (model === 'gpt-4o') {
-    return `Provide logical structure, step-by-step reasoning, and a clear implementation plan for: "${intent.goal}". Focus on the approach and decision framework.`
-  }
-  if (model === 'gemini-2.5-pro') {
-    return `Provide deep analysis and strategic guidance for: "${intent.goal}". Consider long-term implications, risks, and opportunities.`
-  }
-  if (model === 'claude-3-5-sonnet') {
+  const audience    = intent.audience ? ` for ${intent.audience}` : ''
+  const constraints = intent.constraints.length > 0
+    ? ` Constraints: ${intent.constraints.join(', ')}.` : ''
+  const g = intent.goal
+  const s = intent.subject
+
+  // ── Role × Model instructions ─────────────────────────────────────────────
+
+  if (slot.role === 'architect') {
     if (category === 'code') {
-      return `You are the code quality and implementation specialist. For the project: "${intent.goal}". Provide: (1) recommended code patterns and architectural best practices for this specific use case, (2) security considerations and how to implement them, (3) error handling strategies and edge cases to cover, (4) testing approach and what to test, (5) performance optimizations to apply. Write concrete code snippets showing HOW to implement the trickiest parts. Arivarangam AI will use your guidance to write the complete codebase.`
+      return `You are the architecture and planning specialist. Goal: "${g}"${audience}. Provide: (1) recommended tech stack with justification, (2) complete file/folder structure, (3) step-by-step implementation plan — what each file does, (4) key data flows and algorithms. Do NOT write full code yet. Arivarangam AI will code from your plan.${constraints}`
     }
-    return `Provide detailed, high-quality content and technical depth for: "${intent.goal}". Focus on clarity, completeness and actionability.`
+    if (category === 'strategy') {
+      return `You are the strategy specialist. Create a strategic framework for: "${g}"${audience}. Include positioning, key messages, execution approach, KPIs and success metrics.${constraints}`
+    }
+    return `You are the primary specialist. Complete: "${g}"${audience}.${constraints}`
   }
-  return `Provide your specialist perspective on: "${intent.goal}"`
+
+  if (slot.role === 'researcher') {
+    if (category === 'code' || category === 'general') {
+      return `You are the research specialist for a coding project: "${g}". Find: (1) best libraries/frameworks with exact npm install commands and version numbers, (2) open-source references and GitHub repos, (3) common pitfalls and how to avoid them, (4) production deployment considerations. Arivarangam AI will use your findings to write the code.${constraints}`
+    }
+    return `You are the research specialist. Research "${s}"${audience}. Find current data, trends, key statistics, and real-world examples with sources. Be specific and cite where possible.${constraints}`
+  }
+
+  if (slot.role === 'analyst') {
+    if (category === 'data_analysis') {
+      return `You are the data analysis specialist. Analyze data about "${s}"${audience}. Identify patterns, anomalies, and trends. Produce actionable insights and specific recommendations.${constraints}`
+    }
+    return `You are the deep analysis specialist. Provide strategic analysis for: "${g}"${audience}. Cover long-term implications, risks, opportunities, and second-order effects.${constraints}`
+  }
+
+  if (slot.role === 'implementer') {
+    // Claude as code implementer: concrete patterns and snippets
+    return `You are the code quality and implementation specialist for: "${g}". Provide: (1) recommended code patterns and architecture best practices specific to this use case, (2) security considerations with implementation examples, (3) error handling strategies and edge cases, (4) testing approach and key test cases, (5) performance optimisations. Include concrete code snippets for the trickiest parts. Arivarangam AI will use your guidance to write the complete codebase.${constraints}`
+  }
+
+  if (slot.role === 'writer') {
+    if (slot.model === 'sarvam-1') {
+      return `You are the language specialist. Translate the following to ${intent.language}, maintaining tone and cultural relevance: "${g}"${constraints}`
+    }
+    return `You are the writing specialist. Write compelling, polished content about "${s}"${audience}. Deliverables: ${intent.deliverables.join(', ') || 'complete written content'}.${constraints}`
+  }
+
+  if (slot.role === 'reviewer') {
+    if (category === 'translation') {
+      return `You are the translation quality reviewer. Review the translated content for "${s}" to ${intent.language}. Check for accuracy, natural flow, cultural appropriateness, and any mistranslations. Provide a corrected and polished version.${constraints}`
+    }
+    return `You are the quality and structure reviewer. Review and strengthen the approach for: "${g}"${audience}. Focus on logical structure, completeness, and what the primary specialist may have missed.${constraints}`
+  }
+
+  return `You are a specialist. Complete: "${g}"${audience}.${constraints}`
 }
 
 function buildSynthesisInstruction(intent: ParsedIntent): string {
