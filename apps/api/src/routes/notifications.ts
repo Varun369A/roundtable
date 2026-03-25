@@ -63,12 +63,22 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
     const userId  = request.user!.id
     const channel = `arivarangam:user:${userId}`
 
-    // Set SSE headers and hijack the connection from Fastify
-    reply.raw.setHeader('Content-Type',      'text/event-stream')
-    reply.raw.setHeader('Cache-Control',     'no-cache')
-    reply.raw.setHeader('Connection',        'keep-alive')
-    reply.raw.setHeader('X-Accel-Buffering', 'no')
-    reply.raw.flushHeaders()
+    // Manually set CORS + SSE headers.
+    // reply.hijack() bypasses Fastify's reply lifecycle (including @fastify/cors),
+    // so CORS headers must be set explicitly here — same pattern as stream.ts.
+    const allowedOrigins = (process.env.CORS_ORIGINS || process.env.WEB_URL || 'http://localhost:3000')
+      .split(',').map((o: string) => o.trim())
+    const requestOrigin = request.headers.origin || ''
+    const acao = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0]
+
+    reply.raw.writeHead(200, {
+      'Content-Type':                     'text/event-stream',
+      'Cache-Control':                    'no-cache, no-transform',
+      'Connection':                       'keep-alive',
+      'X-Accel-Buffering':               'no',
+      'Access-Control-Allow-Origin':     acao,
+      'Access-Control-Allow-Credentials': 'true',
+    })
     reply.hijack()
 
     const sendEvent = (event: string, data: unknown) => {
