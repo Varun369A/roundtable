@@ -437,13 +437,14 @@ export default function DashboardPage() {
 
   // Debounced language detection
   useEffect(() => {
-    if (!goal.trim() || goal.length < 10) { setDetectedLang(null); return }
+    const trimmed = goal.trim()
+    if (trimmed.length < 10) { setDetectedLang(null); return }
     clearTimeout(detectTimeout.current)
     detectTimeout.current = setTimeout(async () => {
       try {
         const data = await apiFetch('/api/v1/language/detect', {
           method: 'POST',
-          body: JSON.stringify({ text: goal }),
+          body: JSON.stringify({ text: trimmed }),
         })
         if (data.success && (data.data as any)?.language?.needsTranslation) {
           setDetectedLang((data.data as any).language.name)
