@@ -393,7 +393,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
                 <div className="flex-1 overflow-y-auto">
                   {envTab === 'setup'
                     ? <EnvSetupHelper taskId={taskId} files={project.files} />
-                    : <EnvVarsPanel taskId={taskId} />
+                    : <EnvVarsPanel projectId={project.id} />
                   }
                 </div>
               </div>
