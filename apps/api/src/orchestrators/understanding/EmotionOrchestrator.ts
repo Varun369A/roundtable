@@ -47,16 +47,16 @@ export class EmotionOrchestrator extends Orchestrator {
 
     switch (brainName) {
       case 'SentimentBrain':
-        return { text: input.goal }
+        return { goal: input.goal }
 
       case 'UrgencyBrain':
-        return { text: input.goal }
+        return { goal: input.goal }
 
       case 'FrustrationBrain':
-        return { text: input.goal, userId: input.userId, taskId: input.taskId, sentiment }
+        return { goal: input.goal, userId: input.userId }
 
       case 'ToneBrain':
-        return { text: input.goal }
+        return { goal: input.goal }
 
       case 'EmpathyBrain':
         return { sentiment, isFrustrated: frustration, urgencyLevel: urgency, tone }

@@ -80,16 +80,16 @@ export class MemoryOrchestrator extends Orchestrator {
 
       case 'PersonalizationBrain':
         return {
-          userId: input.userId,
-          shortTermContext: shortTerm,
-          longTermContext: longTerm,
-          preferences: preference,
-          profile,
-          patterns: pattern,
-          relationship,
-          adaptations: accumulated['AdaptationBrain'],
-          feedbackMemory: accumulated['FeedbackMemoryBrain'],
-          goal: input.goal,
+          memoryContext: '',
+          name: (profile as { name?: string })?.name ?? '',
+          businessName: (profile as { businessName?: string })?.businessName ?? '',
+          techStack: (preference as { techStack?: string[] })?.techStack ?? [],
+          writingTone: (preference as { writingTone?: string })?.writingTone ?? 'professional',
+          preferredLanguage: (preference as { preferredLanguage?: string })?.preferredLanguage ?? 'en',
+          avoidPatterns: [],
+          preferredApproaches: [],
+          stackOverride: (pattern as { inferredStack?: string[] })?.inferredStack ?? [],
+          verbosityLevel: 'medium' as const,
         }
 
       default:

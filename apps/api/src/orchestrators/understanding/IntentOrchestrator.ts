@@ -42,26 +42,26 @@ export class IntentOrchestrator extends Orchestrator {
 
     switch (brainName) {
       case 'LanguageBrain':
-        return { text: input.goal }
+        return { goal: input.goal }
 
       case 'IntentBrain':
-        return { text: input.goal, detectedLanguage: (accumulated['LanguageBrain'] as { language?: string })?.language ?? 'en' }
+        return { goal: input.goal, detectedLanguage: (accumulated['LanguageBrain'] as { language?: string })?.language ?? 'en' }
 
       case 'AmbiguityBrain': {
         const intent = accumulated['IntentBrain'] as Record<string, unknown> | undefined
-        return { text: input.goal, primaryCategory: intent?.primaryCategory ?? 'general', complexity: intent?.complexity ?? 'medium' }
+        return { goal: input.goal, categories: intent?.categories ?? [] }
       }
 
       case 'ContextBrain':
-        return { text: input.goal }
+        return { goal: input.goal, userId: input.userId }
 
       case 'GoalBrain': {
         const intent = accumulated['IntentBrain'] as Record<string, unknown> | undefined
-        return { text: input.goal, primaryCategory: intent?.primaryCategory ?? 'general', isCodeTask: intent?.isCodeTask ?? false }
+        return { goal: input.goal, primaryCategory: intent?.primaryCategory ?? 'general', deliverables: [] }
       }
 
       case 'ConstraintBrain':
-        return { text: input.goal }
+        return { goal: input.goal }
 
       case 'HistoryBrain':
         return { userId: input.userId, currentGoal: input.goal }

@@ -151,7 +151,7 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
           files: finalFiles as object[],
           qualityScore: intelligenceOutput.overallScore,
           qualityGrade: intelligenceOutput.qualityGrade,
-          status: intelligenceOutput.qualityGrade === 'F' ? 'DRAFT' : 'COMPLETED',
+          status: intelligenceOutput.qualityGrade === 'F' ? 'DRAFT' : 'COMPLETE',
         },
         update: {
           files: finalFiles as object[],
