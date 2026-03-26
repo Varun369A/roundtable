@@ -195,7 +195,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   if (loading) {
     return (
-      <div className="h-screen bg-slate-950 flex items-center justify-center">
+      <div className="h-screen bg-white flex items-center justify-center">
         <div className="flex gap-2">
           {[0, 150, 300].map(d => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
@@ -207,18 +207,18 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   if (!project) {
     return (
-      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="h-screen bg-gray-50 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">💻</p>
         <div>
-          <h1 className="text-xl font-semibold text-white mb-2">No workspace yet</h1>
-          <p className="text-slate-400 text-sm max-w-sm">The code workspace is assembled automatically when a development task completes.</p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">No workspace yet</h1>
+          <p className="text-gray-500 text-sm max-w-sm">The code workspace is assembled automatically when a development task completes.</p>
         </div>
         <div className="flex gap-3">
           <button onClick={triggerAssemble} disabled={assembling}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
             {assembling ? 'Assembling…' : 'Assemble Workspace'}
           </button>
-          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm transition-colors hover:border-slate-500">
+          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 text-sm transition-colors hover:border-gray-300">
             Back to task
           </Link>
         </div>
@@ -228,24 +228,24 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   if (project.status === 'ASSEMBLING') {
     return (
-      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-center">
+      <div className="h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 text-center">
         <div className="flex gap-2">
           {[0, 150, 300].map(d => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
           ))}
         </div>
-        <p className="text-slate-400 text-sm">Assembling your code workspace…</p>
+        <p className="text-gray-500 text-sm">Assembling your code workspace…</p>
       </div>
     )
   }
 
   if (project.status === 'FAILED') {
     return (
-      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="h-screen bg-gray-50 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">⚠️</p>
         <div>
-          <h1 className="text-xl font-semibold text-white mb-2">Assembly failed</h1>
-          <p className="text-slate-400 text-sm max-w-sm">The workspace couldn't be assembled from the task output.</p>
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Assembly failed</h1>
+          <p className="text-gray-500 text-sm max-w-sm">The workspace couldn't be assembled from the task output.</p>
         </div>
         <button onClick={triggerAssemble} disabled={assembling}
           className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
@@ -271,38 +271,38 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
   // ── IDE Layout ────────────────────────────────────────────────────────────
 
   return (
-    <div className="h-screen flex flex-col bg-slate-950 text-slate-200 overflow-hidden">
+    <div className="h-screen flex flex-col bg-white text-gray-900 overflow-hidden">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="h-11 flex items-center gap-3 px-3 border-b border-slate-800 shrink-0 bg-slate-900">
+      <header className="h-11 flex items-center gap-3 px-3 border-b border-gray-200 shrink-0 bg-white">
         <Link href={`/roundtable/${taskId}`}
-          className="text-slate-500 hover:text-slate-300 text-xs transition-colors shrink-0 flex items-center gap-1">
+          className="text-gray-400 hover:text-gray-600 text-xs transition-colors shrink-0 flex items-center gap-1">
           ← Task
         </Link>
-        <div className="h-4 w-px bg-slate-700" />
-        <span className="text-xs font-semibold text-slate-300 truncate max-w-[200px]">💻 {project.name}</span>
-        <span className="text-[10px] text-slate-600 shrink-0">{project.files.length} files</span>
+        <div className="h-4 w-px bg-gray-200" />
+        <span className="text-xs font-semibold text-gray-700 truncate max-w-[200px]">💻 {project.name}</span>
+        <span className="text-[10px] text-gray-400 shrink-0">{project.files.length} files</span>
 
         <div className="flex items-center gap-2 ml-auto">
           <button onClick={downloadZip}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-[11px] font-medium transition-colors">
             ⬇ ZIP
           </button>
 
           {/* GitHub */}
           {project.repoUrl ? (
             <a href={project.repoUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-400 text-[11px] font-medium transition-colors border border-emerald-800/50">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium transition-colors border border-emerald-200">
               ✓ GitHub
             </a>
           ) : ghConn ? (
             <button onClick={() => setShowPush(true)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-[11px] font-medium transition-colors">
               Push to GitHub
             </button>
           ) : (
             <a href="/api/v1/github/auth/start"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-[11px] font-medium transition-colors">
               Connect GitHub
             </a>
           )}
@@ -313,7 +313,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
       <div className="flex-1 flex min-h-0">
 
         {/* ── Icon sidebar ───────────────────────────────────────────────────── */}
-        <div className="w-12 border-r border-slate-800 bg-slate-900 flex flex-col items-center pt-2 gap-0.5 shrink-0">
+        <div className="w-12 border-r border-gray-200 bg-gray-50 flex flex-col items-center pt-2 gap-0.5 shrink-0">
           {visibleTabs.map(tab => {
             const meta = TAB_META[tab]
             const isActive = activeTab === tab
@@ -326,12 +326,12 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
                 title={meta.label}
                 className={`relative w-9 h-9 flex flex-col items-center justify-center rounded-lg text-base transition-all group ${
                   isActive
-                    ? 'bg-indigo-600/20 text-indigo-400'
-                    : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
                 }`}
               >
                 <span className="text-sm leading-none">{meta.icon}</span>
-                <span className={`text-[8px] font-medium mt-0.5 ${isActive ? 'text-indigo-400' : 'text-slate-600 group-hover:text-slate-500'}`}>
+                <span className={`text-[8px] font-medium mt-0.5 ${isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'}`}>
                   {meta.label.split(' ')[0]}
                 </span>
                 {hasBadge && (
@@ -343,17 +343,17 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
         </div>
 
         {/* ── Left panel (content) ─────────────────────────────────────────── */}
-        <div className={`border-r border-slate-800 flex flex-col min-h-0 bg-slate-900 overflow-hidden ${
+        <div className={`border-r border-gray-200 flex flex-col min-h-0 bg-white overflow-hidden ${
           activeTab === 'code' ? 'w-56' : 'w-80'
         }`}>
 
           {/* Panel header */}
-          <div className="h-8 flex items-center px-3 border-b border-slate-800 shrink-0">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="h-8 flex items-center px-3 border-b border-gray-200 shrink-0 bg-gray-50">
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
               {TAB_META[activeTab].label}
             </span>
             {activeTab === 'edit' && pendingPlan && (
-              <span className="ml-2 text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-semibold">
+              <span className="ml-2 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">
                 Plan ready
               </span>
             )}
@@ -375,15 +375,15 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
             {activeTab === 'env' && (
               <div className="flex flex-col h-full">
                 {/* Sub-tabs */}
-                <div className="flex border-b border-slate-800 shrink-0">
+                <div className="flex border-b border-gray-200 shrink-0">
                   {(['setup', 'vars'] as const).map(t => (
                     <button
                       key={t}
                       onClick={() => setEnvTab(t)}
                       className={`flex-1 py-2 text-[11px] font-medium transition-colors ${
                         envTab === t
-                          ? 'text-indigo-400 border-b-2 border-indigo-500'
-                          : 'text-slate-500 hover:text-slate-400'
+                          ? 'text-indigo-600 border-b-2 border-indigo-500'
+                          : 'text-gray-500 hover:text-gray-700'
                       }`}
                     >
                       {t === 'setup' ? '🔧 Setup Guide' : '📋 Variables'}
@@ -461,11 +461,11 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
         {/* ── Center — code viewer (only for Files tab) ────────────────────── */}
         {activeTab === 'code' && (
-          <div className="flex-1 min-w-0 min-h-0 border-r border-slate-800 bg-slate-950 overflow-hidden">
+          <div className="flex-1 min-w-0 min-h-0 border-r border-gray-200 bg-white overflow-hidden">
             {selected ? (
               <CodeViewer file={selected} />
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-600 text-sm">
+              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
                 Select a file to view
               </div>
             )}
@@ -484,20 +484,20 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
       {/* ── GitHub push modal ─────────────────────────────────────────────── */}
       {showPush && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h2 className="text-base font-semibold text-white mb-1">Push to GitHub</h2>
-            <p className="text-sm text-slate-400 mb-4">Pushing as <strong className="text-slate-300">{ghConn?.login}</strong></p>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Push to GitHub</h2>
+            <p className="text-sm text-gray-500 mb-4">Pushing as <strong className="text-gray-700">{ghConn?.login}</strong></p>
             <input
               value={repoInput}
               onChange={e => setRepoInput(e.target.value)}
               placeholder={`${project.name.toLowerCase().replace(/\s+/g, '-')}-app`}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 mb-3"
+              className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-indigo-500 mb-3"
             />
-            {pushError && <p className="text-red-400 text-xs mb-3">{pushError}</p>}
+            {pushError && <p className="text-red-500 text-xs mb-3">{pushError}</p>}
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowPush(false)}
-                className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm hover:border-slate-500 transition-colors">
+                className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 text-sm hover:border-gray-300 transition-colors">
                 Cancel
               </button>
               <button onClick={pushToGitHub} disabled={pushing}
