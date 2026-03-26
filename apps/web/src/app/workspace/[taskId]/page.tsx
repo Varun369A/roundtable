@@ -366,7 +366,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
             {activeTab === 'code' && (
               <FileTree
                 files={project.files}
-                selected={selected}
+                selected={selected?.path ?? null}
                 onSelect={(f) => setSelected(f)}
               />
             )}
