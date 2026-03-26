@@ -7,13 +7,14 @@ import { apiFetch } from '@/lib/api'
 import FileTree from '@/components/workspace/FileTree'
 import CodeViewer from '@/components/workspace/CodeViewer'
 import { EnvVarsPanel } from '@/components/workspace/EnvVarsPanel'
+import { EnvSetupHelper } from '@/components/workspace/EnvSetupHelper'
 import { EditChatPanel } from '@/components/workspace/EditChatPanel'
 import { EditPlanCard } from '@/components/workspace/EditPlanCard'
 import { DiffViewer } from '@/components/workspace/DiffViewer'
 import { SuggestionsPanel } from '@/components/workspace/SuggestionsPanel'
 import { ErrorScanPanel } from '@/components/workspace/ErrorScanPanel'
-import { LivePreview } from '@/components/workspace/LivePreview'
 import { RestClientPanel } from '@/components/workspace/RestClientPanel'
+import { WorkspaceRightPanel } from '@/components/workspace/WorkspaceRightPanel'
 
 interface CodeFile {
   path:     string
@@ -48,22 +49,32 @@ interface AppliedFile {
   totalFiles: number
 }
 
-type Tab = 'code' | 'env' | 'edit' | 'suggestions' | 'errors' | 'preview' | 'rest'
+type Tab = 'code' | 'env' | 'edit' | 'suggestions' | 'errors' | 'rest'
+
+const TAB_META: Record<Tab, { icon: string; label: string }> = {
+  code:        { icon: '📁', label: 'Files' },
+  env:         { icon: '🔑', label: 'Env & Setup' },
+  edit:        { icon: '✏️', label: 'Edit' },
+  suggestions: { icon: '💡', label: 'Suggestions' },
+  errors:      { icon: '🔍', label: 'Errors' },
+  rest:        { icon: '⚡', label: 'REST' },
+}
 
 export default function WorkspacePage({ params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = use(params)
-  const router  = useRouter()
+  const router = useRouter()
 
-  const [project,    setProject]    = useState<CodeProject | null>(null)
-  const [loading,    setLoading]    = useState(true)
-  const [selected,   setSelected]   = useState<CodeFile | null>(null)
-  const [ghConn,     setGhConn]     = useState<GitHubConnection | null>(null)
-  const [pushing,    setPushing]    = useState(false)
-  const [pushError,  setPushError]  = useState('')
-  const [repoInput,  setRepoInput]  = useState('')
-  const [showPush,   setShowPush]   = useState(false)
-  const [assembling, setAssembling] = useState(false)
-  const [activeTab,  setActiveTab]  = useState<Tab>('code')
+  const [project,     setProject]     = useState<CodeProject | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [selected,    setSelected]    = useState<CodeFile | null>(null)
+  const [ghConn,      setGhConn]      = useState<GitHubConnection | null>(null)
+  const [pushing,     setPushing]     = useState(false)
+  const [pushError,   setPushError]   = useState('')
+  const [repoInput,   setRepoInput]   = useState('')
+  const [showPush,    setShowPush]    = useState(false)
+  const [assembling,  setAssembling]  = useState(false)
+  const [activeTab,   setActiveTab]   = useState<Tab>('code')
+  const [envTab,      setEnvTab]      = useState<'vars' | 'setup'>('setup')
 
   // Edit mode state
   const [editEnabled,   setEditEnabled]   = useState(false)
@@ -72,8 +83,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
   const [appliedFiles,  setAppliedFiles]  = useState<AppliedFile[]>([])
   const [applyTotal,    setApplyTotal]    = useState(0)
   const [activeSession, setActiveSession] = useState<string | null>(null)
-  // Pre-filled edit prompt (from suggestions / error scan)
-  const [editPrefill,   setEditPrefill]   = useState<string>('')
+  const [editPrefill,   setEditPrefill]   = useState('')
 
   const sseRef = useRef<EventSource | null>(null)
 
@@ -104,7 +114,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
     return () => clearInterval(interval)
   }, [project?.status, load])
 
-  // SSE subscription for edit events
+  // SSE for edit events
   useEffect(() => {
     if (!editEnabled) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
@@ -115,13 +125,11 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
     sseRef.current = es
 
     es.addEventListener('edit_mode_enabled', () => setEditEnabled(true))
-
     es.addEventListener('edit_plan_ready', (e) => {
       const data = JSON.parse(e.data)
       setPendingPlan({ sessionId: data.sessionId, explanation: data.explanation, files: data.files ?? [] })
       setActiveTab('edit')
     })
-
     es.addEventListener('edit_applying', (e) => {
       const data = JSON.parse(e.data)
       setIsApplying(true)
@@ -129,18 +137,15 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
       setApplyTotal(data.totalFiles ?? 0)
       setPendingPlan(null)
     })
-
     es.addEventListener('edit_file_completed', (e) => {
       const data = JSON.parse(e.data)
-      setAppliedFiles((prev) => [...prev, { path: data.filePath, fileIndex: data.fileIndex, totalFiles: data.totalFiles }])
+      setAppliedFiles(prev => [...prev, { path: data.filePath, fileIndex: data.fileIndex, totalFiles: data.totalFiles }])
     })
-
     es.addEventListener('edit_completed', () => {
       setIsApplying(false)
       setActiveSession(null)
       load()
     })
-
     es.addEventListener('edit_failed', () => {
       setIsApplying(false)
       setActiveSession(null)
@@ -157,7 +162,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
   async function triggerAssemble() {
     setAssembling(true)
     const res = await apiFetch(`/api/v1/code-projects/${taskId}/assemble`, { method: 'POST' })
-    if (res.success) setProject((p) => p ? { ...p, status: 'ASSEMBLING' } : null)
+    if (res.success) setProject(p => p ? { ...p, status: 'ASSEMBLING' } : null)
     setAssembling(false)
   }
 
@@ -179,18 +184,20 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
     )
     setPushing(false)
     if (res.success && res.data) {
-      setProject((p) => p ? { ...p, repoUrl: res.data!.repoUrl, pushedAt: new Date().toISOString() } : null)
+      setProject(p => p ? { ...p, repoUrl: res.data!.repoUrl, pushedAt: new Date().toISOString() } : null)
       setShowPush(false)
     } else {
       setPushError(res.error?.message ?? 'Push failed')
     }
   }
 
+  // ── Loading / error states ────────────────────────────────────────────────
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex gap-2">
-          {[0, 150, 300].map((d) => (
+          {[0, 150, 300].map(d => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
           ))}
         </div>
@@ -200,18 +207,18 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">💻</p>
         <div>
-          <h1 className="text-xl font-semibold text-slate-900 mb-2">No workspace yet</h1>
-          <p className="text-slate-500 text-sm max-w-sm">The code workspace is assembled automatically when a development task completes.</p>
+          <h1 className="text-xl font-semibold text-white mb-2">No workspace yet</h1>
+          <p className="text-slate-400 text-sm max-w-sm">The code workspace is assembled automatically when a development task completes.</p>
         </div>
         <div className="flex gap-3">
           <button onClick={triggerAssemble} disabled={assembling}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
             {assembling ? 'Assembling…' : 'Assemble Workspace'}
           </button>
-          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-slate-300 hover:border-slate-400 text-slate-500 text-sm transition-colors">
+          <Link href={`/roundtable/${taskId}`} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm transition-colors hover:border-slate-500">
             Back to task
           </Link>
         </div>
@@ -221,24 +228,24 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   if (project.status === 'ASSEMBLING') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 text-center">
+      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-center">
         <div className="flex gap-2">
-          {[0, 150, 300].map((d) => (
+          {[0, 150, 300].map(d => (
             <div key={d} className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: `${d}ms` }} />
           ))}
         </div>
-        <p className="text-slate-500 text-sm">Assembling your code workspace…</p>
+        <p className="text-slate-400 text-sm">Assembling your code workspace…</p>
       </div>
     )
   }
 
   if (project.status === 'FAILED') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-6 text-center px-4">
+      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 text-center px-4">
         <p className="text-4xl">⚠️</p>
         <div>
-          <h1 className="text-xl font-semibold text-slate-900 mb-2">Assembly failed</h1>
-          <p className="text-slate-500 text-sm max-w-sm">The workspace couldn't be assembled from the task output.</p>
+          <h1 className="text-xl font-semibold text-white mb-2">Assembly failed</h1>
+          <p className="text-slate-400 text-sm max-w-sm">The workspace couldn't be assembled from the task output.</p>
         </div>
         <button onClick={triggerAssemble} disabled={assembling}
           className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
@@ -248,190 +255,256 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
     )
   }
 
-  // Detect project type for conditional tabs
-  const hasApi = project.files.some((f) =>
+  const hasApi = project.files.some(f =>
     f.path.includes('/routes/') || f.path.includes('/api/') || f.path.includes('server.ts')
   )
 
-  const tabs: Array<{ id: Tab; label: string; badge?: number }> = [
-    { id: 'code',        label: '💻 Files' },
-    { id: 'env',         label: '🔑 Env' },
-    ...(editEnabled ? [{ id: 'edit' as Tab, label: '✏️ Edit', badge: pendingPlan ? 1 : undefined }] : []),
-    { id: 'suggestions', label: '💡 Suggestions' },
-    { id: 'errors',      label: '🔍 Errors' },
-    { id: 'preview',     label: '👁 Preview' },
-    ...(hasApi ? [{ id: 'rest' as Tab, label: '⚡ REST' }] : []),
+  const visibleTabs: Tab[] = [
+    'code',
+    'env',
+    ...(editEnabled ? ['edit' as Tab] : []),
+    'suggestions',
+    'errors',
+    ...(hasApi ? ['rest' as Tab] : []),
   ]
 
+  // ── IDE Layout ────────────────────────────────────────────────────────────
+
   return (
-    <div className="h-screen flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
+    <div className="h-screen flex flex-col bg-slate-950 text-slate-200 overflow-hidden">
 
-      {/* ── Toolbar ── */}
-      <header className="flex items-center justify-between px-4 h-12 border-b border-slate-200 shrink-0 bg-white">
-        <div className="flex items-center gap-3">
-          <Link href={`/roundtable/${taskId}`} className="text-slate-500 hover:text-slate-700 text-sm transition-colors">
-            ← Task
-          </Link>
-          <div className="h-4 w-px bg-slate-200" />
-          <span className="text-sm font-medium text-slate-800 truncate max-w-xs">💻 {project.name}</span>
-          <span className="text-[10px] text-slate-400">{project.files.length} files</span>
-        </div>
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <header className="h-11 flex items-center gap-3 px-3 border-b border-slate-800 shrink-0 bg-slate-900">
+        <Link href={`/roundtable/${taskId}`}
+          className="text-slate-500 hover:text-slate-300 text-xs transition-colors shrink-0 flex items-center gap-1">
+          ← Task
+        </Link>
+        <div className="h-4 w-px bg-slate-700" />
+        <span className="text-xs font-semibold text-slate-300 truncate max-w-[200px]">💻 {project.name}</span>
+        <span className="text-[10px] text-slate-600 shrink-0">{project.files.length} files</span>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <button onClick={downloadZip}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors">
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
             ⬇ ZIP
           </button>
+
+          {/* GitHub */}
           {project.repoUrl ? (
             <a href={project.repoUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-medium transition-colors border border-emerald-200">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-400 text-[11px] font-medium transition-colors border border-emerald-800/50">
               ✓ GitHub
             </a>
           ) : ghConn ? (
             <button onClick={() => setShowPush(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
               Push to GitHub
             </button>
           ) : (
             <a href="/api/v1/github/auth/start"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors">
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors">
               Connect GitHub
             </a>
           )}
         </div>
       </header>
 
-      {/* ── Tab bar ── */}
-      <div className="flex border-b border-slate-200 shrink-0 bg-white overflow-x-auto">
-        {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === tab.id ? 'text-slate-900 border-indigo-500' : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}>
-            {tab.label}
-            {tab.badge && (
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
-                {tab.badge}
+      {/* ── Body ─────────────────────────────────────────────────────────────── */}
+      <div className="flex-1 flex min-h-0">
+
+        {/* ── Icon sidebar ───────────────────────────────────────────────────── */}
+        <div className="w-12 border-r border-slate-800 bg-slate-900 flex flex-col items-center pt-2 gap-0.5 shrink-0">
+          {visibleTabs.map(tab => {
+            const meta = TAB_META[tab]
+            const isActive = activeTab === tab
+            const hasBadge = tab === 'edit' && pendingPlan
+
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                title={meta.label}
+                className={`relative w-9 h-9 flex flex-col items-center justify-center rounded-lg text-base transition-all group ${
+                  isActive
+                    ? 'bg-indigo-600/20 text-indigo-400'
+                    : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'
+                }`}
+              >
+                <span className="text-sm leading-none">{meta.icon}</span>
+                <span className={`text-[8px] font-medium mt-0.5 ${isActive ? 'text-indigo-400' : 'text-slate-600 group-hover:text-slate-500'}`}>
+                  {meta.label.split(' ')[0]}
+                </span>
+                {hasBadge && (
+                  <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* ── Left panel (content) ─────────────────────────────────────────── */}
+        <div className={`border-r border-slate-800 flex flex-col min-h-0 bg-slate-900 overflow-hidden ${
+          activeTab === 'code' ? 'w-56' : 'w-80'
+        }`}>
+
+          {/* Panel header */}
+          <div className="h-8 flex items-center px-3 border-b border-slate-800 shrink-0">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+              {TAB_META[activeTab].label}
+            </span>
+            {activeTab === 'edit' && pendingPlan && (
+              <span className="ml-2 text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-semibold">
+                Plan ready
               </span>
             )}
-          </button>
-        ))}
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+
+            {/* Files — file tree */}
+            {activeTab === 'code' && (
+              <FileTree
+                files={project.files}
+                selected={selected}
+                onSelect={setSelected}
+              />
+            )}
+
+            {/* Env — vars + setup helper */}
+            {activeTab === 'env' && (
+              <div className="flex flex-col h-full">
+                {/* Sub-tabs */}
+                <div className="flex border-b border-slate-800 shrink-0">
+                  {(['setup', 'vars'] as const).map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setEnvTab(t)}
+                      className={`flex-1 py-2 text-[11px] font-medium transition-colors ${
+                        envTab === t
+                          ? 'text-indigo-400 border-b-2 border-indigo-500'
+                          : 'text-slate-500 hover:text-slate-400'
+                      }`}
+                    >
+                      {t === 'setup' ? '🔧 Setup Guide' : '📋 Variables'}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {envTab === 'setup'
+                    ? <EnvSetupHelper taskId={taskId} files={project.files} />
+                    : <EnvVarsPanel taskId={taskId} />
+                  }
+                </div>
+              </div>
+            )}
+
+            {/* Edit */}
+            {activeTab === 'edit' && editEnabled && (
+              <div className="flex flex-col h-full min-h-0">
+                {pendingPlan && (
+                  <div className="shrink-0">
+                    <EditPlanCard
+                      plan={pendingPlan}
+                      taskId={taskId}
+                      appliedFiles={appliedFiles}
+                      applyTotal={applyTotal}
+                      isApplying={isApplying}
+                      onApproved={() => setPendingPlan(null)}
+                    />
+                  </div>
+                )}
+                {isApplying && appliedFiles.length > 0 && (
+                  <div className="shrink-0">
+                    <DiffViewer files={appliedFiles} />
+                  </div>
+                )}
+                <div className="flex-1 min-h-0">
+                  <EditChatPanel
+                    taskId={taskId}
+                    isApplying={isApplying}
+                    onSessionCreated={sid => setActiveSession(sid)}
+                    prefillMessage={editPrefill}
+                    onPrefillConsumed={() => setEditPrefill('')}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {activeTab === 'suggestions' && (
+              <SuggestionsPanel
+                taskId={taskId}
+                onEditRequest={switchToEditWithPrompt}
+              />
+            )}
+
+            {/* Errors */}
+            {activeTab === 'errors' && (
+              <ErrorScanPanel
+                taskId={taskId}
+                onEditRequest={switchToEditWithPrompt}
+              />
+            )}
+
+            {/* REST client */}
+            {activeTab === 'rest' && (
+              <RestClientPanel files={project.files} />
+            )}
+
+          </div>
+        </div>
+
+        {/* ── Center — code viewer (only for Files tab) ────────────────────── */}
+        {activeTab === 'code' && (
+          <div className="flex-1 min-w-0 min-h-0 border-r border-slate-800 bg-slate-950 overflow-hidden">
+            {selected ? (
+              <CodeViewer file={selected} />
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-600 text-sm">
+                Select a file to view
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Right panel — always visible: preview + terminal ─────────────── */}
+        <div className={activeTab === 'code' ? 'w-[40%] shrink-0' : 'flex-1 min-w-0'}>
+          <WorkspaceRightPanel
+            files={project.files}
+            projectName={project.name}
+          />
+        </div>
+
       </div>
 
-      {/* ── Content ── */}
-
-      {/* Code tab */}
-      {activeTab === 'code' && (
-        <div className="flex flex-1 min-h-0">
-          <aside className="w-56 border-r border-slate-200 bg-slate-100 shrink-0 overflow-hidden">
-            <FileTree files={project.files} selected={selected?.path ?? null} onSelect={setSelected} />
-          </aside>
-          <main className="flex-1 min-w-0 bg-slate-50">
-            <CodeViewer file={selected} />
-          </main>
-        </div>
-      )}
-
-      {/* Env tab */}
-      {activeTab === 'env' && (
-        <div className="flex-1 overflow-y-auto">
-          <EnvVarsPanel projectId={project.id} />
-        </div>
-      )}
-
-      {/* Edit tab */}
-      {activeTab === 'edit' && (
-        <div className="flex flex-1 min-h-0">
-          <div className="flex flex-col w-96 border-r border-slate-200 bg-slate-50 shrink-0 min-h-0">
-            {pendingPlan && (
-              <div className="border-b border-slate-200">
-                <EditPlanCard taskId={taskId} sessionId={pendingPlan.sessionId} explanation={pendingPlan.explanation}
-                  files={pendingPlan.files}
-                  onApproved={() => { setPendingPlan(null); setIsApplying(true) }}
-                  onRejected={() => { setPendingPlan(null); setActiveSession(null) }}
-                />
-              </div>
-            )}
-            {(isApplying || appliedFiles.length > 0) && (
-              <div className="border-b border-slate-200">
-                <DiffViewer appliedFiles={appliedFiles} isApplying={isApplying} totalFiles={applyTotal} />
-              </div>
-            )}
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <EditChatPanel taskId={taskId} isApplying={isApplying}
-                onSessionCreated={(sid) => setActiveSession(sid)}
-                prefillMessage={editPrefill}
-                onPrefillConsumed={() => setEditPrefill('')}
-              />
-            </div>
-          </div>
-          <div className="flex flex-1 min-h-0 min-w-0">
-            <aside className="w-56 border-r border-slate-200 bg-slate-100 shrink-0 overflow-hidden">
-              <FileTree files={project.files} selected={selected?.path ?? null} onSelect={setSelected} />
-            </aside>
-            <main className="flex-1 min-w-0 bg-slate-50">
-              <CodeViewer file={selected} />
-            </main>
-          </div>
-        </div>
-      )}
-
-      {/* Suggestions tab */}
-      {activeTab === 'suggestions' && (
-        <div className="flex-1 overflow-y-auto">
-          <SuggestionsPanel taskId={taskId} onEditRequest={switchToEditWithPrompt} />
-        </div>
-      )}
-
-      {/* Errors tab */}
-      {activeTab === 'errors' && (
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <ErrorScanPanel taskId={taskId} onEditRequest={switchToEditWithPrompt} />
-        </div>
-      )}
-
-      {/* Preview tab */}
-      {activeTab === 'preview' && (
-        <div className="flex-1 overflow-hidden">
-          <LivePreview files={project.files} projectName={project.name} />
-        </div>
-      )}
-
-      {/* REST Client tab */}
-      {activeTab === 'rest' && (
-        <div className="flex-1 overflow-hidden">
-          <RestClientPanel files={project.files} />
-        </div>
-      )}
-
-      {/* Push to GitHub modal */}
+      {/* ── GitHub push modal ─────────────────────────────────────────────── */}
       {showPush && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">Push to GitHub</h2>
-            <p className="text-sm text-slate-500 mb-5">
-              Creates a new public repository and pushes all {project.files.length} files.
-              {ghConn && <span className="text-slate-700"> Pushing as <strong>{ghConn.login}</strong>.</span>}
-            </p>
-            <label className="block text-xs text-slate-500 mb-1.5">Repository name</label>
-            <input value={repoInput} onChange={(e) => setRepoInput(e.target.value)}
-              placeholder={project.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 40)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-900 placeholder-slate-400 mb-4 transition-colors"
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-base font-semibold text-white mb-1">Push to GitHub</h2>
+            <p className="text-sm text-slate-400 mb-4">Pushing as <strong className="text-slate-300">{ghConn?.login}</strong></p>
+            <input
+              value={repoInput}
+              onChange={e => setRepoInput(e.target.value)}
+              placeholder={`${project.name.toLowerCase().replace(/\s+/g, '-')}-app`}
+              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 mb-3"
             />
-            {pushError && <p className="text-red-600 text-xs mb-3">{pushError}</p>}
-            <div className="flex gap-3">
-              <button onClick={pushToGitHub} disabled={pushing}
-                className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                {pushing ? 'Pushing…' : 'Push'}
-              </button>
-              <button onClick={() => { setShowPush(false); setPushError('') }}
-                className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-500 text-sm transition-colors">
+            {pushError && <p className="text-red-400 text-xs mb-3">{pushError}</p>}
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowPush(false)}
+                className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-sm hover:border-slate-500 transition-colors">
                 Cancel
               </button>
+              <button onClick={pushToGitHub} disabled={pushing}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                {pushing ? 'Pushing…' : 'Push'}
+              </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }

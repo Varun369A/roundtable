@@ -5,6 +5,26 @@ import Link from 'next/link'
 
 const RELEASES = [
   {
+    version: 'v1.5.0',
+    date: 'March 2025',
+    title: 'In-Browser IDE: WebContainer Terminal, Live Preview & AI Workspace',
+    tag: 'Major Release',
+    tagColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    changes: [
+      { tag: 'Feature', text: 'WebContainer Terminal: a full Node.js runtime runs inside the browser. Click ▶ Run to npm install + npm run dev your generated project with zero local setup — powered by WebContainers API.' },
+      { tag: 'Feature', text: 'Live Preview Panel: always-visible browser iframe shows the running dev server. Preview hot-reloads as AI edits are applied in real time.' },
+      { tag: 'Feature', text: 'IDE Workspace Layout: redesigned from tab-based to an IDE-style layout — vertical icon sidebar, file tree + code viewer, and always-visible preview + terminal on the right.' },
+      { tag: 'Feature', text: 'Env Setup Helper: automatically detects environment variables in generated code (OpenAI, Stripe, Supabase, GitHub OAuth, etc.) and shows step-by-step instructions with direct links to each provider.' },
+      { tag: 'Feature', text: 'Plan Approval (Phase 2): before code generation starts, the AI shows its full build plan — architecture, files, estimated complexity. Approve, modify, or cancel before a single line is written.' },
+      { tag: 'Feature', text: 'Proactive AI Suggestions (Phase 3): after generation, Groq generates improvement tips (performance, security, UI/UX, accessibility). Each suggestion has a one-click "Auto-fix with AI" button.' },
+      { tag: 'Feature', text: 'Error Scanner (Phase 4): scans all generated files for common issues. Each issue shows exact file path, error description, and an auto-fix button that pre-fills the Edit chat.' },
+      { tag: 'Feature', text: 'REST Client (Phase 7): auto-detects API endpoints from route files. Built-in HTTP client with method selector, base URL, request body, collapsible headers, and formatted JSON response viewer.' },
+      { tag: 'Improvement', text: 'Edit Mode (Phase 1 follow-up): AI Suggestions and Error Scanner now connect directly to the Edit chat — clicking "Auto-fix with AI" pre-fills the prompt and switches tab automatically.' },
+      { tag: 'Improvement', text: 'Workspace dark theme: full dark UI (slate-950) matching the terminal environment for a unified IDE feel.' },
+      { tag: 'Improvement', text: 'SSE stream stays open after task completion to relay edit events (edit_plan_ready, edit_applying, edit_completed) without reconnecting.' },
+    ],
+  },
+  {
     version: 'v1.4.0',
     date: 'March 2025',
     title: 'Credit Economy, Expert Marketplace & Vertical AI Packs',
