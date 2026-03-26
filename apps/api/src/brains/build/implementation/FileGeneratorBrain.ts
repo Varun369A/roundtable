@@ -60,7 +60,7 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
 
   protected async process(input: FileGeneratorBrainInput, ctx: BrainContext): Promise<FileGeneratorBrainOutput> {
     const { fileManifest, alreadyGeneratedFiles } = input
-    const generatedFiles: GeneratedFile[] = [...alreadyGeneratedFiles]
+    const generatedFiles: GeneratedFile[] = [...(alreadyGeneratedFiles ?? [])]
 
     // Process files in dependency order
     for (const fileDef of fileManifest) {

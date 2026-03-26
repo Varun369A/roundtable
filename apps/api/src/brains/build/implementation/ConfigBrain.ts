@@ -25,7 +25,7 @@ export class ConfigBrain extends Brain<ConfigBrainInput, ConfigBrainOutput> {
   readonly usesAI = false
 
   protected async process(input: ConfigBrainInput, _ctx: BrainContext): Promise<ConfigBrainOutput> {
-    const { generatedFiles, envVariables, language } = input
+    const { generatedFiles, envVariables = [], language } = input
 
     // Scan all files for process.env or os.environ references
     const allContent = generatedFiles.map(f => f.content).join('\n')

@@ -27,7 +27,7 @@ export class ImportBrain extends Brain<ImportBrainInput, ImportBrainOutput> {
   protected async process(input: ImportBrainInput, _ctx: BrainContext): Promise<ImportBrainOutput> {
     const { generatedFiles, dependencies } = input
     const filePaths = new Set(generatedFiles.map(f => f.path))
-    const packageNames = new Set(Object.keys(dependencies))
+    const packageNames = new Set(Object.keys(dependencies ?? {}))
     const unresolvedImports: string[] = []
     let resolvedCount = 0
 

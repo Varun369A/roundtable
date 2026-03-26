@@ -87,12 +87,13 @@ export class ArchitectureOrchestrator extends Orchestrator {
 
       case 'DependencyBrain':
         return {
-          architecturePattern: architecture?.['pattern'] ?? 'api-only',
+          mainTechStack: techContext,
           authPattern: patterns?.['authPattern'] ?? 'none',
           dbPattern: patterns?.['dbPattern'] ?? 'prisma-orm',
           apiPattern: patterns?.['apiPattern'] ?? 'rest',
-          statePattern: patterns?.['statePattern'] ?? 'none',
-          detectedTech: techContext,
+          cssFramework: 'tailwind',
+          language: 'typescript' as const,
+          pattern: architecture?.['pattern'] ?? 'api-only',
         }
 
       case 'ResearchBrain':

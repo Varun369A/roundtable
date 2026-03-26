@@ -67,6 +67,7 @@ export class VersioningBrain extends Brain<VersioningBrainInput, VersioningBrain
           fileCount: allFiles.length,
           filePaths: allFiles.map(f => f.path),
           isCurrentBest: isImprovedVersion || previousVersions.length === 0,
+          snapshot: allFiles as object[],
         },
       })
 
