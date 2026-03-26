@@ -122,10 +122,13 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
   ): string {
     const { goal, mainTechStack, authPattern, prismaSchema, endpoints, bestPractices, patterns, injectedUserContext, communicationDirective } = input
 
+    const isJsonFile = fileDef.path.endsWith('.json')
     const commentDensity = communicationDirective.codeCommentDensity
-    const commentInstruction = commentDensity === 'heavy' ? 'Add detailed comments explaining every section.' :
-      commentDensity === 'normal' ? 'Add comments for non-obvious logic.' :
-      'Minimal comments — code should be self-documenting.'
+    const commentInstruction = isJsonFile
+      ? 'JSON files must contain NO comments — JSON does not support comments. Output strict, valid JSON only.'
+      : commentDensity === 'heavy' ? 'Add detailed comments explaining every section.'
+      : commentDensity === 'normal' ? 'Add comments for non-obvious logic.'
+      : 'Minimal comments — code should be self-documenting.'
 
     // Include relevant already-generated files as context
     const relevantGenerated = alreadyGenerated
@@ -186,10 +189,18 @@ Write the complete ${fileDef.path} file now:`
   private extractCode(content: string, filePath: string): string {
     // Try to strip markdown code fences if present
     const fenceMatch = content.match(/```(?:typescript|javascript|python|tsx|jsx|ts|js|prisma|yaml|json|bash)?\n([\s\S]+?)```/)
-    if (fenceMatch) return fenceMatch[1].trim()
+    let raw = fenceMatch ? fenceMatch[1].trim() : content.trim()
 
-    // If no fences, return as-is (model followed instructions)
-    return content.trim()
+    // Strip JS-style comments from JSON files (model sometimes adds them despite instructions)
+    if (filePath.endsWith('.json')) {
+      raw = raw
+        .replace(/\/\/[^\n]*/g, '')        // single-line comments
+        .replace(/\/\*[\s\S]*?\*\//g, '')  // multi-line comments
+        .replace(/,(\s*[}\]])/g, '$1')     // trailing commas before } or ]
+        .trim()
+    }
+
+    return raw
   }
 
   protected fallback(input: FileGeneratorBrainInput): FileGeneratorBrainOutput {
