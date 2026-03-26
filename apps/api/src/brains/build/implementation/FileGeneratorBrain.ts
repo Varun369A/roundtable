@@ -63,18 +63,14 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
     const generatedFiles: GeneratedFile[] = [...(alreadyGeneratedFiles ?? [])]
 
     // Process files in dependency order
-    for (let i = 0; i < fileManifest.length; i++) {
-      const fileDef = fileManifest[i]
+    for (const fileDef of fileManifest) {
       // Skip if already generated
       if (generatedFiles.some(f => f.path === fileDef.path)) continue
-
-      // Throttle: wait between files to stay under Groq 12k TPM free tier limit
-      if (i > 0) await new Promise(r => setTimeout(r, 6000))
 
       const prompt = this.buildPrompt(fileDef, generatedFiles, input)
 
       try {
-        const content = await callGroq(prompt, { maxTokens: 2500 })
+        const content = await callGroq(prompt, { maxTokens: 2500, fast: true })
         this._tokensUsed += 2500
 
         const cleanedContent = this.extractCode(content, fileDef.path)
