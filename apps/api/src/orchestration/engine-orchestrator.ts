@@ -209,6 +209,12 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
       fileCount: finalFiles.length,
     })).catch(() => {})
 
+    // Emit edit_mode_enabled — tells the workspace UI to show the Edit tab
+    redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+      event: 'edit_mode_enabled',
+      taskId,
+    })).catch(() => {})
+
   } catch (err) {
     console.error(`[EngineOrchestrator] Failed for task ${taskId}:`, err)
     await prisma.task.update({ where: { id: taskId }, data: { status: 'FAILED' } })

@@ -185,15 +185,35 @@ export async function streamRoutes(app: FastifyInstance) {
         send('clarification_needed', { taskId: task.id, questions })
       }
 
-      // If task already in a terminal state, send the final event and close
-      if (
-        task.status === 'COMPLETED' ||
-        task.status === 'FAILED' ||
-        task.status === 'CANCELLED'
-      ) {
+      // If task failed or cancelled — send final event and close immediately
+      if (task.status === 'FAILED' || task.status === 'CANCELLED') {
         send('task_' + task.status.toLowerCase(), { taskId: task.id })
         reply.raw.end()
         return
+      }
+
+      // If task COMPLETED — replay final event + edit mode, but keep connection
+      // open so subsequent edit events (edit_plan_ready, edit_completed, etc.) flow through.
+      if (task.status === 'COMPLETED') {
+        send('task_completed', { taskId: task.id })
+        send('edit_mode_enabled', { taskId: task.id })
+
+        // Replay any edit session awaiting approval (so approval card shows on reconnect)
+        const pendingSession = await prisma.editSession.findFirst({
+          where: { project: { taskId: task.id }, status: 'AWAITING_APPROVAL' },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, message: true, plan: true },
+        })
+        if (pendingSession) {
+          const plan = pendingSession.plan as { explanation: string; files: Array<{ path: string; description: string }> } | null
+          send('edit_plan_ready', {
+            taskId: task.id,
+            sessionId: pendingSession.id,
+            explanation: plan?.explanation ?? '',
+            files: plan?.files?.map((f) => ({ path: f.path, description: f.description })) ?? [],
+            fileCount: plan?.files?.length ?? 0,
+          })
+        }
       }
 
       // ── Subscribe to Redis pub/sub for live updates ────────────────────────────
@@ -211,9 +231,9 @@ export async function streamRoutes(app: FastifyInstance) {
           const payload = JSON.parse(message) as { event: string; [key: string]: unknown }
           send(payload.event, payload)
 
-          // Close connection when task reaches a terminal state
+          // Keep open after task_completed so edit events can flow through.
+          // Close only on hard terminal states (failed / cancelled) or after edit_completed.
           if (
-            payload.event === 'task_completed' ||
             payload.event === 'task_failed' ||
             payload.event === 'task_cancelled'
           ) {

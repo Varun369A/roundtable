@@ -36,6 +36,7 @@ import { betaRoutes } from './routes/beta'
 import { feedbackRoutes } from './routes/feedback'
 import { notificationRoutes } from './routes/notifications'
 import { codeProjectRoutes } from './routes/code-projects'
+import { editRoutes } from './routes/edits'
 import { githubOAuthRoutes } from './routes/github-oauth'
 import { envVarsRoutes } from './routes/env-vars'
 import { aiConnectionsRoutes } from './routes/ai-connections'
@@ -245,6 +246,7 @@ const start = async () => {
     await app.register(feedbackRoutes,           { prefix: '/api/v1/feedback' })
     await app.register(notificationRoutes,       { prefix: '/api/v1/notifications' })
     await app.register(codeProjectRoutes,        { prefix: '/api/v1/code-projects' })
+    await app.register(editRoutes,               { prefix: '/api/v1/code-projects' })
     await app.register(githubOAuthRoutes,        { prefix: '/api/v1/github' })
     await app.register(envVarsRoutes,            { prefix: '/api/v1' })
     await app.register(aiConnectionsRoutes,      { prefix: '/api/v1/ai-connections' })

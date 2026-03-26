@@ -741,13 +741,39 @@ model CodeProject {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
-  task    Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user    User            @relation(fields: [userId], references: [id])
-  envVars ProjectEnvVar[]
+  task         Task              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id])
+  envVars      ProjectEnvVar[]
+  editSessions EditSession[]
 
   @@index([userId])
   @@index([status])
   @@map("code_projects")
+}
+
+enum EditSessionStatus {
+  PLANNING
+  AWAITING_APPROVAL
+  APPLYING
+  COMPLETED
+  FAILED
+}
+
+model EditSession {
+  id        String            @id @default(cuid())
+  projectId String
+  userId    String
+  message   String            // user's edit request
+  status    EditSessionStatus @default(PLANNING)
+  plan      Json?             // Array<{ path, description, newContent }>
+  error     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  project CodeProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("edit_sessions")
 }
 
 model GitHubConnection {
