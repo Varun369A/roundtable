@@ -60,6 +60,20 @@ export abstract class BaseConnector {
       (err instanceof Error &&
         (err.message.includes('429') || err.message.toLowerCase().includes('rate limit')))
 
+    const isRateLimit = (err: any) =>
+      err?.status === 429 ||
+      (err instanceof Error &&
+        (err.message.includes('429') || err.message.toLowerCase().includes('rate limit')))
+
+    // Parse "Please try again in Xs" from Groq/OpenAI error messages
+    const parseRetryAfterMs = (err: any): number | null => {
+      const msg = err instanceof Error ? err.message : String(err)
+      const match = msg.match(/try again in (\d+(?:\.\d+)?)(m?s)/i)
+      if (!match) return null
+      const val = parseFloat(match[1])
+      return match[2] === 'ms' ? val : val * 1000
+    }
+
     let lastErr: unknown
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
@@ -68,7 +82,15 @@ export abstract class BaseConnector {
         lastErr = err
         if (!isRetryable(err)) throw err
 
-        const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 500
+        let delay: number
+        if (isRateLimit(err)) {
+          // Use the API-provided retry-after, padded by 1 second, minimum 15s
+          const parsed = parseRetryAfterMs(err)
+          delay = parsed != null ? Math.max(parsed + 1000, 15_000) : 30_000 * (attempt + 1)
+        } else {
+          delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 500
+        }
+
         console.warn(`[${this.provider}] Retry ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms`)
         await new Promise((r) => setTimeout(r, delay))
       }

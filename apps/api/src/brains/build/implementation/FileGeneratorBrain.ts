@@ -58,20 +58,31 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
 
   protected getTokensUsed(): number { return this._tokensUsed }
 
+  // ~2000 tokens/file with a 12K TPM limit → max 6 files/min
+  // We pace to ~5 files/min (12s apart) to stay safely under the limit
+  private static readonly INTER_FILE_DELAY_MS = 12_000
+
   protected async process(input: FileGeneratorBrainInput, ctx: BrainContext): Promise<FileGeneratorBrainOutput> {
     const { fileManifest, alreadyGeneratedFiles } = input
     const generatedFiles: GeneratedFile[] = [...(alreadyGeneratedFiles ?? [])]
+    let filesGeneratedThisRun = 0
 
     // Process files in dependency order
     for (const fileDef of fileManifest) {
       // Skip if already generated
       if (generatedFiles.some(f => f.path === fileDef.path)) continue
 
+      // Pace requests to stay under TPM limit — skip delay for the first file
+      if (filesGeneratedThisRun > 0) {
+        await new Promise(r => setTimeout(r, FileGeneratorBrain.INTER_FILE_DELAY_MS))
+      }
+
       const prompt = this.buildPrompt(fileDef, generatedFiles, input)
 
       try {
         const content = await callGroq(prompt, { maxTokens: 4000 })
         this._tokensUsed += 2500
+        filesGeneratedThisRun++
 
         const cleanedContent = this.extractCode(content, fileDef.path)
         generatedFiles.push({
@@ -85,6 +96,7 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
         console.log(`[FileGeneratorBrain] Generated ${fileDef.path} (${cleanedContent.split('\n').length} lines) — task ${ctx.taskId}`)
       } catch (err) {
         console.error(`[FileGeneratorBrain] Failed to generate ${fileDef.path}:`, err)
+        filesGeneratedThisRun++
         // Generate a stub file so the manifest is complete
         generatedFiles.push({
           path: fileDef.path,

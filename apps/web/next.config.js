@@ -77,7 +77,7 @@ const nextConfig = {
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
               "connect-src 'self' https://api.arivarangam.com https://www.google-analytics.com https://api.razorpay.com wss: ws:",
-              "frame-src https://checkout.razorpay.com https://api.razorpay.com",
+              "frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://stackblitz.com https://*.stackblitz.com https://*.webcontainer-api.io https://*.local-credentialless.webcontainer.io https://*.staticblitz.com",
               "media-src 'self' blob:",
             ].join('; '),
           },
