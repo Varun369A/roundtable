@@ -64,34 +64,18 @@ const STATUS_LABELS: Record<string, string> = {
 
 const NAV_SECTIONS = [
   {
-    label: 'Work',
+    label: 'Generate',
     items: [
-      { href: '/dashboard', icon: '📋', label: 'Tasks' },
+      { href: '/dashboard', icon: '✦', label: 'Tasks' },
+      { href: '/workspace', icon: '⬡', label: 'Workspaces' },
       { href: '/templates', icon: '📐', label: 'Templates' },
-      { href: '/workflows', icon: '⚡', label: 'Workflows' },
       { href: '/dashboard/scheduled', icon: '🗓', label: 'Scheduled' },
     ],
   },
   {
-    label: 'Discover',
+    label: 'Account',
     items: [
-      { href: '/marketplace', icon: '🤖', label: 'Marketplace' },
-      { href: '/packs', icon: '📦', label: 'AI Packs' },
-      { href: '/marketplace/experts', icon: '⭐', label: 'Experts' },
-    ],
-  },
-  {
-    label: 'Social',
-    items: [
-      { href: '/people', icon: '👥', label: 'People' },
-      { href: '/friends', icon: '👋', label: 'Friends' },
-      { href: '/messages', icon: '💬', label: 'Messages' },
       { href: '/repos', icon: '📁', label: 'Repos' },
-    ],
-  },
-  {
-    label: 'Settings',
-    items: [
       { href: '/credits', icon: '💳', label: 'Credits' },
       { href: '/settings/billing', icon: '📊', label: 'Billing' },
       { href: '/settings/language', icon: '🌐', label: 'Language' },
@@ -219,7 +203,7 @@ function TemplatePicker({ onSelect }: { onSelect: (t: Template) => void }) {
           >
             <span className="text-xl block mb-1.5">{t.icon}</span>
             <p className="text-xs font-medium text-slate-800 leading-tight line-clamp-1">{t.name}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">{t.agents.length} specialists</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{t.agents.length} steps</p>
           </button>
         ))}
       </div>

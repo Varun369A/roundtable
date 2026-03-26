@@ -6,8 +6,8 @@ export type StreamEventType =
   | 'connected'
   | 'routing_decided'
   | 'subtask_started'
-  | 'subtask_streaming'   // NEW: subtask just started streaming tokens
-  | 'subtask_token'       // NEW: token chunk from streaming AI
+  | 'subtask_streaming'
+  | 'subtask_token'
   | 'subtask_completed'
   | 'subtask_failed'
   | 'task_completed'
@@ -21,6 +21,9 @@ export type StreamEventType =
   | 'steering_received'
   | 'steering_applied'
   | 'session_created'
+  // 3-Engine pipeline events
+  | 'engine_started'
+  | 'task:progress'
 
 export interface TeamMember {
   subtaskId:      string
@@ -39,12 +42,9 @@ export interface StreamEvent {
   model?: string
   status?: string
   originalGoal?: string
-  // subtask_token
   chunk?: string
-  // routing_decided fields
   team?: TeamMember[]
   intentCategories?: string[]
-  // Discussion Engine fields
   role?: 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
   roundNumber?: number
   reviewsSubtaskId?: string
@@ -65,6 +65,14 @@ export interface StreamEvent {
   questions?: any[]
   message?: string
   sessionId?: string
+  // 3-Engine pipeline fields
+  step?: string
+  progress?: number
+  pipeline?: string[]
+  qualityGrade?: string
+  overallScore?: number
+  summary?: string
+  fileCount?: number
 }
 
 interface UseTaskStreamOptions {
@@ -90,6 +98,7 @@ export function useTaskStream({ taskId, onEvent, enabled = true }: UseTaskStream
     'auto_fix_started', 'discussion_round_started',
     'synthesis_started', 'synthesis_complete',
     'clarification_needed', 'steering_received', 'steering_applied', 'session_created',
+    'engine_started', 'task:progress',
   ]
 
   const connect = useCallback(() => {

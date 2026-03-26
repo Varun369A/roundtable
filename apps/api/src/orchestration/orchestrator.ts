@@ -48,13 +48,10 @@ export async function orchestrateTask(taskId: string): Promise<void> {
 
   if (!task) throw new Error(`Task ${taskId} not found`)
 
-  // ── Route code generation tasks to the 3-Engine pipeline ─────────────────
-  // Templates always use the roundtable flow. Auto mode routes based on goal.
-  if (!task.templateId && isCodeGenerationTask(task.originalGoal)) {
-    console.log(`[Orchestrator] Routing task ${taskId} to 3-Engine code generation pipeline`)
-    await enqueueCodeGenTask(taskId)
-    return
-  }
+  // ── All tasks route through the 3-Engine intelligence pipeline ──────────
+  console.log(`[Orchestrator] Routing task ${taskId} to 3-Engine code generation pipeline`)
+  await enqueueCodeGenTask(taskId)
+  return
 
   // If task is resuming after clarification, skip the clarification phase
   const isResuming = task.status === 'WAITING_CLARIFICATION'
