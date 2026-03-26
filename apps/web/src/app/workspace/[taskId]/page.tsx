@@ -405,18 +405,22 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
                 {pendingPlan && (
                   <div className="shrink-0">
                     <EditPlanCard
-                      plan={pendingPlan}
                       taskId={taskId}
-                      appliedFiles={appliedFiles}
-                      applyTotal={applyTotal}
-                      isApplying={isApplying}
+                      sessionId={pendingPlan.sessionId}
+                      explanation={pendingPlan.explanation}
+                      files={pendingPlan.files}
                       onApproved={() => setPendingPlan(null)}
+                      onRejected={() => setPendingPlan(null)}
                     />
                   </div>
                 )}
                 {isApplying && appliedFiles.length > 0 && (
                   <div className="shrink-0">
-                    <DiffViewer files={appliedFiles} />
+                    <DiffViewer
+                      appliedFiles={appliedFiles}
+                      isApplying={isApplying}
+                      totalFiles={applyTotal}
+                    />
                   </div>
                 )}
                 <div className="flex-1 min-h-0">
