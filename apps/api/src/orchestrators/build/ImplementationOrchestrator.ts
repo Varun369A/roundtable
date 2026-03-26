@@ -58,18 +58,21 @@ export class ImplementationOrchestrator extends Orchestrator {
       case 'FileGeneratorBrain':
         return {
           goal: input.goal,
-          taskId: input.taskId,
-          architecturePattern: architecture?.['pattern'] ?? 'api-only',
-          folderStructure: architecture?.['folderStructure'] ?? [],
-          fileManifest: architecture?.['fileManifest'] ?? [],
+          fileManifest: (architecture?.['fileManifest'] as unknown[]) ?? [],
           mainTechStack,
-          prismaSchema,
-          apiEndpoints,
           authPattern: patterns?.['authPattern'] ?? 'none',
           dbPattern: patterns?.['dbPattern'] ?? 'none',
+          prismaSchema,
+          endpoints: apiEndpoints,
+          models: (archOutput?.['SchemaBrain'] as { models?: unknown[] })?.models ?? [],
           bestPractices: (archOutput?.['ResearchBrain'] as { bestPractices?: string[] })?.bestPractices ?? [],
-          injectedContext,
-          retryPromptAddition: retryAddition,
+          patterns: (archOutput?.['PatternBrain'] as { patterns?: unknown[] })?.patterns ?? [],
+          injectedUserContext: injectedContext + (retryAddition ? `\n\nRetry instructions:\n${retryAddition}` : ''),
+          communicationDirective: {
+            codeCommentDensity: (intentOutput?.['PersonaBrain'] as { needsExplanations?: boolean })?.needsExplanations ? 'heavy' : 'normal',
+            explanationDepth: 'standard',
+          },
+          alreadyGeneratedFiles: [],
         }
 
       case 'ConsistencyBrain':
