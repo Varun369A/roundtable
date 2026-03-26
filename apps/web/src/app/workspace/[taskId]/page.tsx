@@ -87,6 +87,16 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
 
   const sseRef = useRef<EventSource | null>(null)
 
+  // COOP/COEP headers only apply on full HTTP navigations, not Next.js client-side routing.
+  // Force a hard reload once so the browser picks up the headers and crossOriginIsolated = true.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.crossOriginIsolated && !sessionStorage.getItem('wc-reloaded')) {
+      sessionStorage.setItem('wc-reloaded', '1')
+      window.location.reload()
+    }
+  }, [])
+
   const load = useCallback(async () => {
     const [projRes, ghRes] = await Promise.all([
       apiFetch<{ project: CodeProject | null }>(`/api/v1/code-projects/${taskId}`),
