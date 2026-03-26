@@ -49,8 +49,14 @@ export class ArchitectureOrchestrator extends Orchestrator {
     const injectedContext = (memoryOutput?.['PersonalizationBrain'] as { injectedContext?: string })?.injectedContext ?? ''
     const constraints = (intentOutput?.['ConstraintBrain'] as { constraints?: object })?.constraints ?? {}
 
-    const requirements = (accumulated['RequirementsBrain'] as { requirements?: unknown[] })?.requirements ?? []
+    const reqOutput = accumulated['RequirementsBrain'] as Record<string, unknown> | undefined
+    const requirements = (reqOutput?.['requirements'] as unknown[]) ?? []
+    const hasAuthRequirement = (reqOutput?.['hasAuthRequirement'] as boolean) ?? false
+    const hasDatabaseRequirement = (reqOutput?.['hasDatabaseRequirement'] as boolean) ?? false
+    const hasAPIRequirement = (reqOutput?.['hasAPIRequirement'] as boolean) ?? false
+
     const architecture = accumulated['ArchitectureBrain'] as Record<string, unknown> | undefined
+    const archTechStack = (architecture?.['mainTechStack'] as string[]) ?? techContext
     const patterns = accumulated['PatternBrain'] as Record<string, unknown> | undefined
 
     switch (brainName) {
@@ -58,13 +64,28 @@ export class ArchitectureOrchestrator extends Orchestrator {
         return { goal: input.goal, primaryCategory, complexity, deliverables: (intentOutput?.['IntentBrain'] as { deliverables?: string[] })?.deliverables ?? [], constraints }
 
       case 'ArchitectureBrain':
-        return { goal: input.goal, requirements, primaryCategory, detectedTech: techContext, domain }
+        return {
+          goal: input.goal,
+          primaryCategory,
+          complexity,
+          techStack: techContext,
+          hasAuthRequirement,
+          hasDatabaseRequirement,
+          hasAPIRequirement,
+          domain,
+        }
 
       case 'KnowledgeBrain':
-        return { goal: input.goal, primaryCategory }
+        return { goal: input.goal, primaryCategory, mainTechStack: archTechStack, domain }
 
       case 'PatternBrain':
-        return { architecturePattern: architecture?.['pattern'] ?? 'api-only', requirements, detectedTech: techContext }
+        return {
+          pattern: architecture?.['pattern'] ?? 'api-only',
+          hasAuthRequirement,
+          hasDatabaseRequirement,
+          hasAPIRequirement,
+          goal: input.goal,
+        }
 
       case 'DataFlowBrain':
         return {
@@ -75,7 +96,14 @@ export class ArchitectureOrchestrator extends Orchestrator {
         }
 
       case 'APIBrain':
-        return { requirements, domain, architecturePattern: architecture?.['pattern'] ?? 'api-only', hasAuth: patterns?.['authPattern'] !== 'none' }
+        return {
+          goal: input.goal,
+          hasAuthRequirement,
+          hasDatabaseRequirement,
+          apiPattern: patterns?.['apiPattern'] ?? 'rest',
+          domain,
+          requirements: requirements as Array<{ description: string; type: string }>,
+        }
 
       case 'SchemaBrain':
         return {

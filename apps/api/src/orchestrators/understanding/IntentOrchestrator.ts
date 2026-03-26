@@ -64,11 +64,11 @@ export class IntentOrchestrator extends Orchestrator {
         return { goal: input.goal }
 
       case 'HistoryBrain':
-        return { userId: input.userId, currentGoal: input.goal }
+        return { userId: input.userId, primaryCategory: ((accumulated['IntentBrain'] as { primaryCategory?: string })?.primaryCategory ?? 'general') as import('../../brains/understanding/intent/IntentBrain').TaskCategory, subject: input.goal }
 
       case 'PersonaBrain': {
         const history = accumulated['HistoryBrain'] as Record<string, unknown> | undefined
-        return { userId: input.userId, taskCount: (history as { taskCount?: number })?.taskCount ?? 0, recentGoals: [] }
+        return { userId: input.userId, goal: input.goal, totalTasksCompleted: (history as { taskCount?: number })?.taskCount ?? 0 }
       }
 
       case 'ClarificationBrain': {
