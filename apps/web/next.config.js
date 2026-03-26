@@ -49,11 +49,11 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              // WebContainer connects to npm registry + its own CDN
-              "connect-src 'self' https://api.arivarangam.com wss: ws: https://registry.npmjs.org https://*.npmjs.org https://*.webcontainer.io https://*.webcontainer-api.io",
-              // Allow WebContainer preview iframes (served from *.local-credentialless.webcontainer.io)
-              "frame-src 'self' blob: https://*.webcontainer-api.io https://*.local-credentialless.webcontainer.io https://*.staticblitz.com",
-              "worker-src 'self' blob:",
+              // WebContainer connects to npm registry, stackblitz CDN, and its own domains
+              "connect-src 'self' https://api.arivarangam.com wss: ws: https://registry.npmjs.org https://*.npmjs.org https://*.webcontainer.io https://*.webcontainer-api.io https://stackblitz.com https://*.stackblitz.com https://*.staticblitz.com",
+              // WebContainer runtime loads from stackblitz.com; previews from *.webcontainer-api.io
+              "frame-src 'self' blob: https://stackblitz.com https://*.stackblitz.com https://*.webcontainer-api.io https://*.local-credentialless.webcontainer.io https://*.staticblitz.com",
+              "worker-src 'self' blob: https://stackblitz.com https://*.stackblitz.com",
               "media-src 'self' blob:",
             ].join('; '),
           },
