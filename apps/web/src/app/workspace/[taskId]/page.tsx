@@ -88,12 +88,16 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
   const sseRef = useRef<EventSource | null>(null)
 
   // COOP/COEP headers only apply on full HTTP navigations, not Next.js client-side routing.
-  // Force a hard reload once so the browser picks up the headers and crossOriginIsolated = true.
+  // Force a hard reload once (via URL param) so the browser picks up the headers and
+  // crossOriginIsolated = true. URL param is used instead of sessionStorage so each
+  // fresh navigation (no ?reloaded param) always triggers the reload.
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!window.crossOriginIsolated && !sessionStorage.getItem('wc-reloaded')) {
-      sessionStorage.setItem('wc-reloaded', '1')
-      window.location.reload()
+    const params = new URLSearchParams(window.location.search)
+    if (!window.crossOriginIsolated && !params.has('reloaded')) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('reloaded', '1')
+      window.location.replace(url.toString())
     }
   }, [])
 
