@@ -24,6 +24,14 @@ export type StreamEventType =
   // 3-Engine pipeline events
   | 'engine_started'
   | 'task:progress'
+  // Phase 2-4 events
+  | 'plan_ready'
+  | 'edit_mode_enabled'
+  | 'edit_plan_ready'
+  | 'edit_applying'
+  | 'edit_file_completed'
+  | 'edit_completed'
+  | 'edit_failed'
 
 export interface TeamMember {
   subtaskId:      string
@@ -65,6 +73,10 @@ export interface StreamEvent {
   questions?: any[]
   message?: string
   sessionId?: string
+  // Phase 2-4 fields
+  plan?: any
+  filePath?: string
+  fileChanges?: any[]
   // 3-Engine pipeline fields
   step?: string
   progress?: number
@@ -99,6 +111,8 @@ export function useTaskStream({ taskId, onEvent, enabled = true }: UseTaskStream
     'synthesis_started', 'synthesis_complete',
     'clarification_needed', 'steering_received', 'steering_applied', 'session_created',
     'engine_started', 'task:progress',
+    'plan_ready', 'edit_mode_enabled',
+    'edit_plan_ready', 'edit_applying', 'edit_file_completed', 'edit_completed', 'edit_failed',
   ]
 
   const connect = useCallback(() => {
