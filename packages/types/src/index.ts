@@ -144,8 +144,9 @@ export type SubtaskRole = 'INITIAL' | 'REVIEW' | 'SYNTHESIS'
 
 export type AIModel =
   // Core reasoning & code
-  | 'claude-3-5-sonnet'   // Coding
-  | 'claude-3-opus'        // Deep reasoning
+  | 'claude-3-5-sonnet'   // Coding (Sonnet 4.6)
+  | 'claude-3-opus'        // Deep reasoning (Opus 4.6)
+  | 'claude-haiku'         // Fast generation (Haiku 4.5)
   | 'gpt-4o'               // Reasoning
   // Analysis & research
   | 'gemini-2.5-pro'       // Analysis / guidance (long context)
