@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useWebContainer, WC_STATUS_LABEL, type WCStatus, type CodeFile } from '@/hooks/useWebContainer'
 
+// xterm CSS — must be a top-level import; Next.js bundles it as global CSS
+import '@xterm/xterm/css/xterm.css'
+
 interface WorkspaceRightPanelProps {
   files: CodeFile[]
   projectName: string
@@ -38,9 +41,6 @@ export function WorkspaceRightPanel({ files, projectName }: WorkspaceRightPanelP
     // Dynamic imports — xterm uses browser APIs, can't run on server
     const { Terminal }  = await import('@xterm/xterm')
     const { FitAddon }  = await import('@xterm/addon-fit')
-
-    // xterm CSS — import here so it's only loaded when terminal is first used
-    await import('@xterm/xterm/css/xterm.css' as any)
 
     const term = new Terminal({
       theme: {

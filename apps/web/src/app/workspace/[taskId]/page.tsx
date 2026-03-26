@@ -367,7 +367,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ taskId: st
               <FileTree
                 files={project.files}
                 selected={selected}
-                onSelect={setSelected}
+                onSelect={(f) => setSelected(f)}
               />
             )}
 

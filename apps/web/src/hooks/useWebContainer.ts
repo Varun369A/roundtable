@@ -126,7 +126,7 @@ function buildFileTree(files: CodeFile[]): Record<string, any> {
       if (!node[part]) node[part] = { directory: {} }
       node = node[part].directory
     }
-    const filename = parts[parts.length - 1]
+    const filename = parts[parts.length - 1]!
     node[filename] = { file: { contents: f.content } }
   }
 
