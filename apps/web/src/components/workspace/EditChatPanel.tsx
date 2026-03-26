@@ -14,9 +14,11 @@ interface EditChatPanelProps {
   taskId: string
   isApplying: boolean
   onSessionCreated: (sessionId: string) => void
+  prefillMessage?: string
+  onPrefillConsumed?: () => void
 }
 
-export function EditChatPanel({ taskId, isApplying, onSessionCreated }: EditChatPanelProps) {
+export function EditChatPanel({ taskId, isApplying, onSessionCreated, prefillMessage, onPrefillConsumed }: EditChatPanelProps) {
   const [messages, setMessages] = useState<EditMessage[]>([
     {
       role: 'assistant',
@@ -25,6 +27,13 @@ export function EditChatPanel({ taskId, isApplying, onSessionCreated }: EditChat
     },
   ])
   const [input, setInput] = useState('')
+
+  useEffect(() => {
+    if (prefillMessage) {
+      setInput(prefillMessage)
+      onPrefillConsumed?.()
+    }
+  }, [prefillMessage])
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 

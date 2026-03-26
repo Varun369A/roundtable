@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTaskStream } from '@/hooks/useTaskStream'
 import { ClarificationModal } from '@/components/roundtable/ClarificationModal'
+import { PlanApprovalModal } from '@/components/roundtable/PlanApprovalModal'
 import { apiFetch } from '@/lib/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -189,6 +190,7 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
   const [fileCount, setFileCount] = useState<number | null>(null)
   const [clarificationQuestions, setClarificationQuestions] = useState<any[]>([])
   const [showClarification, setShowClarification] = useState(false)
+  const [pendingPlan, setPendingPlan] = useState<any | null>(null)
   const [taskStarted, setTaskStarted] = useState(false)
   const logRef = useRef<HTMLDivElement>(null)
 
@@ -202,6 +204,13 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
           setOverallProgress(100)
         } else if (data.data.status === 'FAILED') {
           setFailed(true)
+        } else if (data.data.status === 'AWAITING_PLAN_APPROVAL') {
+          // Fetch the plan from Redis and show modal
+          apiFetch(`/api/v1/tasks/${taskId}/plan`).then((planRes) => {
+            if (planRes.success && planRes.data?.plan) {
+              setPendingPlan(planRes.data.plan)
+            }
+          })
         }
       }
     })
@@ -256,6 +265,13 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
         })
 
         setLog(l => [...l, { time: Date.now(), step, message: msg, progress: prog }])
+      }
+
+      if (ev.event === 'plan_ready') {
+        setPendingPlan(ev.plan)
+        setActiveEngine(null)
+        setCurrentMessage('Waiting for plan approval…')
+        setLog(l => [...l, { time: Date.now(), step: 'plan', message: 'Build plan ready — awaiting approval', progress: 20 }])
       }
 
       if (ev.event === 'clarification_needed') {
@@ -503,6 +519,25 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
           onComplete={() => {
             setShowClarification(false)
             setTaskStarted(false)
+          }}
+        />
+      )}
+
+      {/* Plan Approval modal */}
+      {pendingPlan && (
+        <PlanApprovalModal
+          taskId={taskId}
+          plan={pendingPlan}
+          onApproved={() => {
+            setPendingPlan(null)
+            setCurrentMessage('Build approved — generating code…')
+            setEngineStates(s => ({ ...s, understanding: 'done', build: 'running' }))
+            setActiveEngine('build')
+          }}
+          onRejected={() => {
+            setPendingPlan(null)
+            setFailed(true)
+            setFailedReason('Build cancelled at plan review.')
           }}
         />
       )}

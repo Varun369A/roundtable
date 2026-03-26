@@ -798,7 +798,7 @@ async function _enqueueNextSubtasks(taskId: string): Promise<void> {
 
 // ─── Code Generation Queue (3-Engine Pipeline) ───────────────────────────────
 
-export const codeGenQueue = new Queue<{ taskId: string }>('sabha-codegen', {
+export const codeGenQueue = new Queue<{ taskId: string; skipUnderstanding?: boolean; planModification?: string }>('sabha-codegen', {
   connection,
   defaultJobOptions: {
     attempts: 2,
@@ -808,13 +808,13 @@ export const codeGenQueue = new Queue<{ taskId: string }>('sabha-codegen', {
   },
 })
 
-new Worker<{ taskId: string }>(
+new Worker<{ taskId: string; skipUnderstanding?: boolean; planModification?: string }>(
   'sabha-codegen',
-  async (job: Job<{ taskId: string }>) => {
-    const { taskId } = job.data
-    console.log(`[CodeGenWorker] Starting 3-engine pipeline for task ${taskId}`)
+  async (job: Job<{ taskId: string; skipUnderstanding?: boolean; planModification?: string }>) => {
+    const { taskId, skipUnderstanding, planModification } = job.data
+    console.log(`[CodeGenWorker] Starting 3-engine pipeline for task ${taskId} (skipUnderstanding=${skipUnderstanding ?? false})`)
     const { orchestrateWithEngines } = await import('../orchestration/engine-orchestrator')
-    await orchestrateWithEngines(taskId)
+    await orchestrateWithEngines(taskId, { skipUnderstanding, planModification })
     console.log(`[CodeGenWorker] Completed task ${taskId}`)
   },
   {
@@ -832,6 +832,12 @@ new Worker<{ taskId: string }>(
  */
 export async function enqueueCodeGenTask(taskId: string): Promise<void> {
   await codeGenQueue.add(`codegen_${taskId}`, { taskId }, { jobId: `codegen_${taskId}` })
+}
+
+/** Re-enqueue after plan approval — skips UnderstandingEngine, continues from BuildEngine */
+export async function enqueueCodeGenAfterPlanApproval(taskId: string, planModification?: string): Promise<void> {
+  const jobId = `codegen_plan_${taskId}_${Date.now()}`
+  await codeGenQueue.add(jobId, { taskId, skipUnderstanding: true, planModification }, { jobId })
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

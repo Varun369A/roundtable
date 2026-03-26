@@ -15,14 +15,26 @@ import { BuildEngine } from '../engines/BuildEngine'
 import { IntelligenceEngine } from '../engines/IntelligenceEngine'
 import type { IntelligenceEngineOutput } from '../engines/IntelligenceEngine'
 import { calculateTaskCredits, debitWallet, InsufficientCreditsError } from '../lib/credit-manager'
+import { generateSuggestions } from '../lib/suggestion-engine'
 
 const MAX_RETRIES = 3
+const UNDERSTANDING_TTL = 7200 // 2 hours
+
+/** Redis key for saved understanding output (plan pause flow) */
+export const understandingKey = (taskId: string) => `sabha:understanding:${taskId}`
 
 /**
  * Full 3-Engine pipeline for code generation tasks.
  * Handles retry loop internally (Gate FAIL → rebuild with fix instructions).
+ *
+ * Options:
+ *   skipUnderstanding — load saved understanding output from Redis (plan was pre-approved)
+ *   planModification  — user's custom instruction added at approval time
  */
-export async function orchestrateWithEngines(taskId: string): Promise<void> {
+export async function orchestrateWithEngines(
+  taskId: string,
+  options: { skipUnderstanding?: boolean; planModification?: string } = {},
+): Promise<void> {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     select: { id: true, originalGoal: true, userId: true, status: true },
@@ -41,31 +53,76 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
   })).catch(() => {})
 
   try {
-    // ── Engine 1: Understanding ────────────────────────────────────────────
-    redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
-      event: 'task:progress', taskId, step: 'understanding', message: 'Understanding your request…', progress: 10,
-    })).catch(() => {})
+    let understandingOutput: Awaited<ReturnType<InstanceType<typeof UnderstandingEngine>['run']>>
 
-    const understanding = new UnderstandingEngine()
-    const understandingOutput = await understanding.run({
-      taskId,
-      userId: task.userId,
-      goal: task.originalGoal,
-    })
+    if (options.skipUnderstanding) {
+      // ── Load pre-computed understanding output (plan was already approved) ─
+      const saved = await redis.get(understandingKey(taskId))
+      if (!saved) throw new Error(`No saved understanding output for task ${taskId} — plan may have expired`)
+      understandingOutput = JSON.parse(saved) as typeof understandingOutput
+      await redis.del(understandingKey(taskId)) // clean up
 
-    // Check if clarification is needed
-    const clarification = (understandingOutput.orchestratorOutputs?.['IntentOrchestrator'] as Record<string, unknown>)?.['ClarificationBrain'] as Record<string, unknown> | undefined
-    if (clarification?.['needsClarification']) {
-      const questions = clarification?.['clarificationQuestions'] as string[] | undefined
-      if (questions && questions.length > 0) {
-        redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
-          event: 'clarification_needed',
-          taskId,
-          questions: questions.map((q, i) => ({ id: `q_${i}`, question: q, orderIndex: i })),
-        })).catch(() => {})
-        await prisma.task.update({ where: { id: taskId }, data: { status: 'WAITING_CLARIFICATION' } })
-        return
+      redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+        event: 'task:progress', taskId, step: 'architecture', message: 'Plan approved — designing architecture…', progress: 25,
+      })).catch(() => {})
+    } else {
+      // ── Engine 1: Understanding ──────────────────────────────────────────
+      redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+        event: 'task:progress', taskId, step: 'understanding', message: 'Understanding your request…', progress: 10,
+      })).catch(() => {})
+
+      const understanding = new UnderstandingEngine()
+      understandingOutput = await understanding.run({
+        taskId,
+        userId: task.userId,
+        goal: task.originalGoal,
+      })
+
+      // Check if clarification is needed
+      const clarification = (understandingOutput.orchestratorOutputs?.['IntentOrchestrator'] as Record<string, unknown>)?.['ClarificationBrain'] as Record<string, unknown> | undefined
+      if (clarification?.['needsClarification']) {
+        const questions = clarification?.['clarificationQuestions'] as string[] | undefined
+        if (questions && questions.length > 0) {
+          redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+            event: 'clarification_needed',
+            taskId,
+            questions: questions.map((q, i) => ({ id: `q_${i}`, question: q, orderIndex: i })),
+          })).catch(() => {})
+          await prisma.task.update({ where: { id: taskId }, data: { status: 'WAITING_CLARIFICATION' } })
+          return
+        }
       }
+
+      // ── Pause for plan confirmation ──────────────────────────────────────
+      // Extract key intent signals for the plan card
+      const intentOrch = understandingOutput.orchestratorOutputs?.['IntentOrchestrator'] as Record<string, unknown> | undefined
+      const intentBrain = intentOrch?.['IntentBrain'] as Record<string, unknown> | undefined
+      const contextBrain = intentOrch?.['ContextBrain'] as Record<string, unknown> | undefined
+      const complexity = (intentBrain?.['complexity'] as string) ?? 'medium'
+      const detectedTech = (contextBrain?.['detectedTech'] as string[]) ?? []
+      const domain = (contextBrain?.['domain'] as string) ?? 'general'
+
+      // Save understanding output to Redis (TTL: 2h)
+      await redis.set(understandingKey(taskId), JSON.stringify(understandingOutput), 'EX', UNDERSTANDING_TTL)
+
+      // Update task status to awaiting plan approval
+      await prisma.task.update({ where: { id: taskId }, data: { status: 'AWAITING_PLAN_APPROVAL' } })
+
+      // Emit plan_ready — frontend shows approval card
+      redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
+        event: 'plan_ready',
+        taskId,
+        plan: {
+          goal: task.originalGoal.slice(0, 120),
+          complexity,
+          domain,
+          detectedTech,
+          estimatedFiles: complexity === 'low' ? 6 : complexity === 'high' ? 20 : 12,
+          estimatedMinutes: complexity === 'low' ? 1 : complexity === 'high' ? 3 : 2,
+        },
+      })).catch(() => {})
+
+      return  // Job exits — approval endpoint will re-queue with skipUnderstanding: true
     }
 
     redis.publish(`arivarangam:task:${taskId}`, JSON.stringify({
@@ -76,7 +133,10 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
     let buildOutput
     let intelligenceOutput: IntelligenceEngineOutput | undefined
     let retryCount = 0
-    let retryPromptAddition = ''
+    // Prepend any user modification from plan approval stage
+    let retryPromptAddition = options.planModification
+      ? `User modification request at plan approval: ${options.planModification}`
+      : ''
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       retryCount = attempt
@@ -214,6 +274,15 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
       event: 'edit_mode_enabled',
       taskId,
     })).catch(() => {})
+
+    // Generate proactive suggestions in background (Phase 3)
+    if (finalFiles.length > 0) {
+      const codeProject = await prisma.codeProject.findUnique({ where: { taskId }, select: { id: true } })
+      if (codeProject) {
+        generateSuggestions(codeProject.id, finalFiles as Array<{ path: string; content: string; language: string }>)
+          .catch((err) => console.error('[SuggestionEngine] Failed:', err))
+      }
+    }
 
   } catch (err) {
     console.error(`[EngineOrchestrator] Failed for task ${taskId}:`, err)

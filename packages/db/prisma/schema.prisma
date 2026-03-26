@@ -25,7 +25,8 @@ enum UserStatus {
 
 enum TaskStatus {
   PENDING
-  WAITING_CLARIFICATION  // paused — waiting for user to answer pre-task questions
+  WAITING_CLARIFICATION      // paused — waiting for user to answer pre-task questions
+  AWAITING_PLAN_APPROVAL     // paused — waiting for user to approve build plan
   ROUTING
   IN_PROGRESS
   COMPLETED

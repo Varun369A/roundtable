@@ -185,6 +185,31 @@ export async function streamRoutes(app: FastifyInstance) {
         send('clarification_needed', { taskId: task.id, questions })
       }
 
+      // If task is awaiting plan approval — replay plan_ready so the modal shows on reconnect
+      if (task.status === 'AWAITING_PLAN_APPROVAL') {
+        const saved = await redis.get(`sabha:understanding:${task.id}`)
+        if (saved) {
+          try {
+            const understandingOutput = JSON.parse(saved)
+            const intentOrch = understandingOutput?.orchestratorOutputs?.['IntentOrchestrator'] as Record<string, unknown> | undefined
+            const intentBrain = intentOrch?.['IntentBrain'] as Record<string, unknown> | undefined
+            const contextBrain = intentOrch?.['ContextBrain'] as Record<string, unknown> | undefined
+            const complexity = (intentBrain?.['complexity'] as string) ?? 'medium'
+            send('plan_ready', {
+              taskId: task.id,
+              plan: {
+                goal: task.originalGoal.slice(0, 120),
+                complexity,
+                domain: (contextBrain?.['domain'] as string) ?? 'general',
+                detectedTech: (contextBrain?.['detectedTech'] as string[]) ?? [],
+                estimatedFiles: complexity === 'low' ? 6 : complexity === 'high' ? 20 : 12,
+                estimatedMinutes: complexity === 'low' ? 1 : complexity === 'high' ? 3 : 2,
+              },
+            })
+          } catch { /* ignore parse errors */ }
+        }
+      }
+
       // If task failed or cancelled — send final event and close immediately
       if (task.status === 'FAILED' || task.status === 'CANCELLED') {
         send('task_' + task.status.toLowerCase(), { taskId: task.id })
