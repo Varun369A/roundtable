@@ -11,7 +11,7 @@ import type { NextRequest } from 'next/server'
  * These are injected here (not just next.config.js) because nginx proxy
  * can strip or override response headers set via next.config.js headers().
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const response = NextResponse.next()
