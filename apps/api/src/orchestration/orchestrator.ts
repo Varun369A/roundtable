@@ -3,12 +3,23 @@ import type { AIModel, TemplateAgent, TaskCategory } from '@arivarangam/types'
 import { parseIntent } from './intent-parser'
 import { decomposeTask, type SubtaskDefinition } from './task-decomposer'
 import { initializeContext, appendSubtaskResult, buildPromptWithContext, clearContextCache, getContext } from './context-manager'
-import { enqueueTask } from '../jobs/queue'
+import { enqueueTask, enqueueCodeGenTask } from '../jobs/queue'
 import { processInputLanguage, getUserLanguagePreference } from './language-layer'
 import { generateClarifications, saveClarifications, buildClarificationContext } from '../lib/clarification-generator'
 import { getMemoryContext } from '../lib/memory-manager'
 import { detectSkillsAndAwards } from '../jobs/skill-detector'
 import { redis } from '../lib/redis'
+
+/** Code generation keywords — route these through the 3-Engine pipeline */
+const CODE_GEN_SIGNALS = [
+  'build', 'create', 'generate', 'make', 'develop', 'code', 'app', 'website',
+  'api', 'backend', 'frontend', 'fullstack', 'application', 'system', 'platform',
+]
+
+function isCodeGenerationTask(goal: string): boolean {
+  const lower = goal.toLowerCase()
+  return CODE_GEN_SIGNALS.filter(s => lower.includes(s)).length >= 2
+}
 
 // Prisma enum uses underscore identifiers (gpt_4o) but types use dash strings (gpt-4o)
 function toPrismaModel(model: string): string {
@@ -36,6 +47,14 @@ export async function orchestrateTask(taskId: string): Promise<void> {
   })
 
   if (!task) throw new Error(`Task ${taskId} not found`)
+
+  // ── Route code generation tasks to the 3-Engine pipeline ─────────────────
+  // Templates always use the roundtable flow. Auto mode routes based on goal.
+  if (!task.templateId && isCodeGenerationTask(task.originalGoal)) {
+    console.log(`[Orchestrator] Routing task ${taskId} to 3-Engine code generation pipeline`)
+    await enqueueCodeGenTask(taskId)
+    return
+  }
 
   // If task is resuming after clarification, skip the clarification phase
   const isResuming = task.status === 'WAITING_CLARIFICATION'

@@ -796,6 +796,44 @@ async function _enqueueNextSubtasks(taskId: string): Promise<void> {
   )
 }
 
+// ─── Code Generation Queue (3-Engine Pipeline) ───────────────────────────────
+
+export const codeGenQueue = new Queue<{ taskId: string }>('sabha-codegen', {
+  connection,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: { type: 'exponential', delay: 5000 },
+    removeOnComplete: { count: 500 },
+    removeOnFail: { count: 200 },
+  },
+})
+
+new Worker<{ taskId: string }>(
+  'sabha-codegen',
+  async (job: Job<{ taskId: string }>) => {
+    const { taskId } = job.data
+    console.log(`[CodeGenWorker] Starting 3-engine pipeline for task ${taskId}`)
+    const { orchestrateWithEngines } = await import('../orchestration/engine-orchestrator')
+    await orchestrateWithEngines(taskId)
+    console.log(`[CodeGenWorker] Completed task ${taskId}`)
+  },
+  {
+    connection,
+    concurrency: 2,              // code gen is heavy — limit concurrency
+    lockDuration: 600_000,       // 10 min lock — full pipeline can take 3-5 min
+    stalledInterval: 120_000,
+    drainDelay: 5_000,
+  }
+)
+
+/**
+ * Enqueue a code generation task through the 3-Engine pipeline.
+ * Used for tasks where isCodeTask = true (full app/code generation).
+ */
+export async function enqueueCodeGenTask(taskId: string): Promise<void> {
+  await codeGenQueue.add(`codegen_${taskId}`, { taskId }, { jobId: `codegen_${taskId}` })
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**

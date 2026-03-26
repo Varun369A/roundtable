@@ -368,6 +368,10 @@ model Task {
   timeToCompleteMs  Int?        // ms from createdAt → completedAt (null if not completed)
   templateUsed      Boolean     @default(false) // was a template used?
 
+  // Engine pipeline quality (code generation tasks)
+  qualityScore      Int?        // 0-100 overall quality score from engine pipeline
+  qualityGrade      String?     // A/B/C/D/F from GateBrain
+
   // Metadata
   ipAddress     String?
   userAgent     String?
@@ -718,20 +722,24 @@ enum CodeProjectStatus {
   ASSEMBLING
   READY
   FAILED
+  DRAFT     // engine pipeline: generation completed but quality is low
+  COMPLETE  // engine pipeline: generation completed with passing quality
 }
 
 model CodeProject {
-  id        String            @id @default(cuid())
-  taskId    String            @unique
-  userId    String
-  name      String            // derived from task title
-  files     Json              // CodeFile[] { path, content, language }
-  status    CodeProjectStatus @default(ASSEMBLING)
-  zipUrl    String?           // R2/local URL after ZIP generation
-  repoUrl   String?           // GitHub repo URL if pushed
-  pushedAt  DateTime?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id           String            @id @default(cuid())
+  taskId       String            @unique
+  userId       String
+  name         String            // derived from task title
+  files        Json              // CodeFile[] { path, content, language }
+  status       CodeProjectStatus @default(ASSEMBLING)
+  zipUrl       String?           // R2/local URL after ZIP generation
+  repoUrl      String?           // GitHub repo URL if pushed
+  pushedAt     DateTime?
+  qualityScore Int?              // 0-100 (engine pipeline)
+  qualityGrade String?           // A/B/C/D/F (engine pipeline)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   task    Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user    User            @relation(fields: [userId], references: [id])
@@ -1035,13 +1043,14 @@ model TaskClarification {
 model UserMemory {
   id          String   @id @default(cuid())
   userId      String
-  category    String   // "business" | "preferences" | "audience" | "tone" | "technical" | "personal"
+  category    String   @default("general") // "business" | "preferences" | "audience" | "tone" | "technical" | "personal"
   key         String   // e.g. "business_type", "target_audience", "writing_tone"
   value       String   // stored value (text)
-  source      String   @default("user_set") // "user_set" | "inferred" | "onboarding"
+  source      String   @default("user_set") // "user_set" | "inferred" | "onboarding" | "explicit_feedback"
   confidence  Float    @default(1.0)    // 0-1; inferred facts can decay
   usageCount  Int      @default(0)      // times injected into prompts
   isActive    Boolean  @default(true)
+  type        String?  // engine pipeline: "avoid_pattern" | "prefer_pattern" | "tech_stack" etc.
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1767,10 +1776,17 @@ model TaskVersion {
   id            String   @id @default(cuid())
   taskId        String
   versionNumber Int
-  description   String                          // "Initial build" | "Correction: <desc>"
-  snapshot      Json                            // { subtaskId: { content, model, role, title } }
-  githubCommit  String?                         // commit SHA if auto-pushed
+  description   String   @default("") // "Initial build" | "Correction: <desc>"
+  snapshot      Json?                  // { subtaskId: { content, model, role, title } } — roundtable
+  githubCommit  String?                // commit SHA if auto-pushed
   createdAt     DateTime @default(now())
+
+  // Engine pipeline fields (code generation)
+  qualityScore  Int?     // 0-100 overall quality score
+  qualityGrade  String?  // A/B/C/D/F
+  fileCount     Int?     // number of generated files
+  filePaths     String[] @default([]) // paths of all generated files
+  isCurrentBest Boolean  @default(false) // true = this version has the highest score
 
   task        Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
   corrections TaskCorrection[]
@@ -1785,13 +1801,21 @@ model TaskCorrection {
   id                 String    @id @default(cuid())
   taskId             String
   userId             String
-  description        String    @db.Text          // User's natural language correction
+  description        String    @default("") @db.Text // User's natural language correction
   affectedCategories String[]                    // TaskCategory values that were re-run
   status             String    @default("PENDING") // PENDING | IN_PROGRESS | COMPLETED | FAILED
   resultVersionId    String?                     // TaskVersion created after this correction
   githubCommitUrl    String?
   createdAt          DateTime  @default(now())
   completedAt        DateTime?
+
+  // Engine pipeline fields (FeedbackProcessorBrain)
+  correctionType     String?   // "positive" | "negative" | "correction"
+  correctionText     String?   @db.Text
+  avoidPattern       String?   // pattern to avoid in future generations
+  preferPattern      String?   // pattern to prefer
+  sentiment          String?   // "positive" | "negative" | "neutral"
+  weight             Float?    // 0-1 confidence weight
 
   task          Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
   resultVersion TaskVersion? @relation(fields: [resultVersionId], references: [id])
@@ -2483,3 +2507,72 @@ model AdminBroadcast {
   @@index([createdAt])
   @@map("admin_broadcasts")
 }
+
+// ─── Engine Pipeline Models (3-Engine / 81-Brain system) ──────────────────────
+
+// Tracks execution of each brain in the pipeline for metrics and debugging
+model BrainExecution {
+  id               String   @id @default(cuid())
+  taskId           String
+  userId           String
+  engineName       String   // "UnderstandingEngine" | "BuildEngine" | "IntelligenceEngine"
+  orchestratorName String
+  brainName        String
+  inputHash        String   // hash of input for deduplication
+  outputSummary    String?  @db.Text
+  durationMs       Int
+  tokensUsed       Int      @default(0)
+  retryCount       Int      @default(0)
+  success          Boolean  @default(true)
+  error            String?
+  createdAt        DateTime @default(now())
+
+  @@index([taskId])
+  @@index([engineName, brainName])
+  @@map("brain_executions")
+}
+
+// Tracks errors detected and escalated by the Error orchestrator
+model TaskError {
+  id         String   @id @default(cuid())
+  taskId     String
+  userId     String
+  errorType  String   // "ESCALATION" | "DETECTION" | "RECOVERY"
+  message    String   @db.Text
+  context    Json?    // { diagnoses, systemicIssues, goal }
+  resolved   Boolean  @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([taskId])
+  @@index([userId, errorType])
+  @@map("task_errors")
+}
+
+// Code knowledge base — stores high-quality code generation examples for learning
+// Separate from ArivarangamKnowledge (which is for roundtable synthesis records)
+model CodeKnowledge {
+  id                  String   @id @default(cuid())
+  taskId              String   @unique
+  userId              String
+  topic               String   // first 5 words of goal, normalized
+  summary             String   @db.Text // full goal (up to 200 chars)
+  techStack           String[] // detected tech stack
+  architecturePattern String   // fullstack-next | api-only | frontend-only etc.
+  qualityGrade        String   // A/B/C/D/F
+  qualityScore        Int      // 0-100
+  fileCount           Int
+  exampleFilePath     String?  // path of most representative generated file
+  tags                String[] // domain tags
+  keywords            String[] // goal + stack keywords for search
+  usageCount          Int      @default(0) // times retrieved by KnowledgeBrain
+  createdAt           DateTime @default(now())
+
+  @@index([qualityScore])
+  @@index([tags])
+  @@index([techStack])
+  @@map("code_knowledge")
+}
+
+// Also add qualityScore to Task for engine pipeline completion
+// (Task.qualityScore already defined elsewhere — skipped)
