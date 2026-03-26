@@ -3,8 +3,9 @@ import { BaseConnector, ConnectorInput, ConnectorOutput } from './base.connector
 import type { AIModel } from '@arivarangam/types'
 
 const MODEL_MAP: Partial<Record<AIModel, string>> = {
-  'claude-3-5-sonnet': 'claude-sonnet-4-5',
-  'claude-3-opus':     'claude-opus-4-5',
+  'claude-3-5-sonnet': 'claude-sonnet-4-6',
+  'claude-3-opus':     'claude-opus-4-6',
+  'claude-haiku':      'claude-haiku-4-5-20251001',
 }
 
 const SYSTEM = 'You are an expert AI assistant working as part of Arivarangam, a multi-AI orchestration platform. Produce high-quality, complete, actionable output. Do not add unnecessary preamble.'
@@ -82,4 +83,28 @@ export class ClaudeConnector extends BaseConnector {
   async isAvailable(): Promise<boolean> {
     return Boolean(process.env.ANTHROPIC_API_KEY)
   }
+}
+
+// Singleton instances
+export const claudeHaiku  = new ClaudeConnector('claude-haiku')
+export const claudeSonnet = new ClaudeConnector('claude-3-5-sonnet')
+
+/**
+ * Simple helper used by AI-powered brains.
+ * Uses Claude Haiku by default (fast + cheap). Pass model: 'sonnet' for heavier tasks.
+ */
+export async function callClaude(
+  prompt: string,
+  options: { maxTokens?: number; model?: 'haiku' | 'sonnet'; onToken?: (chunk: string) => void } = {},
+): Promise<string> {
+  const connector = options.model === 'sonnet' ? claudeSonnet : claudeHaiku
+  const result = await connector.execute({
+    prompt,
+    model: connector.model,
+    taskId:    'internal',
+    subtaskId: 'internal',
+    onToken:   options.onToken,
+    options:   { maxTokens: options.maxTokens || 4096 },
+  })
+  return result.content || ''
 }
