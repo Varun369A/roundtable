@@ -70,7 +70,7 @@ export class FileGeneratorBrain extends Brain<FileGeneratorBrainInput, FileGener
       const prompt = this.buildPrompt(fileDef, generatedFiles, input)
 
       try {
-        const content = await callGroq(prompt, { maxTokens: 2500, fast: true })
+        const content = await callGroq(prompt, { maxTokens: 4000 })
         this._tokensUsed += 2500
 
         const cleanedContent = this.extractCode(content, fileDef.path)
