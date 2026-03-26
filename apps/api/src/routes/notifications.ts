@@ -59,25 +59,41 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
   })
 
   // GET /stream — SSE for live notification delivery
-  app.get('/stream', async (request, reply) => {
-    const userId  = request.user!.id
-    const channel = `arivarangam:user:${userId}`
-
-    // Manually set CORS + SSE headers.
-    // reply.hijack() bypasses Fastify's reply lifecycle (including @fastify/cors),
-    // so CORS headers must be set explicitly here — same pattern as stream.ts.
+  // NOTE: auth is handled manually here (not via preHandler hook) so that
+  // CORS headers are always set before any response, including auth failures.
+  app.get('/stream', { preHandler: [] }, async (request, reply) => {
     const allowedOrigins = (process.env.CORS_ORIGINS || process.env.WEB_URL || 'http://localhost:3000')
       .split(',').map((o: string) => o.trim())
     const requestOrigin = request.headers.origin || ''
     const acao = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0]
 
-    reply.raw.writeHead(200, {
-      'Content-Type':                     'text/event-stream',
-      'Cache-Control':                    'no-cache, no-transform',
-      'Connection':                       'keep-alive',
-      'X-Accel-Buffering':               'no',
-      'Access-Control-Allow-Origin':     acao,
+    const corsHeaders = {
+      'Access-Control-Allow-Origin':      acao,
       'Access-Control-Allow-Credentials': 'true',
+    }
+
+    // Manually authenticate — must happen after CORS headers are ready
+    try {
+      const queryToken = (request.query as Record<string, string>)?.token
+      if (queryToken && !request.headers.authorization && !request.cookies?.accessToken) {
+        request.headers['authorization'] = `Bearer ${queryToken}`
+      }
+      await request.jwtVerify()
+    } catch {
+      reply.raw.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders })
+      reply.raw.end(JSON.stringify({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' } }))
+      return
+    }
+
+    const userId  = request.user!.id
+    const channel = `arivarangam:user:${userId}`
+
+    reply.raw.writeHead(200, {
+      'Content-Type':        'text/event-stream',
+      'Cache-Control':       'no-cache, no-transform',
+      'Connection':          'keep-alive',
+      'X-Accel-Buffering':  'no',
+      ...corsHeaders,
     })
     reply.hijack()
 
