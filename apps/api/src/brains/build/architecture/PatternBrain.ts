@@ -27,7 +27,7 @@ export interface PatternBrainOutput {
   statePattern: 'zustand' | 'context' | 'redux' | 'none'
 }
 
-export class PatternBrain extends Brain<PatternBrainInput, PatternBrainOutput> {
+export class ArchitecturePatternBrain extends Brain<PatternBrainInput, PatternBrainOutput> {
   readonly brainName = 'PatternBrain'
   readonly orchestratorName = 'ArchitectureOrchestrator'
   readonly engineName = 'BuildEngine'

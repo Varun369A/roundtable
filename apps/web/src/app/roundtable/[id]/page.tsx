@@ -500,11 +500,10 @@ export default function GenerationPage({ params }: { params: Promise<{ id: strin
         <ClarificationModal
           questions={clarificationQuestions}
           taskId={taskId}
-          onSubmit={() => {
+          onComplete={() => {
             setShowClarification(false)
             setTaskStarted(false)
           }}
-          onClose={() => setShowClarification(false)}
         />
       )}
     </div>

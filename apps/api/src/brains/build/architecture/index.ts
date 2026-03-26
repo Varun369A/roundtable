@@ -1,7 +1,7 @@
 export { RequirementsBrain } from './RequirementsBrain'
 export { ArchitectureBrain } from './ArchitectureBrain'
 export { KnowledgeBrain } from './KnowledgeBrain'
-export { PatternBrain } from './PatternBrain'
+export { ArchitecturePatternBrain } from './PatternBrain'
 export { DataFlowBrain } from './DataFlowBrain'
 export { APIBrain } from './APIBrain'
 export { SchemaBrain } from './SchemaBrain'
