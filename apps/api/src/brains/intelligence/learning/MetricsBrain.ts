@@ -66,8 +66,8 @@ export class MetricsBrain extends Brain<MetricsBrainInput, MetricsBrainOutput> {
       // Aggregate system metrics (last 24h)
       const since = new Date(Date.now() - 86400000)
       const recentTasks = await prisma.task.findMany({
-        where: { createdAt: { gte: since }, status: 'completed' },
-        select: { qualityScore: true, metadata: true },
+        where: { createdAt: { gte: since }, status: 'COMPLETED' },
+        select: { qualityScore: true },
         take: 100,
       })
 

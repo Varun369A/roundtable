@@ -8,6 +8,10 @@ node_modules/
 dist/
 build/
 
+# Source directories named 'build' are NOT build outputs — include them
+!apps/api/src/brains/build/
+!apps/api/src/orchestrators/build/
+
 # Environment files
 .env
 .env.local

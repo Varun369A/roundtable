@@ -54,7 +54,7 @@ export async function orchestrateWithEngines(taskId: string): Promise<void> {
     })
 
     // Check if clarification is needed
-    const clarification = understandingOutput.orchestratorOutputs?.['IntentOrchestrator']?.['ClarificationBrain'] as Record<string, unknown> | undefined
+    const clarification = (understandingOutput.orchestratorOutputs?.['IntentOrchestrator'] as Record<string, unknown>)?.['ClarificationBrain'] as Record<string, unknown> | undefined
     if (clarification?.['needsClarification']) {
       const questions = clarification?.['clarificationQuestions'] as string[] | undefined
       if (questions && questions.length > 0) {

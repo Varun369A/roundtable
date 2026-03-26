@@ -61,7 +61,6 @@ export class VersioningBrain extends Brain<VersioningBrainInput, VersioningBrain
       await prisma.taskVersion.create({
         data: {
           taskId,
-          userId,
           versionNumber,
           qualityScore: overallScore,
           qualityGrade,

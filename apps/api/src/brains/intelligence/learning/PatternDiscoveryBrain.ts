@@ -85,7 +85,7 @@ export class PatternDiscoveryBrain extends Brain<PatternDiscoveryBrainInput, Pat
         }))
 
       const allTech = recentTasks.flatMap(t => {
-        const meta = t.metadata as Record<string, unknown> | null
+        const meta = t.contextObject as Record<string, unknown> | null
         return (meta?.techStack as string[]) ?? []
       })
       const techFreq = new Map<string, number>()

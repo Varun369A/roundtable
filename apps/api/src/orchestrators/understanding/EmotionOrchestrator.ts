@@ -68,7 +68,7 @@ export class EmotionOrchestrator extends Orchestrator {
         return { userId: input.userId }
 
       case 'ExpectationBrain':
-        return { userId: input.userId, persona: input.previousEngineOutputs?.['IntentOrchestrator']?.['PersonaBrain'] ?? 'intermediate' }
+        return { userId: input.userId, persona: (input.previousEngineOutputs?.['IntentOrchestrator'] as Record<string, unknown>)?.['PersonaBrain'] ?? 'intermediate' }
 
       case 'CommunicationBrain':
         return {

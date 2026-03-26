@@ -25,10 +25,10 @@ export class FeedbackMemoryBrain extends Brain<FeedbackMemoryBrainInput, Feedbac
       where: { task: { userId: input.userId } },
       orderBy: { createdAt: 'desc' },
       take: 20,
-      select: { instruction: true },
+      select: { description: true },
     })
 
-    const instructions = corrections.map(c => c.instruction.toLowerCase())
+    const instructions = corrections.map(c => c.description.toLowerCase())
     const totalFeedbackGiven = corrections.length
 
     // Pattern detection in correction messages
