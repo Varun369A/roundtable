@@ -274,7 +274,7 @@ export default function LandingPage() {
                 <br />{'      '}<span className="text-slate-600">{'// AI-generated code'}</span>
                 <br />{'    '}<span className="text-slate-400">{'</main>'}</span>
                 <br />{'  '})
-                <br />}
+                <br />{'}'}
               </div>
               {/* Preview + terminal */}
               <div className="w-52 bg-slate-900 border-l border-slate-800 flex flex-col">
